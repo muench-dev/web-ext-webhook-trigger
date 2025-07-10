@@ -148,3 +148,8 @@ document.getElementById("open-options").addEventListener("click", (e) => {
   e.preventDefault();
   browser.runtime.openOptionsPage();
 });
+
+// Export for testing in Node environment
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {};
+}
