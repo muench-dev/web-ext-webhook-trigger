@@ -57,8 +57,8 @@ function replaceI18nPlaceholders() {
   }
 }
 
-// If using modules and need to export:
-// export { replaceI18nPlaceholders };
-// However, for simple script inclusion, it will be globally available.
-// Adding a console log to confirm loading, can be removed later.
-console.log("utils.js loaded, replaceI18nPlaceholders defined.");
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { replaceI18nPlaceholders };
+} else {
+  window.replaceI18nPlaceholders = replaceI18nPlaceholders;
+}
