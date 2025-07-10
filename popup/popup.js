@@ -57,9 +57,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       button.textContent = webhook.label;
       button.dataset.url = webhook.url;
       button.dataset.label = webhook.label;
+      button.dataset.webhookId = webhook.id;
       button.classList.add("webhook-btn");
       buttonsContainer.appendChild(button);
     });
+    // Store webhooks in a map for quick lookup by id
+    window._webhookMap = Object.fromEntries(webhooks.map(w => [w.id, w]));
   }
 });
 
@@ -75,6 +78,8 @@ document
     const url = button.dataset.url;
     const originalLabel = button.dataset.label;
     const statusMessage = document.getElementById("status-message");
+    const webhookId = button.dataset.webhookId;
+    const webhook = window._webhookMap ? window._webhookMap[webhookId] : null;
 
     // Prevent multiple clicks
     if (button.disabled) {
@@ -106,7 +111,6 @@ document
         tab: {
           title: activeTab.title,
           url: currentUrl,
-          favIconUrl: activeTab.favIconUrl,
           id: activeTab.id,
           windowId: activeTab.windowId,
           index: activeTab.index,
@@ -120,13 +124,36 @@ document
         platform: platformInfo,
         triggeredAt: new Date().toISOString(),
       };
-
-      // Send the POST request
-      const response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      if (webhook && webhook.identifier) {
+        payload.identifier = webhook.identifier;
+      }
+      // Prepare headers
+      let headers = { "Content-Type": "application/json" };
+      if (webhook && Array.isArray(webhook.headers)) {
+        webhook.headers.forEach(h => {
+          if (h.key && h.value) headers[h.key] = h.value;
+        });
+      }
+      // Determine method
+      const method = webhook && webhook.method ? webhook.method : "POST";
+      // Prepare fetch options
+      const fetchOpts = {
+        method,
+        headers,
+      };
+      if (method === "POST") {
+        fetchOpts.body = JSON.stringify(payload);
+      } else if (method === "GET") {
+        // For GET, append payload as query param
+        const urlObj = new URL(url);
+        urlObj.searchParams.set("payload", encodeURIComponent(JSON.stringify(payload)));
+        fetchOpts.body = undefined;
+        // Overwrite url for fetch
+        fetchOpts._url = urlObj.toString();
+      }
+      // Send the request
+      const fetchUrl = fetchOpts._url || url;
+      const response = await fetch(fetchUrl, fetchOpts);
 
       if (!response.ok) {
         throw new Error(browser.i18n.getMessage("popupErrorHttp", response.status));

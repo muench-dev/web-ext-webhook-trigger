@@ -100,5 +100,13 @@
   "optionsDeleteButton": {
     "message": "Delete",
     "description": "Text for the delete button."
+  },
+  "optionsEditButton": {
+    "message": "Edit",
+    "description": "Text for the edit button."
+  },
+  "optionsCancelEditButton": {
+    "message": "Cancel",
+    "description": "Text for the cancel button in edit mode."
   }
 }

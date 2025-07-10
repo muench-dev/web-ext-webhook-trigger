@@ -74,7 +74,13 @@ const loadWebhooks = async () => {
       deleteButton.textContent = browser.i18n.getMessage("optionsDeleteButton");
       deleteButton.classList.add("delete-btn");
 
+      // Add edit button
+      const editButton = document.createElement("button");
+      editButton.textContent = browser.i18n.getMessage("optionsEditButton") || "Edit";
+      editButton.classList.add("edit-btn");
+
       listItem.appendChild(textContent);
+      listItem.appendChild(editButton);
       listItem.appendChild(deleteButton);
       list.appendChild(listItem);
     });
@@ -86,43 +92,153 @@ const saveWebhooks = (webhooks) => {
   return browser.storage.sync.set({ webhooks });
 };
 
-// Event listener for adding a new webhook
-document
-  .getElementById("add-webhook-form")
-  .addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const labelInput = document.getElementById("webhook-label");
-    const urlInput = document.getElementById("webhook-url");
+// Track edit mode state
+let editWebhookId = null;
 
-    const newWebhook = {
-      id: crypto.randomUUID(), // Unique ID for easy deletion
-      label: labelInput.value.trim(),
-      url: urlInput.value.trim(),
-    };
+// Event listener for adding or editing a webhook
+const form = document.getElementById("add-webhook-form");
+const labelInput = document.getElementById("webhook-label");
+const urlInput = document.getElementById("webhook-url");
+const methodSelect = document.getElementById("webhook-method");
+const identifierInput = document.getElementById("webhook-identifier");
+const headersListDiv = document.getElementById("headers-list");
+const headerKeyInput = document.getElementById("header-key");
+const headerValueInput = document.getElementById("header-value");
+const addHeaderBtn = document.getElementById("add-header-btn");
+const cancelEditBtn = document.getElementById("cancel-edit-btn");
+let headers = [];
 
-    const { webhooks = [] } = await browser.storage.sync.get("webhooks");
-    webhooks.push(newWebhook);
-
-    await saveWebhooks(webhooks);
-
-    // Reset form and reload list
-    labelInput.value = "";
-    urlInput.value = "";
-    loadWebhooks();
+function renderHeaders() {
+  headersListDiv.innerHTML = '';
+  headers.forEach((header, idx) => {
+    const div = document.createElement('div');
+    div.style.display = 'flex';
+    div.style.alignItems = 'center';
+    div.style.gap = '8px';
+    div.style.marginBottom = '4px';
+    div.innerHTML = `
+      <span style="flex:1;"><strong>${header.key}</strong>: ${header.value}</span>
+      <button type="button" data-idx="${idx}" class="remove-header-btn">Remove</button>
+    `;
+    headersListDiv.appendChild(div);
   });
+}
 
-// Event listener for deleting a webhook
-document.getElementById("webhook-list").addEventListener("click", async (e) => {
-  if (e.target.classList.contains("delete-btn")) {
-    const webhookId = e.target.parentElement.dataset.id;
-    let { webhooks = [] } = await browser.storage.sync.get("webhooks");
-
-    // Filter out the webhook to be deleted
-    webhooks = webhooks.filter((webhook) => webhook.id !== webhookId);
-
-    await saveWebhooks(webhooks);
-    loadWebhooks(); // Reload list
+addHeaderBtn.addEventListener('click', () => {
+  const key = headerKeyInput.value.trim();
+  const value = headerValueInput.value.trim();
+  if (key && value) {
+    headers.push({ key, value });
+    renderHeaders();
+    headerKeyInput.value = '';
+    headerValueInput.value = '';
+    headerKeyInput.focus();
   }
+});
+
+headersListDiv.addEventListener('click', (e) => {
+  if (e.target.classList.contains('remove-header-btn')) {
+    const idx = parseInt(e.target.getAttribute('data-idx'), 10);
+    headers.splice(idx, 1);
+    renderHeaders();
+  }
+});
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const label = labelInput.value.trim();
+  const url = urlInput.value.trim();
+  const method = methodSelect.value;
+  const identifier = identifierInput.value.trim();
+  let { webhooks = [] } = await browser.storage.sync.get("webhooks");
+
+  if (editWebhookId) {
+    // Edit mode: update existing webhook
+    webhooks = webhooks.map((wh) =>
+      wh.id === editWebhookId ? { ...wh, label, url, method, headers: [...headers], identifier } : wh
+    );
+    editWebhookId = null;
+    cancelEditBtn.classList.add("hidden");
+  } else {
+    // Add mode: add new webhook
+    const newWebhook = {
+      id: crypto.randomUUID(),
+      label,
+      url,
+      method,
+      headers: [...headers],
+      identifier,
+    };
+    webhooks.push(newWebhook);
+  }
+
+  await saveWebhooks(webhooks);
+  labelInput.value = "";
+  urlInput.value = "";
+  methodSelect.value = "POST";
+  identifierInput.value = "";
+  headers = [];
+  renderHeaders();
+  // Always reset to save button after submit
+  form.querySelector('button[type="submit"]').textContent = browser.i18n.getMessage("optionsSaveButton") || "Save Webhook";
+  loadWebhooks();
+});
+
+// Edit and delete event listeners
+const webhookList = document.getElementById("webhook-list");
+webhookList.addEventListener("click", async (e) => {
+  const listItem = e.target.closest("li");
+  if (!listItem) return;
+  const webhookId = listItem.dataset.id;
+  let { webhooks = [] } = await browser.storage.sync.get("webhooks");
+
+  if (e.target.classList.contains("delete-btn")) {
+    // Delete webhook
+    webhooks = webhooks.filter((webhook) => webhook.id !== webhookId);
+    await saveWebhooks(webhooks);
+    loadWebhooks();
+    // If deleting the one being edited, reset form
+    if (editWebhookId === webhookId) {
+      editWebhookId = null;
+      labelInput.value = "";
+      urlInput.value = "";
+      methodSelect.value = "POST";
+      identifierInput.value = "";
+      headers = [];
+      renderHeaders();
+      cancelEditBtn.classList.add("hidden");
+      form.querySelector('button[type="submit"]').textContent = browser.i18n.getMessage("optionsSaveButton") || "Save Webhook";
+    }
+  } else if (e.target.classList.contains("edit-btn")) {
+    // Edit webhook
+    const webhook = webhooks.find((wh) => wh.id === webhookId);
+    if (webhook) {
+      editWebhookId = webhookId;
+      labelInput.value = webhook.label;
+      urlInput.value = webhook.url;
+      methodSelect.value = webhook.method || "POST";
+      identifierInput.value = webhook.identifier || "";
+      headers = Array.isArray(webhook.headers) ? [...webhook.headers] : [];
+      renderHeaders();
+      cancelEditBtn.classList.remove("hidden");
+      // Always set to save button when entering edit mode
+      form.querySelector('button[type="submit"]').textContent = browser.i18n.getMessage("optionsSaveButton") || "Save Webhook";
+      labelInput.focus();
+    }
+  }
+});
+
+// Cancel edit
+cancelEditBtn.addEventListener("click", () => {
+  editWebhookId = null;
+  labelInput.value = "";
+  urlInput.value = "";
+  methodSelect.value = "POST";
+  identifierInput.value = "";
+  headers = [];
+  renderHeaders();
+  cancelEditBtn.classList.add("hidden");
+  form.querySelector('button[type="submit"]').textContent = browser.i18n.getMessage("optionsSaveButton") || "Save Webhook";
 });
 
 // Show webhooks on page load
@@ -131,10 +247,10 @@ document.addEventListener("DOMContentLoaded", () => {
   replaceI18nPlaceholders();
 
   // Set localized placeholder for webhook-label input
-  const labelInput = document.getElementById("webhook-label");
-  if (labelInput) {
-    labelInput.placeholder = browser.i18n.getMessage("optionsLabelInputPlaceholder");
-  }
+  labelInput.placeholder = browser.i18n.getMessage("optionsLabelInputPlaceholder");
+
+  // Set localized label for cancel edit button
+  cancelEditBtn.textContent = browser.i18n.getMessage("optionsCancelEditButton") || "Cancel";
 
   // Load webhooks
   loadWebhooks();

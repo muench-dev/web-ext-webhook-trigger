@@ -31,7 +31,28 @@
                         required
                     />
                 </div>
+                <div class="form-group">
+                    <label for="webhook-method">HTTP Method</label>
+                    <select id="webhook-method">
+                        <option value="POST">POST</option>
+                        <option value="GET">GET</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Additional HTTP Headers</label>
+                    <div id="headers-list"></div>
+                    <div style="display: flex; gap: 8px; margin-top: 5px;">
+                        <input type="text" id="header-key" placeholder="Header Name" style="flex:1;" />
+                        <input type="text" id="header-value" placeholder="Header Value" style="flex:1;" />
+                        <button type="button" id="add-header-btn">Add</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="webhook-identifier">Identifier (optional)</label>
+                    <input type="text" id="webhook-identifier" placeholder="Optional identifier" />
+                </div>
                 <button type="submit">__MSG_optionsSaveButton__</button>
+                <button type="button" id="cancel-edit-btn" class="hidden">__MSG_optionsCancelEditButton__</button>
             </form>
 
             <h2>__MSG_optionsStoredWebhooksHeader__</h2>

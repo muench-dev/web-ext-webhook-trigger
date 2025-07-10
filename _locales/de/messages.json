@@ -100,5 +100,13 @@
   "optionsDeleteButton": {
     "message": "Löschen",
     "description": "Text für den Löschen-Button."
+  },
+  "optionsEditButton": {
+    "message": "Bearbeiten",
+    "description": "Text für den Bearbeiten-Button."
+  },
+  "optionsCancelEditButton": {
+    "message": "Abbrechen",
+    "description": "Text für den Abbrechen-Button im Bearbeiten-Modus."
   }
 }
