@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="de">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>__MSG_optionsTitle__</title>
+        <link rel="stylesheet" href="options.css" />
+    </head>
+    <body>
+        <div class="container">
+            <h1>__MSG_optionsPageHeader__</h1>
+            <p>__MSG_optionsPageDescription__</p>
+
+            <form id="add-webhook-form">
+                <h2>__MSG_optionsAddWebhookHeader__</h2>
+                <div class="form-group">
+                    <label for="webhook-label">__MSG_optionsLabelInputLabel__</label>
+                    <input
+                        type="text"
+                        id="webhook-label"
+                        placeholder="__MSG_optionsLabelInputPlaceholder__"
+                        required
+                    />
+                </div>
+                <div class="form-group">
+                    <label for="webhook-url">__MSG_optionsUrlInputLabel__</label>
+                    <input
+                        type="url"
+                        id="webhook-url"
+                        placeholder="https://your-webhook-url.com/..."
+                        required
+                    />
+                </div>
+                <button type="submit">__MSG_optionsSaveButton__</button>
+            </form>
+
+            <h2>__MSG_optionsStoredWebhooksHeader__</h2>
+            <div id="webhook-list-container">
+                <ul id="webhook-list">
+                    <!-- Gespeicherte Webhooks werden hier dynamisch eingefügt -->
+                </ul>
+                <p id="no-webhooks-message" class="hidden">
+                    __MSG_optionsNoWebhooksMessage__
+                </p>
+            </div>
+        </div>
+
+        <script src="options.js"></script>
+    </body>
+</html>

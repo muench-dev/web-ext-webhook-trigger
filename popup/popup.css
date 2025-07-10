@@ -1,0 +1,98 @@
+body {
+    font-family:
+        -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+        sans-serif;
+    width: 300px;
+    padding: 0;
+    margin: 0;
+}
+
+.container {
+    padding: 15px;
+}
+
+.header {
+    text-align: center;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.header h3 {
+    margin: 0;
+    color: #333;
+}
+
+#buttons-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.webhook-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 1em;
+    color: #fff;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition:
+        background-color 0.2s ease-in-out,
+        transform 0.1s ease;
+}
+
+.webhook-btn:hover {
+    background-color: #0056b3;
+}
+
+.webhook-btn:active {
+    transform: scale(0.98);
+}
+
+.webhook-btn:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+}
+
+.no-hooks-msg {
+    color: #666;
+    text-align: center;
+    padding: 10px;
+}
+
+#status-message {
+    margin-top: 15px;
+    padding: 8px;
+    text-align: center;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+#status-message.success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+#status-message.error {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.footer {
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px solid #ccc;
+    text-align: center;
+}
+
+.footer a {
+    color: #007bff;
+    text-decoration: none;
+    font-size: 0.9em;
+}
+
+.footer a:hover {
+    text-decoration: underline;
+}

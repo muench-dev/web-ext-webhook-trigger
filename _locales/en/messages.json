@@ -1,0 +1,104 @@
+{
+  "extensionName": {
+    "message": "MuenchDev Webhook Quick Trigger",
+    "description": "Name of the extension."
+  },
+  "extensionDescription": {
+    "message": "Sends information of the current tab to predefined webhooks.",
+    "description": "Description of the extension."
+  },
+  "popupTitle": {
+    "message": "Webhook Trigger",
+    "description": "Title of the popup window."
+  },
+  "popupHeader": {
+    "message": "Trigger Webhook",
+    "description": "Header text in the popup."
+  },
+  "popupNoWebhooksConfigured": {
+    "message": "No webhooks configured. Please open the settings.",
+    "description": "Message shown when no webhooks are set up."
+  },
+  "popupSettingsLink": {
+    "message": "Settings",
+    "description": "Link text to open the options page."
+  },
+  "popupSending": {
+    "message": "Sending...",
+    "description": "Button text while the request is in progress."
+  },
+  "popupBtnTextSent": {
+    "message": "Sent!",
+    "description": "Button text after a successful request."
+  },
+  "popupBtnTextFailed": {
+    "message": "Failed",
+    "description": "Button text after a failed request."
+  },
+  "popupStatusSuccess": {
+    "message": "Successfully sent!",
+    "description": "Status message on success."
+  },
+  "popupStatusErrorPrefix": {
+    "message": "Error:",
+    "description": "Prefix for error messages."
+  },
+  "popupErrorNoActiveTab": {
+    "message": "Could not find active tab.",
+    "description": "Error when the active tab cannot be determined."
+  },
+  "popupErrorHttp": {
+    "message": "HTTP Error! Status: $status$",
+    "description": "Error for HTTP failures.",
+    "placeholders": {
+      "status": {
+        "content": "$1",
+        "example": "404"
+      }
+    }
+  },
+  "optionsTitle": {
+    "message": "Webhook Configuration",
+    "description": "Title of the options page."
+  },
+  "optionsPageHeader": {
+    "message": "Webhook Configuration",
+    "description": "Main heading on the options page."
+  },
+  "optionsPageDescription": {
+    "message": "Here you can manage your webhooks. Each webhook gets a label for the button and a target URL.",
+    "description": "Introductory text on the options page."
+  },
+  "optionsAddWebhookHeader": {
+    "message": "Add New Webhook",
+    "description": "Sub-heading for the add form."
+  },
+  "optionsLabelInputLabel": {
+    "message": "Label:",
+    "description": "Label for the webhook label input field."
+  },
+  "optionsLabelInputPlaceholder": {
+    "message": "e.g. 'Send to Slack'",
+    "description": "Placeholder for the webhook label input."
+  },
+  "optionsUrlInputLabel": {
+    "message": "URL:",
+    "description": "Label for the webhook URL input field."
+  },
+  "optionsSaveButton": {
+    "message": "Save Webhook",
+    "description": "Text for the save button."
+  },
+  "optionsStoredWebhooksHeader": {
+    "message": "Stored Webhooks",
+    "description": "Sub-heading for the list of saved webhooks."
+  },
+  "optionsNoWebhooksMessage": {
+    "message": "No webhooks configured yet.",
+    "description": "Message when the list of webhooks is empty."
+  },
+  "optionsDeleteButton": {
+    "message": "Delete",
+    "description": "Text for the delete button."
+  }
+}

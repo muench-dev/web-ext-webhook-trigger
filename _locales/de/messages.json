@@ -1,0 +1,104 @@
+{
+  "extensionName": {
+    "message": "MuenchDev Webhook Schnell-Trigger",
+    "description": "Name der Erweiterung."
+  },
+  "extensionDescription": {
+    "message": "Sendet Informationen des aktuellen Tabs an vordefinierte Webhooks.",
+    "description": "Beschreibung der Erweiterung."
+  },
+  "popupTitle": {
+    "message": "Webhook Trigger",
+    "description": "Titel des Popup-Fensters."
+  },
+  "popupHeader": {
+    "message": "Webhook auslösen",
+    "description": "Überschrift im Popup."
+  },
+  "popupNoWebhooksConfigured": {
+    "message": "Keine Webhooks konfiguriert. Bitte öffne die Einstellungen.",
+    "description": "Nachricht, wenn keine Webhooks eingerichtet sind."
+  },
+  "popupSettingsLink": {
+    "message": "Einstellungen",
+    "description": "Link-Text zum Öffnen der Optionsseite."
+  },
+  "popupSending": {
+    "message": "Sende...",
+    "description": "Button-Text, während die Anfrage läuft."
+  },
+  "popupBtnTextSent": {
+    "message": "Gesendet!",
+    "description": "Button-Text nach erfolgreicher Anfrage."
+  },
+  "popupBtnTextFailed": {
+    "message": "Fehlgeschlagen",
+    "description": "Button-Text nach fehlgeschlagener Anfrage."
+  },
+  "popupStatusSuccess": {
+    "message": "Erfolgreich gesendet!",
+    "description": "Statusmeldung bei Erfolg."
+  },
+  "popupStatusErrorPrefix": {
+    "message": "Fehler:",
+    "description": "Präfix für Fehlermeldungen."
+  },
+  "popupErrorNoActiveTab": {
+    "message": "Konnte aktiven Tab nicht finden.",
+    "description": "Fehler, wenn der aktive Tab nicht ermittelt werden kann."
+  },
+  "popupErrorHttp": {
+    "message": "HTTP-Fehler! Status: $status$",
+    "description": "Fehler bei HTTP-Fehlschlägen.",
+    "placeholders": {
+      "status": {
+        "content": "$1",
+        "example": "404"
+      }
+    }
+  },
+  "optionsTitle": {
+    "message": "Webhook Konfiguration",
+    "description": "Titel der Optionsseite."
+  },
+  "optionsPageHeader": {
+    "message": "Webhook Konfiguration",
+    "description": "Hauptüberschrift auf der Optionsseite."
+  },
+  "optionsPageDescription": {
+    "message": "Hier kannst du deine Webhooks verwalten. Jeder Webhook erhält ein Label für den Button und eine Ziel-URL.",
+    "description": "Einleitungstext auf der Optionsseite."
+  },
+  "optionsAddWebhookHeader": {
+    "message": "Neuen Webhook hinzufügen",
+    "description": "Unterüberschrift für das Hinzufügen-Formular."
+  },
+  "optionsLabelInputLabel": {
+    "message": "Label:",
+    "description": "Label für das Eingabefeld des Webhook-Labels."
+  },
+  "optionsLabelInputPlaceholder": {
+    "message": "z.B. 'An Slack senden'",
+    "description": "Platzhalter für die Eingabe des Webhook-Labels."
+  },
+  "optionsUrlInputLabel": {
+    "message": "URL:",
+    "description": "Label für das Eingabefeld der Webhook-URL."
+  },
+  "optionsSaveButton": {
+    "message": "Webhook speichern",
+    "description": "Text für den Speichern-Button."
+  },
+  "optionsStoredWebhooksHeader": {
+    "message": "Gespeicherte Webhooks",
+    "description": "Unterüberschrift für die Liste der gespeicherten Webhooks."
+  },
+  "optionsNoWebhooksMessage": {
+    "message": "Noch keine Webhooks konfiguriert.",
+    "description": "Nachricht, wenn die Liste der Webhooks leer ist."
+  },
+  "optionsDeleteButton": {
+    "message": "Löschen",
+    "description": "Text für den Löschen-Button."
+  }
+}
