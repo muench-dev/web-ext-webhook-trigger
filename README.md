@@ -20,6 +20,8 @@ This Firefox extension allows you to manage and trigger webhooks directly from y
 
 ## Managing Webhooks
 
+![Options Page Screenshot](./docs/images/options.png)
+
 ### Add a Webhook
 1. Go to the options page (`Options` in the extension menu).
 2. Enter a name and the webhook URL in the provided fields.
@@ -36,6 +38,8 @@ This Firefox extension allows you to manage and trigger webhooks directly from y
 2. Click the "Delete" button next to the webhook.
 
 ## Triggering Webhooks
+
+![Popup Page Screenshot](./docs/images/popup.png)
 
 1. Click the extension icon in the Firefox toolbar to open the popup.
 2. Select the webhook you want to trigger from the list.
