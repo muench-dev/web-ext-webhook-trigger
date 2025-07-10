@@ -49,7 +49,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   const { webhooks = [] } = await browser.storage.sync.get("webhooks");
 
   if (webhooks.length === 0) {
-    buttonsContainer.innerHTML = `<p class="no-hooks-msg">${browser.i18n.getMessage("popupNoWebhooksConfigured")}</p>`;
+    // Use textContent instead of innerHTML for security
+    const p = document.createElement("p");
+    p.className = "no-hooks-msg";
+    p.textContent = browser.i18n.getMessage("popupNoWebhooksConfigured");
+    buttonsContainer.textContent = ""; // Clear any existing content
+    buttonsContainer.appendChild(p);
   } else {
     // Create a button for each webhook
     webhooks.forEach((webhook) => {

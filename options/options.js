@@ -109,17 +109,31 @@ const cancelEditBtn = document.getElementById("cancel-edit-btn");
 let headers = [];
 
 function renderHeaders() {
-  headersListDiv.innerHTML = '';
+  headersListDiv.textContent = '';
   headers.forEach((header, idx) => {
     const div = document.createElement('div');
     div.style.display = 'flex';
     div.style.alignItems = 'center';
     div.style.gap = '8px';
     div.style.marginBottom = '4px';
-    div.innerHTML = `
-      <span style="flex:1;"><strong>${header.key}</strong>: ${header.value}</span>
-      <button type="button" data-idx="${idx}" class="remove-header-btn">Remove</button>
-    `;
+
+    // Create span for key:value
+    const span = document.createElement('span');
+    span.style.flex = '1';
+    const strong = document.createElement('strong');
+    strong.textContent = header.key;
+    span.appendChild(strong);
+    span.appendChild(document.createTextNode(`: ${header.value}`));
+    div.appendChild(span);
+
+    // Create remove button
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.dataset.idx = idx;
+    btn.className = 'remove-header-btn';
+    btn.textContent = 'Remove';
+    div.appendChild(btn);
+
     headersListDiv.appendChild(div);
   });
 }
