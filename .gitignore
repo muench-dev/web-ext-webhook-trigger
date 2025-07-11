@@ -1,4 +1,5 @@
 .idea
+.amo-upload-uuid
 web-ext-artifacts
 node_modules
 coverage
