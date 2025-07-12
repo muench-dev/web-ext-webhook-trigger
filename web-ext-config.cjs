@@ -10,7 +10,7 @@ module.exports = {
 
     // directories to ignore
     "docs",
-    "__tests__"
+    "tests"
   ],
   build: {
     overwriteDest: true,
