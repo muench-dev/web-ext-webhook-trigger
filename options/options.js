@@ -93,7 +93,8 @@ showAddWebhookBtn.addEventListener('click', () => {
 const availableVariables = [
   "{{tab.title}}", "{{tab.url}}", "{{tab.id}}", "{{tab.windowId}}",
   "{{tab.index}}", "{{tab.pinned}}", "{{tab.audible}}", "{{tab.incognito}}",
-  "{{tab.status}}", "{{browser}}", "{{platform}}", "{{triggeredAt}}", "{{identifier}}"
+  "{{tab.status}}", "{{browser}}", "{{platform}}", "{{triggeredAt}}", "{{identifier}}",
+  "{{platform.arch}}", "{{platform.os}}", "{{platform.version}}",
 ];
 
 // Implement autocompletion for custom payload
