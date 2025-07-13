@@ -45,12 +45,19 @@ label {
 }
 
 input[type="text"],
-input[type="url"] {
+input[type="url"],
+textarea {
     width: 100%;
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 6px;
     box-sizing: border-box;
+}
+
+textarea {
+    min-height: 150px;
+    font-family: monospace;
+    resize: vertical;
 }
 
 button {
@@ -119,4 +126,54 @@ button:hover {
     text-align: center;
     background-color: #f8f9fa;
     border-radius: 6px;
+}
+
+.textarea-container {
+    position: relative;
+}
+
+.autocomplete-container {
+    position: absolute;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    max-height: 200px;
+    overflow-y: auto;
+    width: 100%;
+    z-index: 10;
+}
+
+.autocomplete-item {
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+.autocomplete-item:hover {
+    background-color: #f0f2f5;
+}
+
+.variables-help {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    font-size: 0.9em;
+}
+
+.variables-help p {
+    margin-top: 0;
+    font-weight: 600;
+}
+
+.variables-help ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.variables-help code {
+    background-color: #e9ecef;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: monospace;
 }

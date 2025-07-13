@@ -70,7 +70,114 @@ const headerKeyInput = document.getElementById("header-key");
 const headerValueInput = document.getElementById("header-value");
 const addHeaderBtn = document.getElementById("add-header-btn");
 const cancelEditBtn = document.getElementById("cancel-edit-btn");
+const customPayloadInput = document.getElementById("webhook-custom-payload");
+const variablesAutocomplete = document.getElementById("variables-autocomplete");
 let headers = [];
+
+// Define available variables for autocompletion
+const availableVariables = [
+  "{{tab.title}}", "{{tab.url}}", "{{tab.id}}", "{{tab.windowId}}",
+  "{{tab.index}}", "{{tab.pinned}}", "{{tab.audible}}", "{{tab.incognito}}",
+  "{{tab.status}}", "{{browser}}", "{{platform}}", "{{triggeredAt}}", "{{identifier}}"
+];
+
+// Implement autocompletion for custom payload
+customPayloadInput.addEventListener('input', function(e) {
+  const cursorPosition = this.selectionStart;
+  const text = this.value;
+  const textBeforeCursor = text.substring(0, cursorPosition);
+
+  // Check if we're typing a variable (starts with {{)
+  const match = textBeforeCursor.match(/\{\{[\w\.\-]*$/);
+
+  if (match) {
+    const partialVar = match[0];
+    const matchingVars = availableVariables.filter(v => v.startsWith(partialVar));
+
+    if (matchingVars.length > 0) {
+      // Show autocomplete dropdown
+      variablesAutocomplete.innerHTML = '';
+      variablesAutocomplete.classList.remove('hidden');
+
+      matchingVars.forEach(variable => {
+        const item = document.createElement('div');
+        item.className = 'autocomplete-item';
+        item.textContent = variable;
+        item.addEventListener('click', () => {
+          // Insert the variable at cursor position
+          const beforeVar = text.substring(0, cursorPosition - partialVar.length);
+          const afterVar = text.substring(cursorPosition);
+          const newText = beforeVar + variable + afterVar;
+          customPayloadInput.value = newText;
+
+          // Move cursor after the inserted variable
+          const newCursorPos = beforeVar.length + variable.length;
+          customPayloadInput.focus();
+          customPayloadInput.setSelectionRange(newCursorPos, newCursorPos);
+
+          // Hide autocomplete
+          variablesAutocomplete.classList.add('hidden');
+        });
+        variablesAutocomplete.appendChild(item);
+      });
+    } else {
+      variablesAutocomplete.classList.add('hidden');
+    }
+  } else {
+    variablesAutocomplete.classList.add('hidden');
+  }
+});
+
+// Hide autocomplete when clicking outside
+document.addEventListener('click', function(e) {
+  if (!customPayloadInput.contains(e.target) && !variablesAutocomplete.contains(e.target)) {
+    variablesAutocomplete.classList.add('hidden');
+  }
+});
+
+// Add keyboard navigation for autocomplete
+customPayloadInput.addEventListener('keydown', function(e) {
+  if (variablesAutocomplete.classList.contains('hidden')) return;
+
+  const items = variablesAutocomplete.querySelectorAll('.autocomplete-item');
+  const activeItem = variablesAutocomplete.querySelector('.autocomplete-item.active');
+  let activeIndex = -1;
+
+  if (activeItem) {
+    activeIndex = Array.from(items).indexOf(activeItem);
+  }
+
+  switch (e.key) {
+    case 'ArrowDown':
+      e.preventDefault();
+      if (activeIndex < items.length - 1) {
+        if (activeItem) activeItem.classList.remove('active');
+        items[activeIndex + 1].classList.add('active');
+        items[activeIndex + 1].scrollIntoView({ block: 'nearest' });
+      }
+      break;
+    case 'ArrowUp':
+      e.preventDefault();
+      if (activeIndex > 0) {
+        if (activeItem) activeItem.classList.remove('active');
+        items[activeIndex - 1].classList.add('active');
+        items[activeIndex - 1].scrollIntoView({ block: 'nearest' });
+      }
+      break;
+    case 'Enter':
+      e.preventDefault();
+      if (activeItem) {
+        activeItem.click();
+      } else if (items.length > 0) {
+        items[0].click();
+      }
+      break;
+    case 'Escape':
+      e.preventDefault();
+      variablesAutocomplete.classList.add('hidden');
+      break;
+  }
+});
 
 function renderHeaders() {
   headersListDiv.textContent = '';
@@ -128,12 +235,21 @@ form.addEventListener("submit", async (e) => {
   const url = urlInput.value.trim();
   const method = methodSelect.value;
   const identifier = identifierInput.value.trim();
+  const customPayload = customPayloadInput.value.trim();
   let { webhooks = [] } = await browser.storage.sync.get("webhooks");
 
   if (editWebhookId) {
     // Edit mode: update existing webhook
     webhooks = webhooks.map((wh) =>
-      wh.id === editWebhookId ? { ...wh, label, url, method, headers: [...headers], identifier } : wh
+      wh.id === editWebhookId ? {
+        ...wh,
+        label,
+        url,
+        method,
+        headers: [...headers],
+        identifier,
+        customPayload: customPayload || null
+      } : wh
     );
     editWebhookId = null;
     cancelEditBtn.classList.add("hidden");
@@ -146,6 +262,7 @@ form.addEventListener("submit", async (e) => {
       method,
       headers: [...headers],
       identifier,
+      customPayload: customPayload || null
     };
     webhooks.push(newWebhook);
   }
@@ -155,6 +272,9 @@ form.addEventListener("submit", async (e) => {
   urlInput.value = "";
   methodSelect.value = "POST";
   identifierInput.value = "";
+  customPayloadInput.value = "";
+  headerKeyInput.value = "";
+  headerValueInput.value = "";
   headers = [];
   renderHeaders();
   // Always reset to save button after submit
@@ -182,6 +302,8 @@ webhookList.addEventListener("click", async (e) => {
       urlInput.value = "";
       methodSelect.value = "POST";
       identifierInput.value = "";
+      headerKeyInput.value = "";
+      headerValueInput.value = "";
       headers = [];
       renderHeaders();
       cancelEditBtn.classList.add("hidden");
@@ -196,6 +318,7 @@ webhookList.addEventListener("click", async (e) => {
       urlInput.value = webhook.url;
       methodSelect.value = webhook.method || "POST";
       identifierInput.value = webhook.identifier || "";
+      customPayloadInput.value = webhook.customPayload || "";
       headers = Array.isArray(webhook.headers) ? [...webhook.headers] : [];
       renderHeaders();
       cancelEditBtn.classList.remove("hidden");
@@ -213,6 +336,9 @@ cancelEditBtn.addEventListener("click", () => {
   urlInput.value = "";
   methodSelect.value = "POST";
   identifierInput.value = "";
+  customPayloadInput.value = "";
+  headerKeyInput.value = "";
+  headerValueInput.value = "";
   headers = [];
   renderHeaders();
   cancelEditBtn.classList.add("hidden");
