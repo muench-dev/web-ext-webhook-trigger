@@ -52,28 +52,35 @@
                     <input type="text" id="webhook-identifier" placeholder="Optional identifier" />
                 </div>
                 <div class="form-group">
-                    <label for="webhook-custom-payload">Custom Payload (optional)</label>
-                    <div class="textarea-container">
-                        <textarea id="webhook-custom-payload" placeholder="Enter custom JSON payload"></textarea>
-                        <div id="variables-autocomplete" class="autocomplete-container hidden"></div>
+                    <div class="collapsible-header">
+                        <label for="webhook-custom-payload">Custom Payload (optional)</label>
+                        <button type="button" id="toggle-custom-payload" class="toggle-btn" aria-expanded="false">
+                            <span class="toggle-icon">+</span>
+                        </button>
                     </div>
-                    <div class="variables-help">
-                        <p>Available variables:</p>
-                        <ul>
-                            <li><code>{{tab.title}}</code> - Current tab title</li>
-                            <li><code>{{tab.url}}</code> - Current tab URL</li>
-                            <li><code>{{tab.id}}</code> - Current tab ID</li>
-                            <li><code>{{tab.windowId}}</code> - Current window ID</li>
-                            <li><code>{{tab.index}}</code> - Tab index</li>
-                            <li><code>{{tab.pinned}}</code> - Is tab pinned</li>
-                            <li><code>{{tab.audible}}</code> - Is tab playing audio</li>
-                            <li><code>{{tab.incognito}}</code> - Is tab in incognito mode</li>
-                            <li><code>{{tab.status}}</code> - Tab loading status</li>
-                            <li><code>{{browser}}</code> - Browser information</li>
-                            <li><code>{{platform}}</code> - Platform information</li>
-                            <li><code>{{triggeredAt}}</code> - Timestamp when triggered</li>
-                            <li><code>{{identifier}}</code> - Custom identifier</li>
-                        </ul>
+                    <div id="custom-payload-content" class="collapsible-content collapsed">
+                        <div class="textarea-container">
+                            <textarea id="webhook-custom-payload" placeholder="Enter custom JSON payload"></textarea>
+                            <div id="variables-autocomplete" class="autocomplete-container hidden"></div>
+                        </div>
+                        <div class="variables-help">
+                            <p>Available variables:</p>
+                            <ul>
+                                <li><code>{{tab.title}}</code> - Current tab title</li>
+                                <li><code>{{tab.url}}</code> - Current tab URL</li>
+                                <li><code>{{tab.id}}</code> - Current tab ID</li>
+                                <li><code>{{tab.windowId}}</code> - Current window ID</li>
+                                <li><code>{{tab.index}}</code> - Tab index</li>
+                                <li><code>{{tab.pinned}}</code> - Is tab pinned</li>
+                                <li><code>{{tab.audible}}</code> - Is tab playing audio</li>
+                                <li><code>{{tab.incognito}}</code> - Is tab in incognito mode</li>
+                                <li><code>{{tab.status}}</code> - Tab loading status</li>
+                                <li><code>{{browser}}</code> - Browser information</li>
+                                <li><code>{{platform}}</code> - Platform information</li>
+                                <li><code>{{triggeredAt}}</code> - Timestamp when triggered</li>
+                                <li><code>{{identifier}}</code> - Custom identifier</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
                 <button type="submit">__MSG_optionsSaveButton__</button>
