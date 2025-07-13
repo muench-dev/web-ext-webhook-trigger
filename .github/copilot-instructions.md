@@ -1,7 +1,7 @@
 # Firefox Extension Project Instructions
 
 ## Overview
-This project is a Firefox extension. The codebase includes manifest files, localized messages, icons, and scripts for the extension's popup and options pages.
+This project is a Chrome and Firefox extension. The codebase includes manifest files, localized messages, icons, and scripts for the extension's popup and options pages.
 
 ## Getting Started
 1. **Clone the repository:**

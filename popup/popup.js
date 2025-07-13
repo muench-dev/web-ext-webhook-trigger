@@ -1,3 +1,8 @@
+// Polyfill for browser API to support Chrome and Firefox
+if (typeof window !== "undefined" && typeof window.browser === "undefined") {
+  window.browser = window.chrome;
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   // Replace i18n placeholders
   replaceI18nPlaceholders();

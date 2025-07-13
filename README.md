@@ -1,6 +1,6 @@
-# muench-dev Webhook Trigger Firefox Extension
+# muench-dev Webhook Trigger Browser Extension
 
-This Firefox extension allows you to manage and trigger webhooks directly from your browser. It is designed for users who want to quickly send HTTP requests (webhooks) to custom endpoints, such as automation services, APIs, or personal scripts.
+This browser extension allows you to manage and trigger webhooks directly from your browser. It works with both Firefox and Chrome. It is designed for users who want to quickly send HTTP requests (webhooks) to custom endpoints, such as automation services, APIs, or personal scripts.
 
 ## Features
 
@@ -13,7 +13,8 @@ This Firefox extension allows you to manage and trigger webhooks directly from y
 ## Getting Started
 
 1. **Install the Extension**
-   - Load the extension in Firefox via `about:debugging` or package and install it from the [Add-ons Manager](about:addons).
+   - **Firefox**: Load the extension in Firefox via `about:debugging` or package and install it from the [Add-ons Manager](about:addons).
+   - **Chrome**: Load the extension in Chrome via `chrome://extensions` in developer mode by clicking "Load unpacked" and selecting the extension directory.
 
 2. **Open the Options Page**
    - Right-click the extension icon and select "Options", or open it from the extension's popup menu.
@@ -41,7 +42,7 @@ This Firefox extension allows you to manage and trigger webhooks directly from y
 
 ![Popup Page Screenshot](./docs/images/popup.png)
 
-1. Click the extension icon in the Firefox toolbar to open the popup.
+1. Click the extension icon in your browser's toolbar to open the popup.
 2. Select the webhook you want to trigger from the list.
 3. Click the "Send" or equivalent button to trigger the webhook.
 
@@ -60,4 +61,3 @@ This Firefox extension allows you to manage and trigger webhooks directly from y
 ## License
 
 This project is licensed under the MIT License.
-

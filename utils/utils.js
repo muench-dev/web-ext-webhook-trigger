@@ -1,5 +1,10 @@
 // Shared utility functions
 
+// Polyfill for browser API to support Chrome and Firefox
+if (typeof window !== "undefined" && typeof window.browser === "undefined") {
+  window.browser = window.chrome;
+}
+
 /**
  * Replaces i18n placeholders in the HTML document.
  * It targets elements with the 'data-i18n' attribute,

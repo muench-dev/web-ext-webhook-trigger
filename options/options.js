@@ -1,3 +1,8 @@
+// Polyfill for browser API to support Chrome and Firefox
+if (typeof window.browser === "undefined") {
+  window.browser = window.chrome;
+}
+
 // Function to load and display webhooks
 const loadWebhooks = async () => {
   const { webhooks = [] } = await browser.storage.sync.get("webhooks");

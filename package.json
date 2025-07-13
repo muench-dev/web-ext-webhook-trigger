@@ -1,7 +1,7 @@
 {
-  "name": "firefox-extension-webhook-trigger",
+  "name": "browser-extension-webhook-trigger",
   "version": "1.0.0",
-  "description": "This Firefox extension allows you to manage and trigger webhooks directly from your browser. It is designed for users who want to quickly send HTTP requests (webhooks) to custom endpoints, such as automation services, APIs, or personal scripts.",
+  "description": "This browser extension allows you to manage and trigger webhooks directly from your browser. It works with both Firefox and Chrome. It is designed for users who want to quickly send HTTP requests (webhooks) to custom endpoints, such as automation services, APIs, or personal scripts.",
   "main": "index.js",
   "directories": {
     "doc": "docs"
