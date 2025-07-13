@@ -51,6 +51,21 @@ feat: add user login functionality
 *   Keep your code clean, readable, and well-documented.
 *   Update documentation and translations as needed to reflect your changes.
 
+## Testing, Linting, and Building
+
+- **Run tests:**
+  ```sh
+  npm test
+  ```
+- **Lint the code:**
+  ```sh
+  npm run lint
+  ```
+- **Build the extension:**
+  ```sh
+  npm run build
+  ```
+
 ## Packaging
 
 To package the extension for distribution, create a zip archive of the project files, excluding any development-specific files (e.g., `.git`, local configurations). Submit the zip file to the [Firefox Add-ons](https://addons.mozilla.org/) platform.
