@@ -28,6 +28,21 @@ This project is a Chrome and Firefox extension. The codebase includes manifest f
 3. **Reload after changes:**
    - After editing files, reload the extension in `about:debugging` to see updates.
 
+## Testing, Linting, and Building
+
+- **Run tests:**
+  ```sh
+  npm test
+  ```
+- **Lint the code:**
+  ```sh
+  npm run lint
+  ```
+- **Build the extension:**
+  ```sh
+  npm run build
+  ```
+
 ## Packaging
 - To distribute, zip the extension files (excluding unnecessary files like `.git/` or local configs) and submit to [Firefox Add-ons](https://addons.mozilla.org/).
 
