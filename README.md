@@ -13,8 +13,8 @@ This browser extension allows you to manage and trigger webhooks directly from y
 ## Getting Started
 
 1. **Install the Extension**
-   - **Firefox**: Load the extension in Firefox via `about:debugging` or package and install it from the [Add-ons Manager](about:addons).
-   - **Chrome**: Load the extension in Chrome via `chrome://extensions` in developer mode by clicking "Load unpacked" and selecting the extension directory.
+   - **Firefox**: The extension is currently under review by the Firefox team and will be available on [addons.mozilla.org](https://addons.mozilla.org) soon. In the meantime, you can load the extension in Firefox via `about:debugging`.
+   - **Chrome**: The extension is available on the [Chrome Web Store](https://chromewebstore.google.com/detail/webhook-trigger/finanbjnojdckpeklepocgcngcikdlfe). You can also load the extension in Chrome via `chrome://extensions` in developer mode by clicking "Load unpacked" and selecting the extension directory.
 
 2. **Open the Options Page**
    - Right-click the extension icon and select "Options", or open it from the extension's popup menu.
