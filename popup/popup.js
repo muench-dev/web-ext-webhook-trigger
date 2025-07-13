@@ -91,7 +91,12 @@ document
           status: activeTab.status,
         },
         browser: browserInfo,
-        platform: platformInfo,
+        platform: {
+          name: platformInfo.name || "unknown",
+          version: platformInfo.version || "unknown",
+          architecture: platformInfo.architecture || "unknown",
+          os: platformInfo.os || "unknown",
+        },
         triggeredAt: new Date().toISOString(),
       };
 
@@ -116,7 +121,10 @@ document
             "{{tab.incognito}}": activeTab.incognito,
             "{{tab.status}}": activeTab.status,
             "{{browser}}": JSON.stringify(browserInfo),
-            "{{platform}}": JSON.stringify(platformInfo),
+            "{{platform.architecture}}": platformInfo.architecture,
+            "{{platform.name}}": platformInfo.name,
+            "{{platform.os}}": platformInfo.os,
+            "{{platform.version}}": platformInfo.version,
             "{{triggeredAt}}": new Date().toISOString(),
             "{{identifier}}": webhook.identifier || ""
           };
