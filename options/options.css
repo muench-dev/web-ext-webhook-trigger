@@ -157,6 +157,7 @@ button:hover {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 8px;
     padding: 16px;
     border-bottom: 1px solid #e5e7eb;
     transition: background-color 0.2s;
@@ -170,6 +171,17 @@ button:hover {
 
 #webhook-list li:last-child {
     border-bottom: none;
+}
+
+.drag-handle {
+    cursor: grab;
+    user-select: none;
+    font-size: 1.2em;
+    color: #6b7280;
+}
+
+#webhook-list li.dragging {
+    opacity: 0.5;
 }
 
 .webhook-info {
