@@ -57,6 +57,16 @@
       }
     }
   },
+  "popupErrorCustomPayloadJsonParseError": {
+    "message": "Fehler beim Parsen des benutzerdefinierten Payloads. Fehler: $error$",
+    "description": "Fehler beim JSON Parsen.",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "Unexpected token in JSON at position 10"
+      }
+    }
+  },
   "optionsTitle": {
     "message": "Webhook Konfiguration",
     "description": "Titel der Optionsseite."

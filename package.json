@@ -10,7 +10,9 @@
     "test": "jest",
     "lint": "web-ext lint",
     "build": "web-ext build --overwrite-dest",
-    "run": "web-ext run"
+    "run": "web-ext run",
+    "start-firefox": "web-ext run --firefox-profile ~/.mozilla/firefox/ehxu5l3z.webhooks --keep-profile-changes --profile-create-if-missing",
+    "start-chromium": "web-ext run --chromium-profile ~/.config/chromium/webhooks --keep-profile-changes --profile-create-if-missing"
   },
   "keywords": [],
   "author": "",
