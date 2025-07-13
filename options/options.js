@@ -18,6 +18,11 @@ const loadWebhooks = async () => {
     webhooks.forEach((webhook) => {
       const listItem = document.createElement("li");
       listItem.dataset.id = webhook.id;
+      listItem.draggable = true;
+
+      const dragHandle = document.createElement("span");
+      dragHandle.classList.add("drag-handle");
+      dragHandle.textContent = "\u2630"; // common drag icon
 
       const textContent = document.createElement("div");
       textContent.classList.add("webhook-info");
@@ -43,6 +48,7 @@ const loadWebhooks = async () => {
       editButton.textContent = browser.i18n.getMessage("optionsEditButton") || "Edit";
       editButton.classList.add("edit-btn");
 
+      listItem.appendChild(dragHandle);
       listItem.appendChild(textContent);
       listItem.appendChild(editButton);
       listItem.appendChild(deleteButton);
@@ -288,6 +294,48 @@ form.addEventListener("submit", async (e) => {
 
 // Edit and delete event listeners
 const webhookList = document.getElementById("webhook-list");
+let draggedItem = null;
+
+const persistWebhookOrder = async () => {
+  const ids = Array.from(webhookList.querySelectorAll("li")).map((li) => li.dataset.id);
+  let { webhooks = [] } = await browser.storage.sync.get("webhooks");
+  webhooks = ids.map((id) => webhooks.find((w) => w.id === id)).filter(Boolean);
+  await saveWebhooks(webhooks);
+};
+
+webhookList.addEventListener("dragstart", (e) => {
+  const li = e.target.closest("li");
+  if (!li) return;
+  draggedItem = li;
+  li.classList.add("dragging");
+  e.dataTransfer.effectAllowed = "move";
+});
+
+webhookList.addEventListener("dragover", (e) => {
+  e.preventDefault();
+  const target = e.target.closest("li");
+  if (!draggedItem || !target || target === draggedItem) return;
+  const rect = target.getBoundingClientRect();
+  const next = e.clientY - rect.top > rect.height / 2;
+  webhookList.insertBefore(draggedItem, next ? target.nextSibling : target);
+});
+
+webhookList.addEventListener("drop", async (e) => {
+  e.preventDefault();
+  if (draggedItem) {
+    draggedItem.classList.remove("dragging");
+    await persistWebhookOrder();
+    draggedItem = null;
+  }
+});
+
+webhookList.addEventListener("dragend", async () => {
+  if (draggedItem) {
+    draggedItem.classList.remove("dragging");
+    await persistWebhookOrder();
+    draggedItem = null;
+  }
+});
 webhookList.addEventListener("click", async (e) => {
   const listItem = e.target.closest("li");
   if (!listItem) return;
@@ -422,5 +470,5 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Export functions for testing in Node environment
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { loadWebhooks, saveWebhooks, renderHeaders };
+  module.exports = { loadWebhooks, saveWebhooks, renderHeaders, persistWebhookOrder };
 }

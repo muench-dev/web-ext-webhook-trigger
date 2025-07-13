@@ -5,6 +5,7 @@ This browser extension allows you to manage and trigger webhooks directly from y
 ## Features
 
 - **Manage Webhooks**: Add, edit, and remove webhook URLs from the extension options page.
+- **Reorder Webhooks**: Arrange your hooks via drag-and-drop on the options page.
 - **Trigger Webhooks**: Quickly trigger any configured webhook from the popup menu.
 - **Customizable**: Supports multiple webhooks with custom names and endpoints.
 - **Persistent Storage**: All webhooks are stored locally in your browser and persist across sessions.

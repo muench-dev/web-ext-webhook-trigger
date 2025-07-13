@@ -7,6 +7,7 @@ describe('options page', () => {
   let dom;
   let loadWebhooks;
   let saveWebhooks;
+  let persistWebhookOrder;
 
   beforeEach(() => {
     dom = new JSDOM(`<!DOCTYPE html><html><body>
@@ -64,7 +65,7 @@ describe('options page', () => {
     });
 
     // Load the options.js module
-    ({ loadWebhooks, saveWebhooks } = require('../options/options.js'));
+    ({ loadWebhooks, saveWebhooks, persistWebhookOrder } = require('../options/options.js'));
 
     // Manually trigger the DOMContentLoaded handler if it was captured
     if (domContentLoadedHandler) {
@@ -169,6 +170,23 @@ describe('options page', () => {
         identifier: 'test-identifier',
         customPayload
       }]
+    });
+  });
+
+  test('persistWebhookOrder stores list order', async () => {
+    const hooks = [
+      { id: '1', label: 'A', url: 'a' },
+      { id: '2', label: 'B', url: 'b' }
+    ];
+    global.browser.storage.sync.get.mockResolvedValue({ webhooks: hooks });
+    await loadWebhooks();
+    const list = document.getElementById('webhook-list');
+    list.appendChild(list.firstElementChild); // reorder DOM
+
+    await persistWebhookOrder();
+
+    expect(global.browser.storage.sync.set).toHaveBeenLastCalledWith({
+      webhooks: [hooks[1], hooks[0]]
     });
   });
 });
