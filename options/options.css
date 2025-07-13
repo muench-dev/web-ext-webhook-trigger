@@ -2,10 +2,11 @@ body {
     font-family:
         -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
         sans-serif;
-    background-color: #f0f2f5;
-    color: #1c1e21;
+    background-color: #f5f7fa;
+    color: #333;
     margin: 0;
     padding: 20px;
+    line-height: 1.6;
 }
 
 .container {
@@ -13,45 +14,62 @@ body {
     margin: 20px auto;
     background-color: #fff;
     padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 h1,
 h2 {
-    color: #0052cc;
-    border-bottom: 2px solid #f0f2f5;
-    padding-bottom: 10px;
-    margin-bottom: 20px;
+    color: #2563eb;
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 12px;
+    margin-bottom: 24px;
 }
 
 h1 {
     font-size: 2em;
+    font-weight: 700;
 }
 
 h2 {
     font-size: 1.5em;
-    margin-top: 30px;
+    margin-top: 32px;
+    font-weight: 600;
 }
 
 .form-group {
-    margin-bottom: 15px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
 }
 
 label {
     display: block;
     font-weight: 600;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
+    color: #4b5563;
 }
 
 input[type="text"],
 input[type="url"],
+select,
 textarea {
     width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
+    padding: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
     box-sizing: border-box;
+    font-size: 1em;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+input[type="text"]:focus,
+input[type="url"]:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
 
 textarea {
@@ -61,18 +79,73 @@ textarea {
 }
 
 button {
-    background-color: #007bff;
+    background-color: #3b82f6;
     color: white;
-    padding: 10px 20px;
+    padding: 12px 24px;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
     font-size: 1em;
-    transition: background-color 0.2s;
+    font-weight: 500;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 button:hover {
-    background-color: #0056b3;
+    background-color: #2563eb;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Collapsible section styles */
+.collapsible-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    padding: 8px 0;
+}
+
+.toggle-btn {
+    background: none;
+    border: none;
+    color: #3b82f6;
+    font-size: 1.2em;
+    font-weight: bold;
+    padding: 0 8px;
+    cursor: pointer;
+    box-shadow: none;
+    transition: transform 0.3s;
+}
+
+.toggle-btn:hover {
+    background: none;
+    color: #2563eb;
+    transform: none;
+    box-shadow: none;
+}
+
+.toggle-icon {
+    display: inline-block;
+    transition: transform 0.3s;
+}
+
+.toggle-btn[aria-expanded="true"] .toggle-icon {
+    transform: rotate(45deg);
+}
+
+.collapsible-content {
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease, margin 0.3s ease;
+    max-height: 2000px;
+    opacity: 1;
+    margin-top: 10px;
+}
+
+.collapsible-content.collapsed {
+    max-height: 0;
+    opacity: 0;
+    margin-top: 0;
 }
 
 #webhook-list {
@@ -84,8 +157,15 @@ button:hover {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px;
-    border-bottom: 1px solid #eee;
+    padding: 16px;
+    border-bottom: 1px solid #e5e7eb;
+    transition: background-color 0.2s;
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+
+#webhook-list li:hover {
+    background-color: #f9fafb;
 }
 
 #webhook-list li:last-child {
@@ -95,37 +175,52 @@ button:hover {
 .webhook-info {
     display: flex;
     flex-direction: column;
+    flex: 1;
+    margin-right: 16px;
 }
 
 .webhook-info .label {
-    font-weight: bold;
+    font-weight: 600;
     font-size: 1.1em;
+    color: #1f2937;
+    margin-bottom: 4px;
 }
 
 .webhook-info .url {
-    color: #606770;
+    color: #6b7280;
     font-size: 0.9em;
     word-break: break-all;
 }
 
+.edit-btn {
+    margin-right: 8px;
+    background-color: #10b981;
+}
+
+.edit-btn:hover {
+    background-color: #059669;
+}
+
 .delete-btn {
-    background-color: #dc3545;
+    background-color: #ef4444;
 }
 
 .delete-btn:hover {
-    background-color: #c82333;
+    background-color: #dc2626;
 }
 
 .hidden {
-    display: none;
+    display: none !important;
 }
 
 #no-webhooks-message {
-    color: #606770;
-    padding: 15px;
+    color: #6b7280;
+    padding: 20px;
     text-align: center;
-    background-color: #f8f9fa;
-    border-radius: 6px;
+    background-color: #f9fafb;
+    border-radius: 8px;
+    border: 1px dashed #d1d5db;
+    margin-top: 16px;
 }
 
 .textarea-container {
@@ -135,9 +230,9 @@ button:hover {
 .autocomplete-container {
     position: absolute;
     background-color: white;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     max-height: 200px;
     overflow-y: auto;
     width: 100%;
@@ -145,35 +240,45 @@ button:hover {
 }
 
 .autocomplete-item {
-    padding: 8px 12px;
+    padding: 10px 14px;
     cursor: pointer;
+    transition: background-color 0.2s;
 }
 
 .autocomplete-item:hover {
-    background-color: #f0f2f5;
+    background-color: #f3f4f6;
+}
+
+.autocomplete-item.active {
+    background-color: #e5e7eb;
 }
 
 .variables-help {
-    margin-top: 10px;
-    padding: 10px;
-    background-color: #f8f9fa;
-    border-radius: 6px;
+    margin-top: 16px;
+    padding: 16px;
+    background-color: #f3f4f6;
+    border-radius: 8px;
     font-size: 0.9em;
+    border-left: 4px solid #3b82f6;
 }
 
 .variables-help p {
     margin-top: 0;
     font-weight: 600;
+    color: #4b5563;
 }
 
 .variables-help ul {
-    margin: 0;
+    margin: 8px 0 0;
     padding-left: 20px;
+    color: #4b5563;
 }
 
 .variables-help code {
-    background-color: #e9ecef;
-    padding: 2px 4px;
-    border-radius: 3px;
+    background-color: #e5e7eb;
+    padding: 3px 6px;
+    border-radius: 4px;
     font-family: monospace;
+    color: #2563eb;
+    font-size: 0.9em;
 }

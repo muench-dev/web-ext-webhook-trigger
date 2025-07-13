@@ -19,8 +19,15 @@ describe('options page', () => {
         <input id="header-key" />
         <input id="header-value" />
         <button type="button" id="add-header-btn"></button>
-        <textarea id="webhook-custom-payload"></textarea>
-        <div id="variables-autocomplete" class="autocomplete-container hidden"></div>
+        <div class="collapsible-header">
+          <button type="button" id="toggle-custom-payload" class="toggle-btn" aria-expanded="false">
+            <span class="toggle-icon">+</span>
+          </button>
+        </div>
+        <div id="custom-payload-content" class="collapsible-content collapsed">
+          <textarea id="webhook-custom-payload"></textarea>
+          <div id="variables-autocomplete" class="autocomplete-container hidden"></div>
+        </div>
         <button type="button" id="cancel-edit-btn" class="hidden"></button>
         <button type="submit"></button>
       </form>

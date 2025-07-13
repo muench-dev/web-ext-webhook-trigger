@@ -72,6 +72,8 @@ const addHeaderBtn = document.getElementById("add-header-btn");
 const cancelEditBtn = document.getElementById("cancel-edit-btn");
 const customPayloadInput = document.getElementById("webhook-custom-payload");
 const variablesAutocomplete = document.getElementById("variables-autocomplete");
+const toggleCustomPayloadBtn = document.getElementById("toggle-custom-payload");
+const customPayloadContent = document.getElementById("custom-payload-content");
 let headers = [];
 
 // Define available variables for autocompletion
@@ -279,6 +281,8 @@ form.addEventListener("submit", async (e) => {
   renderHeaders();
   // Always reset to save button after submit
   form.querySelector('button[type="submit"]').textContent = browser.i18n.getMessage("optionsSaveButton") || "Save Webhook";
+  // Collapse custom payload section
+  updateCustomPayloadVisibility();
   loadWebhooks();
 });
 
@@ -324,6 +328,10 @@ webhookList.addEventListener("click", async (e) => {
       cancelEditBtn.classList.remove("hidden");
       // Always set to save button when entering edit mode
       form.querySelector('button[type="submit"]').textContent = browser.i18n.getMessage("optionsSaveButton") || "Save Webhook";
+
+      // Update custom payload section visibility based on content
+      updateCustomPayloadVisibility();
+
       labelInput.focus();
     }
   }
@@ -343,7 +351,56 @@ cancelEditBtn.addEventListener("click", () => {
   renderHeaders();
   cancelEditBtn.classList.add("hidden");
   form.querySelector('button[type="submit"]').textContent = browser.i18n.getMessage("optionsSaveButton") || "Save Webhook";
+  // Collapse custom payload section
+  updateCustomPayloadVisibility();
 });
+
+// Toggle custom payload section
+function toggleCustomPayloadSection() {
+  const isExpanded = toggleCustomPayloadBtn.getAttribute('aria-expanded') === 'true';
+  toggleCustomPayloadBtn.setAttribute('aria-expanded', !isExpanded);
+
+  if (isExpanded) {
+    customPayloadContent.classList.add('collapsed');
+  } else {
+    customPayloadContent.classList.remove('collapsed');
+  }
+}
+
+// Event listener for toggle button
+toggleCustomPayloadBtn.addEventListener('click', toggleCustomPayloadSection);
+
+// Event listener for collapsible header (title click)
+const collapsibleHeader = document.querySelector('.collapsible-header');
+collapsibleHeader.addEventListener('click', (e) => {
+  // Only toggle if the click is not on the toggle button itself
+  if (!e.target.closest('#toggle-custom-payload')) {
+    toggleCustomPayloadSection();
+  }
+});
+
+// Event listener for custom payload input to keep section expanded when typing
+customPayloadInput.addEventListener('input', () => {
+  if (customPayloadInput.value.trim() !== '') {
+    toggleCustomPayloadBtn.setAttribute('aria-expanded', 'true');
+    customPayloadContent.classList.remove('collapsed');
+  }
+});
+
+// Function to check if custom payload is configured and show/hide accordingly
+function updateCustomPayloadVisibility() {
+  const hasContent = customPayloadInput.value.trim() !== '';
+
+  if (hasContent) {
+    // If there's content, expand the section
+    toggleCustomPayloadBtn.setAttribute('aria-expanded', 'true');
+    customPayloadContent.classList.remove('collapsed');
+  } else {
+    // If there's no content, collapse the section
+    toggleCustomPayloadBtn.setAttribute('aria-expanded', 'false');
+    customPayloadContent.classList.add('collapsed');
+  }
+}
 
 // Show webhooks on page load
 document.addEventListener("DOMContentLoaded", () => {
@@ -355,6 +412,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Set localized label for cancel edit button
   cancelEditBtn.textContent = browser.i18n.getMessage("optionsCancelEditButton") || "Cancel";
+
+  // Initialize custom payload section (collapsed by default)
+  updateCustomPayloadVisibility();
 
   // Load webhooks
   loadWebhooks();
