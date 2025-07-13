@@ -1,6 +1,7 @@
 module.exports = {
   verbose: false,
   ignoreFiles: [
+    "AGENTS.md",
     ".amo-upload-uuid",
     "package.json",
     "package-lock.json",
