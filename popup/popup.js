@@ -91,12 +91,7 @@ document
           status: activeTab.status,
         },
         browser: browserInfo,
-        platform: {
-          name: platformInfo.name || "unknown",
-          version: platformInfo.version || "unknown",
-          architecture: platformInfo.architecture || "unknown",
-          os: platformInfo.os || "unknown",
-        },
+        platform: platformInfo,
         triggeredAt: new Date().toISOString(),
       };
 
@@ -121,9 +116,8 @@ document
             "{{tab.incognito}}": activeTab.incognito,
             "{{tab.status}}": activeTab.status,
             "{{browser}}": JSON.stringify(browserInfo),
-            "{{platform.architecture}}": platformInfo.architecture,
-            "{{platform.name}}": platformInfo.name,
-            "{{platform.os}}": platformInfo.os,
+            "{{platform.arch}}": platformInfo.arch || "unknown",
+            "{{platform.os}}": platformInfo.os || "unknown",
             "{{platform.version}}": platformInfo.version,
             "{{triggeredAt}}": new Date().toISOString(),
             "{{identifier}}": webhook.identifier || ""
@@ -154,8 +148,7 @@ document
           // Use the custom payload instead of the default one
           payload = customPayload;
         } catch (error) {
-          console.error("Error parsing custom payload:", error);
-          // Fall back to default payload if custom payload is invalid
+          throw new Error(browser.i18n.getMessage("popupErrorCustomPayloadJsonParseError", error.message));
         }
       }
       // Prepare headers
