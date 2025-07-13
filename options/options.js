@@ -76,11 +76,18 @@ const headerKeyInput = document.getElementById("header-key");
 const headerValueInput = document.getElementById("header-value");
 const addHeaderBtn = document.getElementById("add-header-btn");
 const cancelEditBtn = document.getElementById("cancel-edit-btn");
+const showAddWebhookBtn = document.getElementById("add-new-webhook-btn");
 const customPayloadInput = document.getElementById("webhook-custom-payload");
 const variablesAutocomplete = document.getElementById("variables-autocomplete");
 const toggleCustomPayloadBtn = document.getElementById("toggle-custom-payload");
 const customPayloadContent = document.getElementById("custom-payload-content");
 let headers = [];
+
+showAddWebhookBtn.addEventListener('click', () => {
+  form.classList.remove('hidden');
+  showAddWebhookBtn.classList.add('hidden');
+  labelInput.focus();
+});
 
 // Define available variables for autocompletion
 const availableVariables = [
@@ -289,6 +296,8 @@ form.addEventListener("submit", async (e) => {
   form.querySelector('button[type="submit"]').textContent = browser.i18n.getMessage("optionsSaveButton") || "Save Webhook";
   // Collapse custom payload section
   updateCustomPayloadVisibility();
+  form.classList.add('hidden');
+  showAddWebhookBtn.classList.remove('hidden');
   loadWebhooks();
 });
 
@@ -374,6 +383,8 @@ webhookList.addEventListener("click", async (e) => {
       headers = Array.isArray(webhook.headers) ? [...webhook.headers] : [];
       renderHeaders();
       cancelEditBtn.classList.remove("hidden");
+      form.classList.remove('hidden');
+      showAddWebhookBtn.classList.add('hidden');
       // Always set to save button when entering edit mode
       form.querySelector('button[type="submit"]').textContent = browser.i18n.getMessage("optionsSaveButton") || "Save Webhook";
 
@@ -401,6 +412,8 @@ cancelEditBtn.addEventListener("click", () => {
   form.querySelector('button[type="submit"]').textContent = browser.i18n.getMessage("optionsSaveButton") || "Save Webhook";
   // Collapse custom payload section
   updateCustomPayloadVisibility();
+  form.classList.add('hidden');
+  showAddWebhookBtn.classList.remove('hidden');
 });
 
 // Toggle custom payload section
@@ -460,6 +473,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Set localized label for cancel edit button
   cancelEditBtn.textContent = browser.i18n.getMessage("optionsCancelEditButton") || "Cancel";
+  showAddWebhookBtn.textContent = browser.i18n.getMessage("optionsAddNewWebhookButton") || "Add new webhook";
 
   // Initialize custom payload section (collapsed by default)
   updateCustomPayloadVisibility();

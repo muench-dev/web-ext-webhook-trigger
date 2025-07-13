@@ -118,5 +118,9 @@
   "optionsCancelEditButton": {
     "message": "Cancel",
     "description": "Text for the cancel button in edit mode."
+  },
+  "optionsAddNewWebhookButton": {
+    "message": "Add new webhook",
+    "description": "Button text to open the add webhook form."
   }
 }

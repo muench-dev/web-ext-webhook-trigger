@@ -221,6 +221,10 @@ button:hover {
     background-color: #dc2626;
 }
 
+#add-new-webhook-btn {
+    margin-bottom: 20px;
+}
+
 .hidden {
     display: none !important;
 }
