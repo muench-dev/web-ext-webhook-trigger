@@ -118,5 +118,9 @@
   "optionsCancelEditButton": {
     "message": "Abbrechen",
     "description": "Text für den Abbrechen-Button im Bearbeiten-Modus."
+  },
+  "optionsAddNewWebhookButton": {
+    "message": "Neuen Webhook hinzufügen",
+    "description": "Schaltfläche um das Formular zum Hinzufügen zu öffnen."
   }
 }

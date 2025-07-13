@@ -11,7 +11,8 @@ describe('options page', () => {
 
   beforeEach(() => {
     dom = new JSDOM(`<!DOCTYPE html><html><body>
-      <form id="add-webhook-form">
+      <button type="button" id="add-new-webhook-btn"></button>
+      <form id="add-webhook-form" class="hidden">
         <input id="webhook-label" />
         <input id="webhook-url" />
         <select id="webhook-method"></select>
