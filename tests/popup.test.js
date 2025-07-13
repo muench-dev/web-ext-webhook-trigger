@@ -66,4 +66,43 @@ describe('popup script', () => {
     expect(fetchMock).toHaveBeenCalled();
     expect(fetchMock.mock.calls[0][0]).toBe('https://hook.test');
   });
+
+  test('uses custom payload when available', async () => {
+    const customPayload = '{"message": "Custom message with {{tab.title}}"}';
+    const hook = {
+      id: '1',
+      label: 'Send',
+      url: 'https://hook.test',
+      customPayload
+    };
+    browser.storage.sync.get.mockResolvedValue({ webhooks: [hook] });
+    browser.tabs.query.mockResolvedValue([{
+      title: 'Test Page',
+      url: 'https://example.com',
+      id: 1,
+      windowId: 1,
+      index: 0,
+      pinned: false,
+      audible: false,
+      mutedInfo: null,
+      incognito: false,
+      status: 'complete'
+    }]);
+
+    require('../popup/popup.js');
+    document.dispatchEvent(new dom.window.Event('DOMContentLoaded'));
+    await new Promise(setImmediate);
+
+    const btn = document.querySelector('button.webhook-btn');
+    expect(btn).not.toBeNull();
+    btn.dispatchEvent(new dom.window.Event('click', { bubbles: true }));
+    await new Promise(setImmediate);
+
+    expect(fetchMock).toHaveBeenCalled();
+
+    // Check that the custom payload was used with the placeholder replaced
+    const fetchOptions = fetchMock.mock.calls[0][1];
+    const sentPayload = JSON.parse(fetchOptions.body);
+    expect(sentPayload).toEqual({ message: 'Custom message with Test Page' });
+  });
 });

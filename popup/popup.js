@@ -76,7 +76,8 @@ document
       const browserInfo = await browser.runtime.getBrowserInfo?.() || {};
       const platformInfo = await browser.runtime.getPlatformInfo?.() || {};
 
-      const payload = {
+      // Create default payload
+      let payload = {
         tab: {
           title: activeTab.title,
           url: currentUrl,
@@ -93,8 +94,61 @@ document
         platform: platformInfo,
         triggeredAt: new Date().toISOString(),
       };
+
       if (webhook && webhook.identifier) {
         payload.identifier = webhook.identifier;
+      }
+
+      // Use custom payload if available
+      // The custom payload is a JSON string that can contain placeholders like {{tab.title}}
+      // These placeholders will be replaced with actual values before sending the webhook
+      if (webhook && webhook.customPayload) {
+        try {
+          // Create variable replacements map
+          const replacements = {
+            "{{tab.title}}": activeTab.title,
+            "{{tab.url}}": currentUrl,
+            "{{tab.id}}": activeTab.id,
+            "{{tab.windowId}}": activeTab.windowId,
+            "{{tab.index}}": activeTab.index,
+            "{{tab.pinned}}": activeTab.pinned,
+            "{{tab.audible}}": activeTab.audible,
+            "{{tab.incognito}}": activeTab.incognito,
+            "{{tab.status}}": activeTab.status,
+            "{{browser}}": JSON.stringify(browserInfo),
+            "{{platform}}": JSON.stringify(platformInfo),
+            "{{triggeredAt}}": new Date().toISOString(),
+            "{{identifier}}": webhook.identifier || ""
+          };
+
+          // Replace placeholders in custom payload
+          let customPayloadStr = webhook.customPayload;
+          Object.entries(replacements).forEach(([placeholder, value]) => {
+            // Handle different types of values
+            // For string values in JSON, we need to handle them differently based on context
+            // If the placeholder is inside quotes in the JSON, we should not add quotes again
+            const isPlaceholderInQuotes = customPayloadStr.match(new RegExp(`"[^"]*${placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[^"]*"`, 'g'));
+
+            const replaceValue = typeof value === 'string'
+              ? (isPlaceholderInQuotes ? value.replace(/"/g, '\\"') : `"${value.replace(/"/g, '\\"')}"`)
+              : (value === undefined ? 'null' : JSON.stringify(value));
+
+            customPayloadStr = customPayloadStr.replace(
+              new RegExp(placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'),
+              replaceValue
+            );
+          });
+
+          // Parse the resulting JSON
+          const customPayload = JSON.parse(customPayloadStr);
+          console.log(customPayload);
+
+          // Use the custom payload instead of the default one
+          payload = customPayload;
+        } catch (error) {
+          console.error("Error parsing custom payload:", error);
+          // Fall back to default payload if custom payload is invalid
+        }
       }
       // Prepare headers
       let headers = { "Content-Type": "application/json" };
