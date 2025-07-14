@@ -9,6 +9,11 @@
 // Determine if we're in a Firefox environment (has browser object)
 const isFirefox = typeof browser !== 'undefined';
 
+// Keep references to the native APIs to avoid recursive calls if this
+// polyfill is re-used as the browser or chrome object itself
+const nativeBrowser = typeof browser !== 'undefined' ? browser : undefined;
+const nativeChrome = typeof chrome !== 'undefined' ? chrome : undefined;
+
 // Create the browserAPI object that will be exported
 const browserAPI = {};
 
@@ -39,11 +44,13 @@ browserAPI.storage = {
 // i18n API
 browserAPI.i18n = {
   getMessage: function(messageName, substitutions) {
-    if (isFirefox) {
-      return browser.i18n.getMessage(messageName, substitutions);
-    } else {
-      return chrome.i18n.getMessage(messageName, substitutions);
+    if (isFirefox && nativeBrowser && nativeBrowser.i18n && nativeBrowser.i18n.getMessage !== browserAPI.i18n.getMessage) {
+      return nativeBrowser.i18n.getMessage(messageName, substitutions);
     }
+    if (!isFirefox && nativeChrome && nativeChrome.i18n && nativeChrome.i18n.getMessage !== browserAPI.i18n.getMessage) {
+      return nativeChrome.i18n.getMessage(messageName, substitutions);
+    }
+    return '';
   }
 };
 
