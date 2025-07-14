@@ -81,7 +81,50 @@ const customPayloadContent = document.getElementById("custom-payload-content");
 const urlFilterInput = document.getElementById("webhook-url-filter");
 const toggleUrlFilterBtn = document.getElementById("toggle-url-filter");
 const urlFilterContent = document.getElementById("url-filter-content");
+const exportWebhooksBtn = document.getElementById("export-webhooks-btn");
+const importWebhooksBtn = document.getElementById("import-webhooks-btn");
+const importWebhooksInput = document.getElementById("import-webhooks-input");
 let headers = [];
+
+async function exportWebhooks() {
+  const { webhooks = [] } = await browser.storage.sync.get("webhooks");
+  const blob = new Blob([JSON.stringify({ webhooks }, null, 2)], {
+    type: "application/json",
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "webhooks.json";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+async function handleImport(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+    const hooks = Array.isArray(data) ? data : data.webhooks;
+    if (Array.isArray(hooks)) {
+      await saveWebhooks(hooks);
+      loadWebhooks();
+    }
+  } catch (e) {
+    console.error("Failed to import webhooks", e);
+  } finally {
+    event.target.value = "";
+  }
+}
+
+if (exportWebhooksBtn) {
+  exportWebhooksBtn.addEventListener("click", exportWebhooks);
+}
+
+if (importWebhooksBtn && importWebhooksInput) {
+  importWebhooksBtn.addEventListener("click", () => importWebhooksInput.click());
+  importWebhooksInput.addEventListener("change", handleImport);
+}
 
 showAddWebhookBtn.addEventListener('click', () => {
   form.classList.remove('hidden');
@@ -544,5 +587,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Export functions for testing in Node environment
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { loadWebhooks, saveWebhooks, renderHeaders, persistWebhookOrder };
+  module.exports = {
+    loadWebhooks,
+    saveWebhooks,
+    renderHeaders,
+    persistWebhookOrder,
+    exportWebhooks,
+    handleImport,
+  };
 }
