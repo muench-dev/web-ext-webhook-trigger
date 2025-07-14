@@ -11,8 +11,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Load webhooks from storage
   const { webhooks = [] } = await browser.storage.sync.get("webhooks");
+  const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+  const currentUrl = tabs[0]?.url || "";
+  const visibleWebhooks = webhooks.filter(
+    (wh) => !wh.urlFilter || currentUrl.includes(wh.urlFilter)
+  );
 
-  if (webhooks.length === 0) {
+  if (visibleWebhooks.length === 0) {
     // Use textContent instead of innerHTML for security
     const p = document.createElement("p");
     p.className = "no-hooks-msg";
@@ -21,7 +26,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     buttonsContainer.appendChild(p);
   } else {
     // Create a button for each webhook
-    webhooks.forEach((webhook) => {
+    visibleWebhooks.forEach((webhook) => {
       const button = document.createElement("button");
       button.textContent = webhook.label;
       button.dataset.url = webhook.url;
@@ -31,7 +36,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       buttonsContainer.appendChild(button);
     });
     // Store webhooks in a map for quick lookup by id
-    window._webhookMap = Object.fromEntries(webhooks.map(w => [w.id, w]));
+    window._webhookMap = Object.fromEntries(visibleWebhooks.map(w => [w.id, w]));
   }
 });
 

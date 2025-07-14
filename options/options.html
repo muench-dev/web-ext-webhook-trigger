@@ -55,7 +55,18 @@
                     <input type="text" id="webhook-identifier" placeholder="Optional identifier" />
                 </div>
                 <div class="form-group">
-                    <div class="collapsible-header">
+                    <div class="collapsible-header" id="url-filter-header">
+                        <label for="webhook-url-filter">URL Filter (optional)</label>
+                        <button type="button" id="toggle-url-filter" class="toggle-btn" aria-expanded="false">
+                            <span class="toggle-icon">+</span>
+                        </button>
+                    </div>
+                    <div id="url-filter-content" class="collapsible-content collapsed">
+                        <input type="text" id="webhook-url-filter" placeholder="Show button when URL contains this text" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="collapsible-header" id="custom-payload-header">
                         <label for="webhook-custom-payload">Custom Payload (optional)</label>
                         <button type="button" id="toggle-custom-payload" class="toggle-btn" aria-expanded="false">
                             <span class="toggle-icon">+</span>

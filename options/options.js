@@ -81,6 +81,9 @@ const customPayloadInput = document.getElementById("webhook-custom-payload");
 const variablesAutocomplete = document.getElementById("variables-autocomplete");
 const toggleCustomPayloadBtn = document.getElementById("toggle-custom-payload");
 const customPayloadContent = document.getElementById("custom-payload-content");
+const urlFilterInput = document.getElementById("webhook-url-filter");
+const toggleUrlFilterBtn = document.getElementById("toggle-url-filter");
+const urlFilterContent = document.getElementById("url-filter-content");
 let headers = [];
 
 showAddWebhookBtn.addEventListener('click', () => {
@@ -251,6 +254,7 @@ form.addEventListener("submit", async (e) => {
   const url = urlInput.value.trim();
   const method = methodSelect.value;
   const identifier = identifierInput.value.trim();
+  const urlFilter = urlFilterInput.value.trim();
   const customPayload = customPayloadInput.value.trim();
   let { webhooks = [] } = await browser.storage.sync.get("webhooks");
 
@@ -264,7 +268,8 @@ form.addEventListener("submit", async (e) => {
         method,
         headers: [...headers],
         identifier,
-        customPayload: customPayload || null
+        customPayload: customPayload || null,
+        urlFilter: urlFilter || ""
       } : wh
     );
     editWebhookId = null;
@@ -278,7 +283,8 @@ form.addEventListener("submit", async (e) => {
       method,
       headers: [...headers],
       identifier,
-      customPayload: customPayload || null
+      customPayload: customPayload || null,
+      urlFilter: urlFilter || ""
     };
     webhooks.push(newWebhook);
   }
@@ -288,6 +294,7 @@ form.addEventListener("submit", async (e) => {
   urlInput.value = "";
   methodSelect.value = "POST";
   identifierInput.value = "";
+  urlFilterInput.value = "";
   customPayloadInput.value = "";
   headerKeyInput.value = "";
   headerValueInput.value = "";
@@ -297,6 +304,7 @@ form.addEventListener("submit", async (e) => {
   form.querySelector('button[type="submit"]').textContent = browser.i18n.getMessage("optionsSaveButton") || "Save Webhook";
   // Collapse custom payload section
   updateCustomPayloadVisibility();
+  updateUrlFilterVisibility();
   form.classList.add('hidden');
   showAddWebhookBtn.classList.remove('hidden');
   loadWebhooks();
@@ -380,6 +388,7 @@ webhookList.addEventListener("click", async (e) => {
       urlInput.value = webhook.url;
       methodSelect.value = webhook.method || "POST";
       identifierInput.value = webhook.identifier || "";
+      urlFilterInput.value = webhook.urlFilter || "";
       customPayloadInput.value = webhook.customPayload || "";
       headers = Array.isArray(webhook.headers) ? [...webhook.headers] : [];
       renderHeaders();
@@ -391,6 +400,7 @@ webhookList.addEventListener("click", async (e) => {
 
       // Update custom payload section visibility based on content
       updateCustomPayloadVisibility();
+      updateUrlFilterVisibility();
 
       labelInput.focus();
     }
@@ -404,6 +414,7 @@ cancelEditBtn.addEventListener("click", () => {
   urlInput.value = "";
   methodSelect.value = "POST";
   identifierInput.value = "";
+  urlFilterInput.value = "";
   customPayloadInput.value = "";
   headerKeyInput.value = "";
   headerValueInput.value = "";
@@ -413,6 +424,7 @@ cancelEditBtn.addEventListener("click", () => {
   form.querySelector('button[type="submit"]').textContent = browser.i18n.getMessage("optionsSaveButton") || "Save Webhook";
   // Collapse custom payload section
   updateCustomPayloadVisibility();
+  updateUrlFilterVisibility();
   form.classList.add('hidden');
   showAddWebhookBtn.classList.remove('hidden');
 });
@@ -433,11 +445,40 @@ function toggleCustomPayloadSection() {
 toggleCustomPayloadBtn.addEventListener('click', toggleCustomPayloadSection);
 
 // Event listener for collapsible header (title click)
-const collapsibleHeader = document.querySelector('.collapsible-header');
-collapsibleHeader.addEventListener('click', (e) => {
+const customPayloadHeader = document.getElementById('custom-payload-header');
+customPayloadHeader.addEventListener('click', (e) => {
   // Only toggle if the click is not on the toggle button itself
   if (!e.target.closest('#toggle-custom-payload')) {
     toggleCustomPayloadSection();
+  }
+});
+
+// Toggle URL filter section
+function toggleUrlFilterSection() {
+  const isExpanded = toggleUrlFilterBtn.getAttribute('aria-expanded') === 'true';
+  toggleUrlFilterBtn.setAttribute('aria-expanded', !isExpanded);
+
+  if (isExpanded) {
+    urlFilterContent.classList.add('collapsed');
+  } else {
+    urlFilterContent.classList.remove('collapsed');
+  }
+}
+
+toggleUrlFilterBtn.addEventListener('click', toggleUrlFilterSection);
+
+const urlFilterHeader = document.getElementById('url-filter-header');
+urlFilterHeader.addEventListener('click', (e) => {
+  if (!e.target.closest('#toggle-url-filter')) {
+    toggleUrlFilterSection();
+  }
+});
+
+// Keep URL filter section expanded when typing
+urlFilterInput.addEventListener('input', () => {
+  if (urlFilterInput.value.trim() !== '') {
+    toggleUrlFilterBtn.setAttribute('aria-expanded', 'true');
+    urlFilterContent.classList.remove('collapsed');
   }
 });
 
@@ -464,6 +505,18 @@ function updateCustomPayloadVisibility() {
   }
 }
 
+function updateUrlFilterVisibility() {
+  const hasContent = urlFilterInput.value.trim() !== '';
+
+  if (hasContent) {
+    toggleUrlFilterBtn.setAttribute('aria-expanded', 'true');
+    urlFilterContent.classList.remove('collapsed');
+  } else {
+    toggleUrlFilterBtn.setAttribute('aria-expanded', 'false');
+    urlFilterContent.classList.add('collapsed');
+  }
+}
+
 // Show webhooks on page load
 document.addEventListener("DOMContentLoaded", () => {
   // Replace i18n placeholders
@@ -478,6 +531,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Initialize custom payload section (collapsed by default)
   updateCustomPayloadVisibility();
+  updateUrlFilterVisibility();
 
   // Load webhooks
   loadWebhooks();

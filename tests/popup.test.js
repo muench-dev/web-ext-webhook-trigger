@@ -22,7 +22,7 @@ describe('popup script', () => {
     global.browser = {
       storage: { sync: { get: jest.fn() } },
       i18n: { getMessage: jest.fn((key) => key) },
-      tabs: { query: jest.fn() },
+      tabs: { query: jest.fn().mockResolvedValue([{ title: 't', url: 'https://example.com', id: 1, windowId: 1, index: 0, pinned: false, audible: false, mutedInfo: null, incognito: false, status: 'complete' }]) },
       runtime: {
         openOptionsPage: jest.fn(),
         getBrowserInfo: jest.fn().mockResolvedValue({}),
@@ -104,5 +104,22 @@ describe('popup script', () => {
     const fetchOptions = fetchMock.mock.calls[0][1];
     const sentPayload = JSON.parse(fetchOptions.body);
     expect(sentPayload).toEqual({ message: 'Custom message with Test Page' });
+  });
+
+  test('filters webhooks based on urlFilter', async () => {
+    const hooks = [
+      { id: '1', label: 'A', url: 'https://hook1.test', urlFilter: 'example.com' },
+      { id: '2', label: 'B', url: 'https://hook2.test', urlFilter: 'other.com' }
+    ];
+    browser.storage.sync.get.mockResolvedValue({ webhooks: hooks });
+    browser.tabs.query.mockResolvedValue([{ title: 't', url: 'https://example.com', id: 1, windowId: 1, index: 0, pinned: false, audible: false, mutedInfo: null, incognito: false, status: 'complete' }]);
+
+    require('../popup/popup.js');
+    document.dispatchEvent(new dom.window.Event('DOMContentLoaded'));
+    await new Promise(setImmediate);
+
+    const btns = document.querySelectorAll('button.webhook-btn');
+    expect(btns.length).toBe(1);
+    expect(btns[0].textContent).toBe('A');
   });
 });
