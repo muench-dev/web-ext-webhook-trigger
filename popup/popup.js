@@ -1,17 +1,15 @@
-// Polyfill for browser API to support Chrome and Firefox
-if (typeof window !== "undefined" && typeof window.browser === "undefined") {
-  window.browser = window.chrome;
-}
+
 
 document.addEventListener("DOMContentLoaded", async () => {
+  const browserAPI = window.getBrowserAPI();
   // Replace i18n placeholders
   replaceI18nPlaceholders();
 
   const buttonsContainer = document.getElementById("buttons-container");
 
   // Load webhooks from storage
-  const { webhooks = [] } = await browser.storage.sync.get("webhooks");
-  const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+  const { webhooks = [] } = await browserAPI.storage.sync.get("webhooks");
+  const tabs = await browserAPI.tabs.query({ active: true, currentWindow: true });
   const currentUrl = tabs[0]?.url || "";
   const visibleWebhooks = webhooks.filter(
     (wh) => !wh.urlFilter || currentUrl.includes(wh.urlFilter)
@@ -21,7 +19,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Use textContent instead of innerHTML for security
     const p = document.createElement("p");
     p.className = "no-hooks-msg";
-    p.textContent = browser.i18n.getMessage("popupNoWebhooksConfigured");
+    p.textContent = browserAPI.i18n.getMessage("popupNoWebhooksConfigured");
     buttonsContainer.textContent = ""; // Clear any existing content
     buttonsContainer.appendChild(p);
   } else {
@@ -44,6 +42,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 document
   .getElementById("buttons-container")
   .addEventListener("click", async (e) => {
+    const browserAPI = window.getBrowserAPI();
     if (!e.target.classList.contains("webhook-btn")) {
       return;
     }
@@ -61,25 +60,25 @@ document
     }
 
     button.disabled = true;
-    button.textContent = browser.i18n.getMessage("popupSending");
+    button.textContent = browserAPI.i18n.getMessage("popupSending");
     statusMessage.textContent = "";
     statusMessage.className = "";
 
     try {
       // Get info about the active tab
-      const tabs = await browser.tabs.query({
+      const tabs = await browserAPI.tabs.query({
         active: true,
         currentWindow: true,
       });
       if (tabs.length === 0) {
-        throw new Error(browser.i18n.getMessage("popupErrorNoActiveTab"));
+        throw new Error(browserAPI.i18n.getMessage("popupErrorNoActiveTab"));
       }
       const activeTab = tabs[0];
       const currentUrl = activeTab.url;
 
       // Get browser and platform info
-      const browserInfo = await browser.runtime.getBrowserInfo?.() || {};
-      const platformInfo = await browser.runtime.getPlatformInfo?.() || {};
+      const browserInfo = await browserAPI.runtime.getBrowserInfo?.() || {};
+      const platformInfo = await browserAPI.runtime.getPlatformInfo?.() || {};
 
       // Create default payload
       let payload = {
@@ -153,7 +152,7 @@ document
           // Use the custom payload instead of the default one
           payload = customPayload;
         } catch (error) {
-          throw new Error(browser.i18n.getMessage("popupErrorCustomPayloadJsonParseError", error.message));
+          throw new Error(browserAPI.i18n.getMessage("popupErrorCustomPayloadJsonParseError", error.message));
         }
       }
       // Prepare headers
@@ -185,18 +184,18 @@ document
       const response = await fetch(fetchUrl, fetchOpts);
 
       if (!response.ok) {
-        throw new Error(browser.i18n.getMessage("popupErrorHttp", response.status));
+        throw new Error(browserAPI.i18n.getMessage("popupErrorHttp", response.status));
       }
 
       // Success feedback
-      statusMessage.textContent = browser.i18n.getMessage("popupStatusSuccess");
+      statusMessage.textContent = browserAPI.i18n.getMessage("popupStatusSuccess");
       statusMessage.classList.add("success");
-      button.textContent = browser.i18n.getMessage("popupBtnTextSent");
+      button.textContent = browserAPI.i18n.getMessage("popupBtnTextSent");
     } catch (error) {
       console.error("Error sending webhook:", error);
-      statusMessage.textContent = `${browser.i18n.getMessage("popupStatusErrorPrefix")} ${error.message}`;
+      statusMessage.textContent = `${browserAPI.i18n.getMessage("popupStatusErrorPrefix")} ${error.message}`;
       statusMessage.classList.add("error");
-      button.textContent = browser.i18n.getMessage("popupBtnTextFailed");
+      button.textContent = browserAPI.i18n.getMessage("popupBtnTextFailed");
     } finally {
       // Re-enable button after a delay and restore state
       setTimeout(() => {
@@ -211,7 +210,8 @@ document
 // Link to open the options page
 document.getElementById("open-options").addEventListener("click", (e) => {
   e.preventDefault();
-  browser.runtime.openOptionsPage();
+  const browserAPI = window.getBrowserAPI();
+  browserAPI.runtime.openOptionsPage();
 });
 
 // Export for testing in Node environment

@@ -59,6 +59,7 @@ describe('options page', () => {
         getMessage: jest.fn().mockImplementation((key) => key),
       },
     };
+    global.window.getBrowserAPI = jest.fn().mockReturnValue(global.browser);
 
     // Store the original addEventListener
     const originalAddEventListener = dom.window.document.addEventListener;
@@ -86,6 +87,7 @@ describe('options page', () => {
     jest.resetModules();
     dom.window.close();
     delete global.document;
+    delete global.window.getBrowserAPI;
     delete global.window;
     delete global.Node;
     delete global.browser;

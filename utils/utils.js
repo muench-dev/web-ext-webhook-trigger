@@ -1,9 +1,29 @@
 // Shared utility functions
 
-// Polyfill for browser API to support Chrome and Firefox
-if (typeof window !== "undefined" && typeof window.browser === "undefined") {
-  window.browser = window.chrome;
+// Load browser polyfill when running in a browser environment
+if (typeof window !== 'undefined' && !window.browserAPI) {
+  const script = document.createElement('script');
+  script.src = '/utils/browser-polyfill.js';
+  document.head.appendChild(script);
 }
+
+// Import or load the browser abstraction layer
+const getBrowserAPI = () => {
+  if (typeof window !== 'undefined') {
+    if (window.browserAPI) return window.browserAPI;
+    if (window.getBrowserAPI) return window.getBrowserAPI();
+    if (window.browser) return window.browser;
+    if (window.chrome) return window.chrome;
+  }
+  if (typeof global !== 'undefined' && global.browser) {
+    return global.browser;
+  }
+  try {
+    return require('./browser-polyfill.js');
+  } catch (e) {
+    return typeof browser !== 'undefined' ? browser : typeof chrome !== 'undefined' ? chrome : {};
+  }
+};
 
 /**
  * Replaces i18n placeholders in the HTML document.
@@ -11,12 +31,14 @@ if (typeof window !== "undefined" && typeof window.browser === "undefined") {
  * text nodes containing '__MSG_...__', and the document title.
  */
 function replaceI18nPlaceholders() {
+  const browserAPI = getBrowserAPI();
+
   // Replace textContent of elements with data-i18n attribute
   const elements = document.querySelectorAll('[data-i18n]');
   elements.forEach(element => {
     const key = element.getAttribute('data-i18n');
     if (key) {
-      const message = browser.i18n.getMessage(key);
+      const message = browserAPI.i18n.getMessage(key);
       if (message) {
         element.textContent = message;
       }
@@ -33,7 +55,7 @@ function replaceI18nPlaceholders() {
             let newValue = node.nodeValue;
             matches.forEach(match => {
               const key = match.replace('__MSG_', '').replace('__', '');
-              const message = browser.i18n.getMessage(key);
+              const message = browserAPI.i18n.getMessage(key);
               if (message) {
                 newValue = newValue.replace(match, message);
               }
@@ -52,7 +74,7 @@ function replaceI18nPlaceholders() {
       let newTitle = document.title;
       matches.forEach(match => {
         const key = match.replace('__MSG_', '').replace('__', '');
-        const message = browser.i18n.getMessage(key);
+        const message = browserAPI.i18n.getMessage(key);
         if (message) {
           newTitle = newTitle.replace(match, message);
         }
@@ -63,7 +85,8 @@ function replaceI18nPlaceholders() {
 }
 
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { replaceI18nPlaceholders };
+  module.exports = { replaceI18nPlaceholders, getBrowserAPI };
 } else {
   window.replaceI18nPlaceholders = replaceI18nPlaceholders;
+  window.getBrowserAPI = getBrowserAPI;
 }
