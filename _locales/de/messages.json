@@ -122,5 +122,13 @@
   "optionsAddNewWebhookButton": {
     "message": "Neuen Webhook hinzufügen",
     "description": "Schaltfläche um das Formular zum Hinzufügen zu öffnen."
+  },
+  "optionsGroupInputLabel": {
+    "message": "Gruppe (optional)",
+    "description": "Label für das Eingabefeld der Webhook-Gruppe."
+  },
+  "optionsGroupInputPlaceholder": {
+    "message": "Gruppenname",
+    "description": "Platzhalter für das Eingabefeld der Webhook-Gruppe."
   }
 }

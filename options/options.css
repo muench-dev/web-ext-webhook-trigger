@@ -148,12 +148,11 @@ button:hover {
     margin-top: 0;
 }
 
-#webhook-list {
+.webhook-list {
     list-style-type: none;
     padding: 0;
 }
-
-#webhook-list li {
+.webhook-list li {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -163,13 +162,10 @@ button:hover {
     transition: background-color 0.2s;
     border-radius: 8px;
     margin-bottom: 8px;
-}
-
-#webhook-list li:hover {
+.webhook-list li:hover {
     background-color: #f9fafb;
 }
-
-#webhook-list li:last-child {
+.webhook-list li:last-child {
     border-bottom: none;
 }
 
@@ -180,7 +176,25 @@ button:hover {
     color: #6b7280;
 }
 
-#webhook-list li.dragging {
+.webhook-group {
+    margin-bottom: 24px;
+}
+
+.group-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.group-drag-handle {
+    cursor: grab;
+    user-select: none;
+    font-size: 1.2em;
+    color: #6b7280;
+}
+
+.webhook-list li.dragging {
     opacity: 0.5;
 }
 

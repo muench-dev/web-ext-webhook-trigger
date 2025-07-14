@@ -3,63 +3,107 @@ if (typeof window.browser === "undefined") {
   window.browser = window.chrome;
 }
 
-// Function to load and display webhooks
+// Helper to build a webhook list item
+const createWebhookListItem = (webhook) => {
+  const listItem = document.createElement("li");
+  listItem.dataset.id = webhook.id;
+  listItem.draggable = true;
+
+  const dragHandle = document.createElement("span");
+  dragHandle.classList.add("drag-handle");
+  dragHandle.textContent = "\u2630";
+
+  const textContent = document.createElement("div");
+  textContent.classList.add("webhook-info");
+
+  const labelSpan = document.createElement("span");
+  labelSpan.classList.add("label");
+  labelSpan.textContent = webhook.label;
+
+  const urlSpan = document.createElement("span");
+  urlSpan.classList.add("url");
+  urlSpan.textContent = webhook.url;
+
+  textContent.appendChild(labelSpan);
+  textContent.appendChild(urlSpan);
+
+  const deleteButton = document.createElement("button");
+  deleteButton.textContent = browser.i18n.getMessage("optionsDeleteButton");
+  deleteButton.classList.add("delete-btn");
+
+  const editButton = document.createElement("button");
+  editButton.textContent = browser.i18n.getMessage("optionsEditButton") || "Edit";
+  editButton.classList.add("edit-btn");
+
+  listItem.appendChild(dragHandle);
+  listItem.appendChild(textContent);
+  listItem.appendChild(editButton);
+  listItem.appendChild(deleteButton);
+  return listItem;
+};
+
+// Function to load and display webhooks grouped
 const loadWebhooks = async () => {
-  const { webhooks = [] } = await browser.storage.sync.get("webhooks");
-  const list = document.getElementById("webhook-list");
+  const { webhooks = [], groupOrder = [] } = await browser.storage.sync.get([
+    "webhooks",
+    "groupOrder",
+  ]);
+  const container = document.getElementById("webhook-groups-container");
   const message = document.getElementById("no-webhooks-message");
-  list.innerHTML = "";
+  container.innerHTML = "";
 
   if (webhooks.length === 0) {
     message.classList.remove("hidden");
     message.textContent = browser.i18n.getMessage("optionsNoWebhooksMessage");
-  } else {
-    message.classList.add("hidden");
-    webhooks.forEach((webhook) => {
-      const listItem = document.createElement("li");
-      listItem.dataset.id = webhook.id;
-      listItem.draggable = true;
-
-      const dragHandle = document.createElement("span");
-      dragHandle.classList.add("drag-handle");
-      dragHandle.textContent = "\u2630"; // common drag icon
-
-      const textContent = document.createElement("div");
-      textContent.classList.add("webhook-info");
-
-      const labelSpan = document.createElement("span");
-      labelSpan.classList.add("label");
-      labelSpan.textContent = webhook.label;
-
-      const urlSpan = document.createElement("span");
-      urlSpan.classList.add("url");
-      urlSpan.textContent = webhook.url;
-
-      textContent.appendChild(labelSpan);
-      textContent.appendChild(urlSpan);
-
-      const deleteButton = document.createElement("button");
-      // Use localized text for the button
-      deleteButton.textContent = browser.i18n.getMessage("optionsDeleteButton");
-      deleteButton.classList.add("delete-btn");
-
-      // Add edit button
-      const editButton = document.createElement("button");
-      editButton.textContent = browser.i18n.getMessage("optionsEditButton") || "Edit";
-      editButton.classList.add("edit-btn");
-
-      listItem.appendChild(dragHandle);
-      listItem.appendChild(textContent);
-      listItem.appendChild(editButton);
-      listItem.appendChild(deleteButton);
-      list.appendChild(listItem);
-    });
+    return;
   }
+
+  message.classList.add("hidden");
+
+  const groups = {};
+  webhooks.forEach((wh) => {
+    const grp = wh.group || "";
+    if (!groups[grp]) groups[grp] = [];
+    groups[grp].push(wh);
+  });
+  const orderedGroups = groupOrder.filter((g) => g in groups).concat(
+    Object.keys(groups).filter((g) => !groupOrder.includes(g))
+  );
+
+  orderedGroups.forEach((group) => {
+    const groupDiv = document.createElement("div");
+    groupDiv.classList.add("webhook-group");
+    groupDiv.dataset.group = group;
+    groupDiv.draggable = true;
+
+    const header = document.createElement("div");
+    header.classList.add("group-header");
+
+    const drag = document.createElement("span");
+    drag.classList.add("group-drag-handle");
+    drag.textContent = "\u2630";
+
+    const h3 = document.createElement("h3");
+    h3.textContent = group || "Default";
+
+    header.appendChild(drag);
+    header.appendChild(h3);
+    groupDiv.appendChild(header);
+
+    const ul = document.createElement("ul");
+    ul.classList.add("webhook-list");
+    groups[group].forEach((wh) => ul.appendChild(createWebhookListItem(wh)));
+    groupDiv.appendChild(ul);
+
+    container.appendChild(groupDiv);
+  });
 };
 
-// Function to save webhooks
-const saveWebhooks = (webhooks) => {
-  return browser.storage.sync.set({ webhooks });
+// Function to save webhooks and optionally group order
+const saveWebhooks = (webhooks, groupOrder) => {
+  const data = { webhooks };
+  if (groupOrder) data.groupOrder = groupOrder;
+  return browser.storage.sync.set(data);
 };
 
 // Track edit mode state
@@ -71,6 +115,7 @@ const labelInput = document.getElementById("webhook-label");
 const urlInput = document.getElementById("webhook-url");
 const methodSelect = document.getElementById("webhook-method");
 const identifierInput = document.getElementById("webhook-identifier");
+const groupInput = document.getElementById("webhook-group");
 const headersListDiv = document.getElementById("headers-list");
 const headerKeyInput = document.getElementById("header-key");
 const headerValueInput = document.getElementById("header-value");
@@ -254,9 +299,13 @@ form.addEventListener("submit", async (e) => {
   const url = urlInput.value.trim();
   const method = methodSelect.value;
   const identifier = identifierInput.value.trim();
+  const group = groupInput.value.trim();
   const urlFilter = urlFilterInput.value.trim();
   const customPayload = customPayloadInput.value.trim();
-  let { webhooks = [] } = await browser.storage.sync.get("webhooks");
+  let { webhooks = [], groupOrder = [] } = await browser.storage.sync.get([
+    "webhooks",
+    "groupOrder",
+  ]);
 
   if (editWebhookId) {
     // Edit mode: update existing webhook
@@ -269,9 +318,13 @@ form.addEventListener("submit", async (e) => {
         headers: [...headers],
         identifier,
         customPayload: customPayload || null,
-        urlFilter: urlFilter || ""
+        urlFilter: urlFilter || "",
+        group
       } : wh
     );
+    if (group && !groupOrder.includes(group)) {
+      groupOrder.push(group);
+    }
     editWebhookId = null;
     cancelEditBtn.classList.add("hidden");
   } else {
@@ -284,16 +337,21 @@ form.addEventListener("submit", async (e) => {
       headers: [...headers],
       identifier,
       customPayload: customPayload || null,
-      urlFilter: urlFilter || ""
+      urlFilter: urlFilter || "",
+      group
     };
     webhooks.push(newWebhook);
+    if (group && !groupOrder.includes(group)) {
+      groupOrder.push(group);
+    }
   }
 
-  await saveWebhooks(webhooks);
+  await saveWebhooks(webhooks, groupOrder);
   labelInput.value = "";
   urlInput.value = "";
   methodSelect.value = "POST";
   identifierInput.value = "";
+  groupInput.value = "";
   urlFilterInput.value = "";
   customPayloadInput.value = "";
   headerKeyInput.value = "";
@@ -311,59 +369,102 @@ form.addEventListener("submit", async (e) => {
 });
 
 // Edit and delete event listeners
-const webhookList = document.getElementById("webhook-list");
+const groupsContainer = document.getElementById("webhook-groups-container");
 let draggedItem = null;
+let draggedGroup = null;
 
 const persistWebhookOrder = async () => {
-  const ids = Array.from(webhookList.querySelectorAll("li")).map((li) => li.dataset.id);
-  let { webhooks = [] } = await browser.storage.sync.get("webhooks");
-  webhooks = ids.map((id) => webhooks.find((w) => w.id === id)).filter(Boolean);
-  await saveWebhooks(webhooks);
+  const groupEls = Array.from(groupsContainer.querySelectorAll('.webhook-group'));
+  let { webhooks = [] } = await browser.storage.sync.get('webhooks');
+  const newOrder = [];
+  const groupOrder = [];
+  groupEls.forEach(gEl => {
+    const group = gEl.dataset.group || '';
+    groupOrder.push(group);
+    const ids = Array.from(gEl.querySelectorAll('li')).map(li => li.dataset.id);
+    ids.forEach(id => {
+      const wh = webhooks.find(w => w.id === id);
+      if (wh) {
+        wh.group = group;
+        newOrder.push(wh);
+      }
+    });
+  });
+  await saveWebhooks(newOrder, groupOrder);
 };
 
-webhookList.addEventListener("dragstart", (e) => {
+groupsContainer.addEventListener("dragstart", (e) => {
   const li = e.target.closest("li");
-  if (!li) return;
-  draggedItem = li;
-  li.classList.add("dragging");
-  e.dataTransfer.effectAllowed = "move";
-});
-
-webhookList.addEventListener("dragover", (e) => {
-  e.preventDefault();
-  const target = e.target.closest("li");
-  if (!draggedItem || !target || target === draggedItem) return;
-  const rect = target.getBoundingClientRect();
-  const next = e.clientY - rect.top > rect.height / 2;
-  webhookList.insertBefore(draggedItem, next ? target.nextSibling : target);
-});
-
-webhookList.addEventListener("drop", async (e) => {
-  e.preventDefault();
-  if (draggedItem) {
-    draggedItem.classList.remove("dragging");
-    await persistWebhookOrder();
-    draggedItem = null;
+  const group = e.target.closest(".webhook-group");
+  if (li) {
+    draggedItem = li;
+    li.classList.add("dragging");
+  } else if (group && e.target.classList.contains("group-drag-handle")) {
+    draggedGroup = group;
+    group.classList.add("dragging");
+  }
+  if (draggedItem || draggedGroup) {
+    e.dataTransfer.effectAllowed = "move";
   }
 });
 
-webhookList.addEventListener("dragend", async () => {
+groupsContainer.addEventListener("dragover", (e) => {
+  e.preventDefault();
   if (draggedItem) {
-    draggedItem.classList.remove("dragging");
-    await persistWebhookOrder();
-    draggedItem = null;
+    const target = e.target.closest("li");
+    const list = e.target.closest("ul.webhook-list");
+    if (!list) return;
+    if (target && target !== draggedItem) {
+      const rect = target.getBoundingClientRect();
+      const next = e.clientY - rect.top > rect.height / 2;
+      list.insertBefore(draggedItem, next ? target.nextSibling : target);
+    } else if (!target && list !== draggedItem.parentElement) {
+      list.appendChild(draggedItem);
+    }
+  } else if (draggedGroup) {
+    const targetGroup = e.target.closest(".webhook-group");
+    if (!targetGroup || targetGroup === draggedGroup) return;
+    const rect = targetGroup.getBoundingClientRect();
+    const next = e.clientY - rect.top > rect.height / 2;
+    groupsContainer.insertBefore(draggedGroup, next ? targetGroup.nextSibling : targetGroup);
   }
 });
-webhookList.addEventListener("click", async (e) => {
+
+groupsContainer.addEventListener("drop", async (e) => {
+  e.preventDefault();
+  if (draggedItem || draggedGroup) {
+    if (draggedItem) draggedItem.classList.remove("dragging");
+    if (draggedGroup) draggedGroup.classList.remove("dragging");
+    await persistWebhookOrder();
+    draggedItem = null;
+    draggedGroup = null;
+  }
+});
+
+groupsContainer.addEventListener("dragend", async () => {
+  if (draggedItem || draggedGroup) {
+    if (draggedItem) draggedItem.classList.remove("dragging");
+    if (draggedGroup) draggedGroup.classList.remove("dragging");
+    await persistWebhookOrder();
+    draggedItem = null;
+    draggedGroup = null;
+  }
+});
+groupsContainer.addEventListener("click", async (e) => {
   const listItem = e.target.closest("li");
   if (!listItem) return;
   const webhookId = listItem.dataset.id;
-  let { webhooks = [] } = await browser.storage.sync.get("webhooks");
+  let { webhooks = [], groupOrder = [] } = await browser.storage.sync.get([
+    "webhooks",
+    "groupOrder",
+  ]);
 
   if (e.target.classList.contains("delete-btn")) {
     // Delete webhook
     webhooks = webhooks.filter((webhook) => webhook.id !== webhookId);
-    await saveWebhooks(webhooks);
+    const existingGroups = [...new Set(webhooks.map((w) => w.group || ""))];
+    groupOrder = groupOrder.filter((g) => existingGroups.includes(g));
+    await saveWebhooks(webhooks, groupOrder);
     loadWebhooks();
     // If deleting the one being edited, reset form
     if (editWebhookId === webhookId) {
@@ -372,6 +473,7 @@ webhookList.addEventListener("click", async (e) => {
       urlInput.value = "";
       methodSelect.value = "POST";
       identifierInput.value = "";
+      groupInput.value = "";
       headerKeyInput.value = "";
       headerValueInput.value = "";
       headers = [];
@@ -388,6 +490,7 @@ webhookList.addEventListener("click", async (e) => {
       urlInput.value = webhook.url;
       methodSelect.value = webhook.method || "POST";
       identifierInput.value = webhook.identifier || "";
+      groupInput.value = webhook.group || "";
       urlFilterInput.value = webhook.urlFilter || "";
       customPayloadInput.value = webhook.customPayload || "";
       headers = Array.isArray(webhook.headers) ? [...webhook.headers] : [];
@@ -414,6 +517,7 @@ cancelEditBtn.addEventListener("click", () => {
   urlInput.value = "";
   methodSelect.value = "POST";
   identifierInput.value = "";
+  groupInput.value = "";
   urlFilterInput.value = "";
   customPayloadInput.value = "";
   headerKeyInput.value = "";
@@ -524,6 +628,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Set localized placeholder for webhook-label input
   labelInput.placeholder = browser.i18n.getMessage("optionsLabelInputPlaceholder");
+  groupInput.placeholder = browser.i18n.getMessage("optionsGroupInputPlaceholder");
 
   // Set localized label for cancel edit button
   cancelEditBtn.textContent = browser.i18n.getMessage("optionsCancelEditButton") || "Cancel";

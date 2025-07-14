@@ -29,6 +29,15 @@ body {
     gap: 10px;
 }
 
+.popup-group {
+    margin-bottom: 10px;
+}
+
+.popup-group h4 {
+    margin: 0 0 5px 0;
+    font-size: 1em;
+}
+
 .webhook-btn {
     width: 100%;
     padding: 12px;

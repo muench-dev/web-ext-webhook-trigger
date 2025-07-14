@@ -122,5 +122,13 @@
   "optionsAddNewWebhookButton": {
     "message": "Add new webhook",
     "description": "Button text to open the add webhook form."
+  },
+  "optionsGroupInputLabel": {
+    "message": "Group (optional)",
+    "description": "Label for the webhook group input field."
+  },
+  "optionsGroupInputPlaceholder": {
+    "message": "Group name",
+    "description": "Placeholder for the webhook group input field."
   }
 }

@@ -55,6 +55,14 @@
                     <input type="text" id="webhook-identifier" placeholder="Optional identifier" />
                 </div>
                 <div class="form-group">
+                    <label for="webhook-group">__MSG_optionsGroupInputLabel__</label>
+                    <input
+                        type="text"
+                        id="webhook-group"
+                        placeholder="__MSG_optionsGroupInputPlaceholder__"
+                    />
+                </div>
+                <div class="form-group">
                     <div class="collapsible-header" id="url-filter-header">
                         <label for="webhook-url-filter">URL Filter (optional)</label>
                         <button type="button" id="toggle-url-filter" class="toggle-btn" aria-expanded="false">
@@ -106,9 +114,9 @@
 
             <h2>__MSG_optionsStoredWebhooksHeader__</h2>
             <div id="webhook-list-container">
-                <ul id="webhook-list">
+                <div id="webhook-groups-container">
                     <!-- Gespeicherte Webhooks werden hier dynamisch eingefügt -->
-                </ul>
+                </div>
                 <p id="no-webhooks-message" class="hidden">
                     __MSG_optionsNoWebhooksMessage__
                 </p>

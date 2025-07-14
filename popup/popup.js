@@ -10,14 +10,27 @@ document.addEventListener("DOMContentLoaded", async () => {
   const buttonsContainer = document.getElementById("buttons-container");
 
   // Load webhooks from storage
-  const { webhooks = [] } = await browser.storage.sync.get("webhooks");
+  const { webhooks = [], groupOrder = [] } = await browser.storage.sync.get([
+    "webhooks",
+    "groupOrder",
+  ]);
   const tabs = await browser.tabs.query({ active: true, currentWindow: true });
   const currentUrl = tabs[0]?.url || "";
   const visibleWebhooks = webhooks.filter(
     (wh) => !wh.urlFilter || currentUrl.includes(wh.urlFilter)
   );
 
-  if (visibleWebhooks.length === 0) {
+  const groups = {};
+  visibleWebhooks.forEach((wh) => {
+    const grp = wh.group || "";
+    if (!groups[grp]) groups[grp] = [];
+    groups[grp].push(wh);
+  });
+  const orderedGroups = groupOrder.filter((g) => g in groups).concat(
+    Object.keys(groups).filter((g) => !groupOrder.includes(g))
+  );
+
+  if (orderedGroups.every((g) => groups[g].length === 0)) {
     // Use textContent instead of innerHTML for security
     const p = document.createElement("p");
     p.className = "no-hooks-msg";
@@ -25,18 +38,32 @@ document.addEventListener("DOMContentLoaded", async () => {
     buttonsContainer.textContent = ""; // Clear any existing content
     buttonsContainer.appendChild(p);
   } else {
-    // Create a button for each webhook
-    visibleWebhooks.forEach((webhook) => {
-      const button = document.createElement("button");
-      button.textContent = webhook.label;
-      button.dataset.url = webhook.url;
-      button.dataset.label = webhook.label;
-      button.dataset.webhookId = webhook.id;
-      button.classList.add("webhook-btn");
-      buttonsContainer.appendChild(button);
+    orderedGroups.forEach((group) => {
+      const hooks = groups[group];
+      if (!hooks || hooks.length === 0) return;
+      const wrapper = document.createElement("div");
+      wrapper.classList.add("popup-group");
+
+      if (group) {
+        const heading = document.createElement("h4");
+        heading.textContent = group;
+        wrapper.appendChild(heading);
+      }
+
+      hooks.forEach((webhook) => {
+        const button = document.createElement("button");
+        button.textContent = webhook.label;
+        button.dataset.url = webhook.url;
+        button.dataset.label = webhook.label;
+        button.dataset.webhookId = webhook.id;
+        button.classList.add("webhook-btn");
+        wrapper.appendChild(button);
+      });
+
+      buttonsContainer.appendChild(wrapper);
     });
-    // Store webhooks in a map for quick lookup by id
-    window._webhookMap = Object.fromEntries(visibleWebhooks.map(w => [w.id, w]));
+
+    window._webhookMap = Object.fromEntries(visibleWebhooks.map((w) => [w.id, w]));
   }
 });
 

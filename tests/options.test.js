@@ -17,6 +17,7 @@ describe('options page', () => {
         <input id="webhook-url" />
         <select id="webhook-method"></select>
         <input id="webhook-identifier" />
+        <input id="webhook-group" />
         <div id="headers-list"></div>
         <input id="header-key" />
         <input id="header-value" />
@@ -41,7 +42,7 @@ describe('options page', () => {
         <button type="button" id="cancel-edit-btn" class="hidden"></button>
         <button type="submit"></button>
       </form>
-      <ul id="webhook-list"></ul>
+      <div id="webhook-groups-container"></div>
       <p id="no-webhooks-message" class="hidden"></p>
     </body></html>`);
     global.document = dom.window.document;
@@ -101,10 +102,10 @@ describe('options page', () => {
   });
 
   test('renders list items when webhooks exist', async () => {
-    const hooks = [{ id: '1', label: 'Test', url: 'http://example.com' }];
-    global.browser.storage.sync.get.mockResolvedValue({ webhooks: hooks });
+    const hooks = [{ id: '1', label: 'Test', url: 'http://example.com', group: 'A' }];
+    global.browser.storage.sync.get.mockResolvedValue({ webhooks: hooks, groupOrder: ['A'] });
     await loadWebhooks();
-    const items = document.querySelectorAll('#webhook-list li');
+    const items = document.querySelectorAll('#webhook-groups-container li');
     expect(items.length).toBe(1);
     const item = items[0];
     expect(item.dataset.id).toBe('1');
@@ -179,25 +180,28 @@ describe('options page', () => {
         ],
         identifier: 'test-identifier',
         customPayload,
-        urlFilter: 'example.com'
-      }]
+        urlFilter: 'example.com',
+        group: ''
+      }],
+      groupOrder: []
     });
   });
 
   test('persistWebhookOrder stores list order', async () => {
     const hooks = [
-      { id: '1', label: 'A', url: 'a' },
-      { id: '2', label: 'B', url: 'b' }
+      { id: '1', label: 'A', url: 'a', group: 'g' },
+      { id: '2', label: 'B', url: 'b', group: 'g' }
     ];
-    global.browser.storage.sync.get.mockResolvedValue({ webhooks: hooks });
+    global.browser.storage.sync.get.mockResolvedValue({ webhooks: hooks, groupOrder: ['g'] });
     await loadWebhooks();
-    const list = document.getElementById('webhook-list');
+    const list = document.querySelector('#webhook-groups-container ul');
     list.appendChild(list.firstElementChild); // reorder DOM
 
     await persistWebhookOrder();
 
     expect(global.browser.storage.sync.set).toHaveBeenLastCalledWith({
-      webhooks: [hooks[1], hooks[0]]
+      webhooks: [hooks[1], hooks[0]],
+      groupOrder: ['g']
     });
   });
 });
