@@ -21,22 +21,28 @@ const browserAPI = {};
 browserAPI.storage = {
   sync: {
     get: function(keys) {
-      if (isFirefox) {
-        return browser.storage.sync.get(keys);
-      } else {
-        return new Promise((resolve) => {
-          chrome.storage.sync.get(keys, resolve);
-        });
+      const nativeGet = isFirefox
+        ? nativeBrowser?.storage?.sync?.get
+        : nativeChrome?.storage?.sync?.get;
+      if (nativeGet && nativeGet !== browserAPI.storage.sync.get) {
+        if (isFirefox) {
+          return nativeGet.call(nativeBrowser.storage.sync, keys);
+        }
+        return new Promise(resolve => nativeGet.call(nativeChrome.storage.sync, keys, resolve));
       }
+      return Promise.resolve({});
     },
     set: function(items) {
-      if (isFirefox) {
-        return browser.storage.sync.set(items);
-      } else {
-        return new Promise((resolve) => {
-          chrome.storage.sync.set(items, resolve);
-        });
+      const nativeSet = isFirefox
+        ? nativeBrowser?.storage?.sync?.set
+        : nativeChrome?.storage?.sync?.set;
+      if (nativeSet && nativeSet !== browserAPI.storage.sync.set) {
+        if (isFirefox) {
+          return nativeSet.call(nativeBrowser.storage.sync, items);
+        }
+        return new Promise(resolve => nativeSet.call(nativeChrome.storage.sync, items, resolve));
       }
+      return Promise.resolve();
     }
   }
 };
@@ -57,54 +63,61 @@ browserAPI.i18n = {
 // Tabs API
 browserAPI.tabs = {
   query: function(queryInfo) {
-    if (isFirefox) {
-      return browser.tabs.query(queryInfo);
-    } else {
-      return new Promise((resolve) => {
-        chrome.tabs.query(queryInfo, resolve);
-      });
+    const nativeQuery = isFirefox
+      ? nativeBrowser?.tabs?.query
+      : nativeChrome?.tabs?.query;
+    if (nativeQuery && nativeQuery !== browserAPI.tabs.query) {
+      if (isFirefox) {
+        return nativeQuery.call(nativeBrowser.tabs, queryInfo);
+      }
+      return new Promise(resolve => nativeQuery.call(nativeChrome.tabs, queryInfo, resolve));
     }
+    return Promise.resolve([]);
   }
 };
 
 // Runtime API
 browserAPI.runtime = {
   getBrowserInfo: function() {
-    if (isFirefox && browser.runtime.getBrowserInfo) {
-      return browser.runtime.getBrowserInfo();
-    } else {
-      // Chrome doesn't have getBrowserInfo, so we'll return a basic object
-      return Promise.resolve({
-        name: 'Chrome',
-        vendor: 'Google',
-        version: navigator.userAgent.match(/Chrome\/([0-9.]+)/)[1] || '',
-        buildID: ''
-      });
+    const nativeGetInfo = nativeBrowser?.runtime?.getBrowserInfo;
+    if (isFirefox && nativeGetInfo && nativeGetInfo !== browserAPI.runtime.getBrowserInfo) {
+      return nativeGetInfo.call(nativeBrowser.runtime);
     }
+    // Chrome doesn't have getBrowserInfo, so we'll return a basic object
+    return Promise.resolve({
+      name: 'Chrome',
+      vendor: 'Google',
+      version: navigator.userAgent.match(/Chrome\/([0-9.]+)/)[1] || '',
+      buildID: ''
+    });
   },
   getPlatformInfo: function() {
-    if (isFirefox && browser.runtime.getPlatformInfo) {
-      return browser.runtime.getPlatformInfo();
-    } else if (chrome.runtime.getPlatformInfo) {
-      return new Promise((resolve) => {
-        chrome.runtime.getPlatformInfo(resolve);
-      });
-    } else {
-      // Fallback if neither API is available
-      return Promise.resolve({
-        os: navigator.platform,
-        arch: navigator.userAgent.includes('x64') ? 'x86-64' : 'x86-32'
-      });
+    const nativeGetPlatform = isFirefox
+      ? nativeBrowser?.runtime?.getPlatformInfo
+      : nativeChrome?.runtime?.getPlatformInfo;
+    if (nativeGetPlatform && nativeGetPlatform !== browserAPI.runtime.getPlatformInfo) {
+      if (isFirefox) {
+        return nativeGetPlatform.call(nativeBrowser.runtime);
+      }
+      return new Promise(resolve => nativeGetPlatform.call(nativeChrome.runtime, resolve));
     }
+    // Fallback if neither API is available
+    return Promise.resolve({
+      os: navigator.platform,
+      arch: navigator.userAgent.includes('x64') ? 'x86-64' : 'x86-32'
+    });
   },
   openOptionsPage: function() {
-    if (isFirefox) {
-      return browser.runtime.openOptionsPage();
-    } else {
-      return new Promise((resolve) => {
-        chrome.runtime.openOptionsPage(resolve);
-      });
+    const nativeOpen = isFirefox
+      ? nativeBrowser?.runtime?.openOptionsPage
+      : nativeChrome?.runtime?.openOptionsPage;
+    if (nativeOpen && nativeOpen !== browserAPI.runtime.openOptionsPage) {
+      if (isFirefox) {
+        return nativeOpen.call(nativeBrowser.runtime);
+      }
+      return new Promise(resolve => nativeOpen.call(nativeChrome.runtime, resolve));
     }
+    return Promise.resolve();
   }
 };
 
