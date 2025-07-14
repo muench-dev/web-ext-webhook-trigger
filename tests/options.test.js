@@ -21,7 +21,15 @@ describe('options page', () => {
         <input id="header-key" />
         <input id="header-value" />
         <button type="button" id="add-header-btn"></button>
-        <div class="collapsible-header">
+        <div class="collapsible-header" id="url-filter-header">
+          <button type="button" id="toggle-url-filter" class="toggle-btn" aria-expanded="false">
+            <span class="toggle-icon">+</span>
+          </button>
+        </div>
+        <div id="url-filter-content" class="collapsible-content collapsed">
+          <input id="webhook-url-filter" />
+        </div>
+        <div class="collapsible-header" id="custom-payload-header">
           <button type="button" id="toggle-custom-payload" class="toggle-btn" aria-expanded="false">
             <span class="toggle-icon">+</span>
           </button>
@@ -116,6 +124,7 @@ describe('options page', () => {
     document.getElementById('webhook-label').value = 'Test Webhook';
     document.getElementById('webhook-url').value = 'https://example.com/webhook';
     document.getElementById('webhook-custom-payload').value = customPayload;
+    document.getElementById('webhook-url-filter').value = 'example.com';
 
     // Set identifier value
     document.getElementById('webhook-identifier').value = 'test-identifier';
@@ -169,7 +178,8 @@ describe('options page', () => {
           { key: 'Authorization', value: 'Bearer token123' }
         ],
         identifier: 'test-identifier',
-        customPayload
+        customPayload,
+        urlFilter: 'example.com'
       }]
     });
   });
