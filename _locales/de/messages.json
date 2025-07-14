@@ -122,5 +122,65 @@
   "optionsAddNewWebhookButton": {
     "message": "Neuen Webhook hinzufügen",
     "description": "Schaltfläche um das Formular zum Hinzufügen zu öffnen."
+  },
+  "optionsHTTPMethodLabel": {
+    "message": "HTTP-Methode",
+    "description": "Label für die Auswahl der HTTP-Methode."
+  },
+  "optionsHTTPMethodPost": {
+    "message": "POST",
+    "description": "Optionsbezeichnung für die POST-Methode."
+  },
+  "optionsHTTPMethodGet": {
+    "message": "GET",
+    "description": "Optionsbezeichnung für die GET-Methode."
+  },
+  "optionsAdditionalHeadersLabel": {
+    "message": "Zusätzliche HTTP-Header",
+    "description": "Label für den Bereich zusätzliche Header."
+  },
+  "optionsHeaderNamePlaceholder": {
+    "message": "Header-Name",
+    "description": "Platzhalter für das Header-Namensfeld."
+  },
+  "optionsHeaderValuePlaceholder": {
+    "message": "Header-Wert",
+    "description": "Platzhalter für das Header-Wert-Feld."
+  },
+  "optionsAddHeaderButton": {
+    "message": "Hinzufügen",
+    "description": "Button-Text zum Hinzufügen eines Headers."
+  },
+  "optionsRemoveHeaderButton": {
+    "message": "Entfernen",
+    "description": "Button-Text zum Entfernen eines Headers."
+  },
+  "optionsIdentifierLabel": {
+    "message": "Bezeichner (optional)",
+    "description": "Label für das Bezeichner-Eingabefeld."
+  },
+  "optionsIdentifierPlaceholder": {
+    "message": "Optionaler Bezeichner",
+    "description": "Platzhalter für das Bezeichner-Eingabefeld."
+  },
+  "optionsURLFilterLabel": {
+    "message": "URL-Filter (optional)",
+    "description": "Label für das URL-Filter-Eingabefeld."
+  },
+  "optionsURLFilterPlaceholder": {
+    "message": "Button anzeigen, wenn URL diesen Text enthält",
+    "description": "Platzhalter für das URL-Filter-Eingabefeld."
+  },
+  "optionsCustomPayloadLabel": {
+    "message": "Benutzerdefiniertes Payload (optional)",
+    "description": "Label für den Bereich benutzerdefiniertes Payload."
+  },
+  "optionsCustomPayloadPlaceholder": {
+    "message": "Eigenes JSON-Payload eingeben",
+    "description": "Platzhalter für das Payload-Textfeld."
+  },
+  "optionsAvailableVariablesText": {
+    "message": "Verfügbare Variablen:",
+    "description": "Einleitungstext für den Variablen-Hilfebereich."
   }
 }

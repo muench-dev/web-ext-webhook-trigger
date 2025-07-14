@@ -35,50 +35,50 @@
                     />
                 </div>
                 <div class="form-group">
-                    <label for="webhook-method">HTTP Method</label>
+                    <label for="webhook-method">__MSG_optionsHTTPMethodLabel__</label>
                     <select id="webhook-method">
-                        <option value="POST">POST</option>
-                        <option value="GET">GET</option>
+                        <option value="POST">__MSG_optionsHTTPMethodPost__</option>
+                        <option value="GET">__MSG_optionsHTTPMethodGet__</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Additional HTTP Headers</label>
+                    <label>__MSG_optionsAdditionalHeadersLabel__</label>
                     <div id="headers-list"></div>
                     <div style="display: flex; gap: 8px; margin-top: 5px;">
-                        <input type="text" id="header-key" placeholder="Header Name" style="flex:1;" />
-                        <input type="text" id="header-value" placeholder="Header Value" style="flex:1;" />
-                        <button type="button" id="add-header-btn">Add</button>
+                        <input type="text" id="header-key" placeholder="__MSG_optionsHeaderNamePlaceholder__" style="flex:1;" />
+                        <input type="text" id="header-value" placeholder="__MSG_optionsHeaderValuePlaceholder__" style="flex:1;" />
+                        <button type="button" id="add-header-btn">__MSG_optionsAddHeaderButton__</button>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="webhook-identifier">Identifier (optional)</label>
-                    <input type="text" id="webhook-identifier" placeholder="Optional identifier" />
+                    <label for="webhook-identifier">__MSG_optionsIdentifierLabel__</label>
+                    <input type="text" id="webhook-identifier" placeholder="__MSG_optionsIdentifierPlaceholder__" />
                 </div>
                 <div class="form-group">
                     <div class="collapsible-header" id="url-filter-header">
-                        <label for="webhook-url-filter">URL Filter (optional)</label>
+                        <label for="webhook-url-filter">__MSG_optionsURLFilterLabel__</label>
                         <button type="button" id="toggle-url-filter" class="toggle-btn" aria-expanded="false">
                             <span class="toggle-icon">+</span>
                         </button>
                     </div>
                     <div id="url-filter-content" class="collapsible-content collapsed">
-                        <input type="text" id="webhook-url-filter" placeholder="Show button when URL contains this text" />
+                        <input type="text" id="webhook-url-filter" placeholder="__MSG_optionsURLFilterPlaceholder__" />
                     </div>
                 </div>
                 <div class="form-group">
                     <div class="collapsible-header" id="custom-payload-header">
-                        <label for="webhook-custom-payload">Custom Payload (optional)</label>
+                        <label for="webhook-custom-payload">__MSG_optionsCustomPayloadLabel__</label>
                         <button type="button" id="toggle-custom-payload" class="toggle-btn" aria-expanded="false">
                             <span class="toggle-icon">+</span>
                         </button>
                     </div>
                     <div id="custom-payload-content" class="collapsible-content collapsed">
                         <div class="textarea-container">
-                            <textarea id="webhook-custom-payload" placeholder="Enter custom JSON payload"></textarea>
+                            <textarea id="webhook-custom-payload" placeholder="__MSG_optionsCustomPayloadPlaceholder__"></textarea>
                             <div id="variables-autocomplete" class="autocomplete-container hidden"></div>
                         </div>
                         <div class="variables-help">
-                            <p>Available variables:</p>
+                            <p>__MSG_optionsAvailableVariablesText__</p>
                             <ul>
                                 <li><code>{{tab.title}}</code> - Current tab title</li>
                                 <li><code>{{tab.url}}</code> - Current tab URL</li>

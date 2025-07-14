@@ -218,7 +218,7 @@ function renderHeaders() {
     btn.type = 'button';
     btn.dataset.idx = idx;
     btn.className = 'remove-header-btn';
-    btn.textContent = 'Remove';
+    btn.textContent = browser.i18n.getMessage('optionsRemoveHeaderButton') || 'Remove';
     div.appendChild(btn);
 
     headersListDiv.appendChild(div);
@@ -521,6 +521,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Set localized placeholder for webhook-label input
   labelInput.placeholder = browser.i18n.getMessage("optionsLabelInputPlaceholder");
+
+  // Localize additional placeholders and buttons
+  headerKeyInput.placeholder = browser.i18n.getMessage('optionsHeaderNamePlaceholder');
+  headerValueInput.placeholder = browser.i18n.getMessage('optionsHeaderValuePlaceholder');
+  addHeaderBtn.textContent = browser.i18n.getMessage('optionsAddHeaderButton') || 'Add';
+  identifierInput.placeholder = browser.i18n.getMessage('optionsIdentifierPlaceholder');
+  urlFilterInput.placeholder = browser.i18n.getMessage('optionsURLFilterPlaceholder');
+  customPayloadInput.placeholder = browser.i18n.getMessage('optionsCustomPayloadPlaceholder');
 
   // Set localized label for cancel edit button
   cancelEditBtn.textContent = browser.i18n.getMessage("optionsCancelEditButton") || "Cancel";
