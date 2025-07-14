@@ -298,3 +298,16 @@ button:hover {
     color: #2563eb;
     font-size: 0.9em;
 }
+
+#import-export-actions {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+#import-export-actions .import-info {
+    margin: 0;
+    color: #4b5563;
+}

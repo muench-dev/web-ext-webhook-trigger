@@ -10,6 +10,7 @@ This browser extension allows you to manage and trigger webhooks directly from y
 - **Customizable**: Supports multiple webhooks with custom names and endpoints.
 - **Persistent Storage**: All webhooks are stored locally in your browser and persist across sessions.
 - **Localization**: Available in multiple languages (see `_locales/`).
+- **Export/Import Configuration**: Backup or restore your webhooks using JSON files.
 
 ## Getting Started
 

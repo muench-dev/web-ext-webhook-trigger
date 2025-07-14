@@ -182,5 +182,17 @@
   "optionsAvailableVariablesText": {
     "message": "Available variables:",
     "description": "Intro text for the variables help section."
+  },
+  "optionsExportButton": {
+    "message": "Export Webhooks",
+    "description": "Button text to export all webhooks."
+  },
+  "optionsImportButton": {
+    "message": "Import Webhooks",
+    "description": "Button text to import webhooks from a file."
+  },
+  "optionsImportInfo": {
+    "message": "Importing replaces all existing webhooks.",
+    "description": "Information text shown next to the import button."
   }
 }
