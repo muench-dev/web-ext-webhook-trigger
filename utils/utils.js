@@ -1,6 +1,6 @@
 // Shared utility functions
 
-// Load browser polyfill when running in a browser environment
+// Ensure browserAPI polyfill is loaded when running in a browser environment
 if (typeof window !== 'undefined' && !window.browserAPI) {
   const script = document.createElement('script');
   script.src = '/utils/browser-polyfill.js';
@@ -11,7 +11,6 @@ if (typeof window !== 'undefined' && !window.browserAPI) {
 const getBrowserAPI = () => {
   if (typeof window !== 'undefined') {
     if (window.browserAPI) return window.browserAPI;
-    if (window.getBrowserAPI) return window.getBrowserAPI();
     if (window.browser) return window.browser;
     if (window.chrome) return window.chrome;
   }
