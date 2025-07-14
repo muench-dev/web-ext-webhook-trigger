@@ -14,6 +14,7 @@ This project is a Chrome and Firefox extension. The codebase includes manifest f
     *   `options/`: Contains the UI and logic for the options page.
     *   `_locales/`: Contains localization files for different languages.
     *   `icons/`: Contains the extension's icons.
+    *   `tests/`: Containt the jest tests
 
 2.  **Development Workflow**:
     *   To test the extension, load it as a temporary add-on in Firefox via `about:debugging`.
@@ -50,6 +51,7 @@ feat: add user login functionality
 
 *   Keep your code clean, readable, and well-documented.
 *   Update documentation and translations as needed to reflect your changes.
+*   Cover new features with jest tests
 
 ## Testing, Linting, and Building
 
