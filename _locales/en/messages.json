@@ -122,5 +122,65 @@
   "optionsAddNewWebhookButton": {
     "message": "Add new webhook",
     "description": "Button text to open the add webhook form."
+  },
+  "optionsHTTPMethodLabel": {
+    "message": "HTTP Method",
+    "description": "Label for selecting the HTTP method."
+  },
+  "optionsHTTPMethodPost": {
+    "message": "POST",
+    "description": "Option label for POST method."
+  },
+  "optionsHTTPMethodGet": {
+    "message": "GET",
+    "description": "Option label for GET method."
+  },
+  "optionsAdditionalHeadersLabel": {
+    "message": "Additional HTTP Headers",
+    "description": "Label for the additional headers section."
+  },
+  "optionsHeaderNamePlaceholder": {
+    "message": "Header Name",
+    "description": "Placeholder text for header name input."
+  },
+  "optionsHeaderValuePlaceholder": {
+    "message": "Header Value",
+    "description": "Placeholder text for header value input."
+  },
+  "optionsAddHeaderButton": {
+    "message": "Add",
+    "description": "Button text to add a header."
+  },
+  "optionsRemoveHeaderButton": {
+    "message": "Remove",
+    "description": "Button text to remove a header."
+  },
+  "optionsIdentifierLabel": {
+    "message": "Identifier (optional)",
+    "description": "Label for the identifier input field."
+  },
+  "optionsIdentifierPlaceholder": {
+    "message": "Optional identifier",
+    "description": "Placeholder for the identifier input field."
+  },
+  "optionsURLFilterLabel": {
+    "message": "URL Filter (optional)",
+    "description": "Label for the URL filter input field."
+  },
+  "optionsURLFilterPlaceholder": {
+    "message": "Show button when URL contains this text",
+    "description": "Placeholder for the URL filter input field."
+  },
+  "optionsCustomPayloadLabel": {
+    "message": "Custom Payload (optional)",
+    "description": "Label for the custom payload section."
+  },
+  "optionsCustomPayloadPlaceholder": {
+    "message": "Enter custom JSON payload",
+    "description": "Placeholder for the custom payload textarea."
+  },
+  "optionsAvailableVariablesText": {
+    "message": "Available variables:",
+    "description": "Intro text for the variables help section."
   }
 }
