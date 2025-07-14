@@ -29,12 +29,14 @@ describe('popup script', () => {
         getPlatformInfo: jest.fn().mockResolvedValue({}),
       },
     };
+    global.window.getBrowserAPI = jest.fn().mockReturnValue(global.browser);
   });
 
   afterEach(() => {
     jest.resetModules();
     dom.window.close();
     delete global.document;
+    delete global.window.getBrowserAPI;
     delete global.window;
     delete global.Node;
     delete global.fetch;
