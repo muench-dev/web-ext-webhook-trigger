@@ -222,7 +222,7 @@ describe('options page', () => {
 
     expect(document.getElementById('webhook-label').value).toBe('Hook');
     expect(document.getElementById('webhook-url').value).toBe('https://example.com');
-    expect(document.getElementById('cancel-edit-btn').classList.contains('hidden')).toBe(true);
+    expect(document.getElementById('cancel-edit-btn').classList.contains('hidden')).toBe(false);
     expect(document.getElementById('add-new-webhook-btn').classList.contains('hidden')).toBe(true);
     expect(document.getElementById('add-webhook-form').classList.contains('hidden')).toBe(false);
   });
