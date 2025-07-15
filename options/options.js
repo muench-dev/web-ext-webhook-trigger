@@ -421,7 +421,7 @@ webhookList.addEventListener("click", async (e) => {
       headerValueInput.value = "";
       headers = [];
       renderHeaders();
-      cancelEditBtn.classList.add("hidden");
+      cancelEditBtn.classList.remove("hidden");
       form.querySelector('button[type="submit"]').textContent = browser.i18n.getMessage("optionsSaveButton") || "Save Webhook";
     }
   } else if (e.target.classList.contains("edit-btn")) {
@@ -461,7 +461,7 @@ webhookList.addEventListener("click", async (e) => {
       customPayloadInput.value = webhook.customPayload || "";
       headers = Array.isArray(webhook.headers) ? [...webhook.headers] : [];
       renderHeaders();
-      cancelEditBtn.classList.add("hidden");
+      cancelEditBtn.classList.remove("hidden");
       form.classList.remove('hidden');
       showAddWebhookBtn.classList.add('hidden');
       form.querySelector('button[type="submit"]').textContent = browser.i18n.getMessage("optionsSaveButton") || "Save Webhook";
