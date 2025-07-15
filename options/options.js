@@ -45,9 +45,14 @@ const loadWebhooks = async () => {
       editButton.textContent = browser.i18n.getMessage("optionsEditButton") || "Edit";
       editButton.classList.add("edit-btn");
 
+      const duplicateButton = document.createElement("button");
+      duplicateButton.textContent = browser.i18n.getMessage("optionsDuplicateButton") || "Duplicate";
+      duplicateButton.classList.add("duplicate-btn");
+
       listItem.appendChild(dragHandle);
       listItem.appendChild(textContent);
       listItem.appendChild(editButton);
+      listItem.appendChild(duplicateButton);
       listItem.appendChild(deleteButton);
       list.appendChild(listItem);
     });
@@ -442,6 +447,26 @@ webhookList.addEventListener("click", async (e) => {
       updateCustomPayloadVisibility();
       updateUrlFilterVisibility();
 
+      labelInput.focus();
+    }
+  } else if (e.target.classList.contains("duplicate-btn")) {
+    const webhook = webhooks.find((wh) => wh.id === webhookId);
+    if (webhook) {
+      editWebhookId = null;
+      labelInput.value = webhook.label;
+      urlInput.value = webhook.url;
+      methodSelect.value = webhook.method || "POST";
+      identifierInput.value = webhook.identifier || "";
+      urlFilterInput.value = webhook.urlFilter || "";
+      customPayloadInput.value = webhook.customPayload || "";
+      headers = Array.isArray(webhook.headers) ? [...webhook.headers] : [];
+      renderHeaders();
+      cancelEditBtn.classList.add("hidden");
+      form.classList.remove('hidden');
+      showAddWebhookBtn.classList.add('hidden');
+      form.querySelector('button[type="submit"]').textContent = browser.i18n.getMessage("optionsSaveButton") || "Save Webhook";
+      updateCustomPayloadVisibility();
+      updateUrlFilterVisibility();
       labelInput.focus();
     }
   }

@@ -202,4 +202,28 @@ describe('options page', () => {
       webhooks: [hooks[1], hooks[0]]
     });
   });
+
+  test('duplicate button prefills the form without edit mode', async () => {
+    const hooks = [{
+      id: '1',
+      label: 'Hook',
+      url: 'https://example.com',
+      method: 'POST',
+      identifier: 'id1',
+      urlFilter: 'example.com',
+      customPayload: '',
+      headers: [{ key: 'X', value: '1' }]
+    }];
+    global.browser.storage.sync.get.mockResolvedValue({ webhooks: hooks });
+    await loadWebhooks();
+    const duplicateBtn = document.querySelector('.duplicate-btn');
+    duplicateBtn.click();
+    await new Promise(r => setTimeout(r, 0));
+
+    expect(document.getElementById('webhook-label').value).toBe('Hook');
+    expect(document.getElementById('webhook-url').value).toBe('https://example.com');
+    expect(document.getElementById('cancel-edit-btn').classList.contains('hidden')).toBe(true);
+    expect(document.getElementById('add-new-webhook-btn').classList.contains('hidden')).toBe(true);
+    expect(document.getElementById('add-webhook-form').classList.contains('hidden')).toBe(false);
+  });
 });
