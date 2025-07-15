@@ -226,4 +226,13 @@ describe('options page', () => {
     expect(document.getElementById('add-new-webhook-btn').classList.contains('hidden')).toBe(true);
     expect(document.getElementById('add-webhook-form').classList.contains('hidden')).toBe(false);
   });
+
+  test('add new webhook shows cancel button', async () => {
+    const addBtn = document.getElementById('add-new-webhook-btn');
+    addBtn.click();
+
+    expect(document.getElementById('cancel-edit-btn').classList.contains('hidden')).toBe(false);
+    expect(document.getElementById('add-webhook-form').classList.contains('hidden')).toBe(false);
+    expect(document.getElementById('add-new-webhook-btn').classList.contains('hidden')).toBe(true);
+  });
 });

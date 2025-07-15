@@ -134,6 +134,7 @@ if (importWebhooksBtn && importWebhooksInput) {
 showAddWebhookBtn.addEventListener('click', () => {
   form.classList.remove('hidden');
   showAddWebhookBtn.classList.add('hidden');
+  cancelEditBtn.classList.remove('hidden');
   labelInput.focus();
 });
 
