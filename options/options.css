@@ -213,6 +213,15 @@ button:hover {
     background-color: #059669;
 }
 
+.duplicate-btn {
+    margin-right: 8px;
+    background-color: #3b82f6;
+}
+
+.duplicate-btn:hover {
+    background-color: #2563eb;
+}
+
 .delete-btn {
     background-color: #ef4444;
 }

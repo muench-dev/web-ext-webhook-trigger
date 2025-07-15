@@ -115,6 +115,10 @@
     "message": "Bearbeiten",
     "description": "Text für den Bearbeiten-Button."
   },
+  "optionsDuplicateButton": {
+    "message": "Duplizieren",
+    "description": "Text für den Duplizieren-Button."
+  },
   "optionsCancelEditButton": {
     "message": "Abbrechen",
     "description": "Text für den Abbrechen-Button im Bearbeiten-Modus."

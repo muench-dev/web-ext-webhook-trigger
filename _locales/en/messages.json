@@ -115,6 +115,10 @@
     "message": "Edit",
     "description": "Text for the edit button."
   },
+  "optionsDuplicateButton": {
+    "message": "Duplicate",
+    "description": "Text for the duplicate button."
+  },
   "optionsCancelEditButton": {
     "message": "Cancel",
     "description": "Text for the cancel button in edit mode."
