@@ -421,7 +421,7 @@ webhookList.addEventListener("click", async (e) => {
       headerValueInput.value = "";
       headers = [];
       renderHeaders();
-      cancelEditBtn.classList.remove("hidden");
+      cancelEditBtn.classList.add("hidden");
       form.querySelector('button[type="submit"]').textContent = browser.i18n.getMessage("optionsSaveButton") || "Save Webhook";
     }
   } else if (e.target.classList.contains("edit-btn")) {
