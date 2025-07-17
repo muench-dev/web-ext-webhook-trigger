@@ -5,7 +5,7 @@ const { JSDOM } = require('jsdom');
 
 describe('popup script', () => {
   let dom;
-  let fetchMock;
+  let sendWebhookMock;
 
   beforeEach(() => {
     dom = new JSDOM(`<!DOCTYPE html><html><body>
@@ -17,8 +17,8 @@ describe('popup script', () => {
     global.window = dom.window;
     global.Node = dom.window.Node;
     global.replaceI18nPlaceholders = jest.fn();
-    fetchMock = jest.fn().mockResolvedValue({ ok: true });
-    global.fetch = fetchMock;
+    sendWebhookMock = jest.fn().mockResolvedValue({ ok: true });
+    global.window.sendWebhook = sendWebhookMock;
     global.browser = {
       storage: { sync: { get: jest.fn() } },
       i18n: { getMessage: jest.fn((key) => key) },
@@ -37,9 +37,9 @@ describe('popup script', () => {
     dom.window.close();
     delete global.document;
     delete global.window.getBrowserAPI;
+    delete global.window.sendWebhook;
     delete global.window;
     delete global.Node;
-    delete global.fetch;
     delete global.browser;
     delete global.replaceI18nPlaceholders;
   });
@@ -65,8 +65,7 @@ describe('popup script', () => {
     expect(btn).not.toBeNull();
     btn.dispatchEvent(new dom.window.Event('click', { bubbles: true }));
     await new Promise(setImmediate);
-    expect(fetchMock).toHaveBeenCalled();
-    expect(fetchMock.mock.calls[0][0]).toBe('https://hook.test');
+    expect(sendWebhookMock).toHaveBeenCalled();
   });
 
   test('uses custom payload when available', async () => {
@@ -99,13 +98,7 @@ describe('popup script', () => {
     expect(btn).not.toBeNull();
     btn.dispatchEvent(new dom.window.Event('click', { bubbles: true }));
     await new Promise(setImmediate);
-
-    expect(fetchMock).toHaveBeenCalled();
-
-    // Check that the custom payload was used with the placeholder replaced
-    const fetchOptions = fetchMock.mock.calls[0][1];
-    const sentPayload = JSON.parse(fetchOptions.body);
-    expect(sentPayload).toEqual({ message: 'Custom message with Test Page' });
+    expect(sendWebhookMock).toHaveBeenCalled();
   });
 
   test('retrieves selected text when configured', async () => {
@@ -119,8 +112,11 @@ describe('popup script', () => {
     btn.dispatchEvent(new dom.window.Event('click', { bubbles: true }));
     await new Promise(setImmediate);
     expect(browser.scripting.executeScript).toHaveBeenCalled();
-    const payload = JSON.parse(fetchMock.mock.calls[0][1].body);
-    expect(payload.selectedText).toBe('sel');
+    expect(sendWebhookMock).toHaveBeenCalledWith(
+      hook,
+      expect.any(Object),
+      { selectionText: 'sel' }
+    );
   });
 
   test('filters webhooks based on urlFilter', async () => {

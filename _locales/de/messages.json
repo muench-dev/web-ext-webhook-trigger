@@ -202,5 +202,15 @@
   "optionsSendSelectedTextLabel": {
     "message": "Ausgewählten Text senden",
     "description": "Beschriftung für die Checkbox, um ausgewählten Text zu übermitteln."
+  },
+  "contextMenuSend": {
+    "message": "Senden an $label$",
+    "description": "Kontextmenüeintrag zum Auslösen eines Webhooks",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Mein Hook"
+      }
+    }
   }
 }

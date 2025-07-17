@@ -202,5 +202,15 @@
   "optionsSendSelectedTextLabel": {
     "message": "Send selected text",
     "description": "Label for checkbox to include selected text in the payload."
+  },
+  "contextMenuSend": {
+    "message": "Send to $label$",
+    "description": "Context menu entry to trigger a webhook",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "My Hook"
+      }
+    }
   }
 }
