@@ -73,6 +73,7 @@ const labelInput = document.getElementById("webhook-label");
 const urlInput = document.getElementById("webhook-url");
 const methodSelect = document.getElementById("webhook-method");
 const identifierInput = document.getElementById("webhook-identifier");
+const sendSelectedTextCheckbox = document.getElementById("webhook-send-selected-text");
 const headersListDiv = document.getElementById("headers-list");
 const headerKeyInput = document.getElementById("header-key");
 const headerValueInput = document.getElementById("header-value");
@@ -143,7 +144,7 @@ const availableVariables = [
   "{{tab.title}}", "{{tab.url}}", "{{tab.id}}", "{{tab.windowId}}",
   "{{tab.index}}", "{{tab.pinned}}", "{{tab.audible}}", "{{tab.incognito}}",
   "{{tab.status}}", "{{browser}}", "{{platform}}", "{{triggeredAt}}", "{{identifier}}",
-  "{{platform.arch}}", "{{platform.os}}", "{{platform.version}}",
+  "{{platform.arch}}", "{{platform.os}}", "{{platform.version}}", "{{selectedText}}"
 ];
 
 // Implement autocompletion for custom payload
@@ -300,6 +301,7 @@ form.addEventListener("submit", async (e) => {
   const url = urlInput.value.trim();
   const method = methodSelect.value;
   const identifier = identifierInput.value.trim();
+  const sendSelectedText = sendSelectedTextCheckbox.checked;
   const urlFilter = urlFilterInput.value.trim();
   const customPayload = customPayloadInput.value.trim();
   let { webhooks = [] } = await browser.storage.sync.get("webhooks");
@@ -315,7 +317,8 @@ form.addEventListener("submit", async (e) => {
         headers: [...headers],
         identifier,
         customPayload: customPayload || null,
-        urlFilter: urlFilter || ""
+        urlFilter: urlFilter || "",
+        sendSelectedText
       } : wh
     );
     editWebhookId = null;
@@ -330,7 +333,8 @@ form.addEventListener("submit", async (e) => {
       headers: [...headers],
       identifier,
       customPayload: customPayload || null,
-      urlFilter: urlFilter || ""
+      urlFilter: urlFilter || "",
+      sendSelectedText
     };
     webhooks.push(newWebhook);
   }
@@ -340,6 +344,7 @@ form.addEventListener("submit", async (e) => {
   urlInput.value = "";
   methodSelect.value = "POST";
   identifierInput.value = "";
+  sendSelectedTextCheckbox.checked = false;
   urlFilterInput.value = "";
   customPayloadInput.value = "";
   headerKeyInput.value = "";
@@ -434,6 +439,7 @@ webhookList.addEventListener("click", async (e) => {
       urlInput.value = webhook.url;
       methodSelect.value = webhook.method || "POST";
       identifierInput.value = webhook.identifier || "";
+      sendSelectedTextCheckbox.checked = !!webhook.sendSelectedText;
       urlFilterInput.value = webhook.urlFilter || "";
       customPayloadInput.value = webhook.customPayload || "";
       headers = Array.isArray(webhook.headers) ? [...webhook.headers] : [];
@@ -458,6 +464,7 @@ webhookList.addEventListener("click", async (e) => {
       urlInput.value = webhook.url;
       methodSelect.value = webhook.method || "POST";
       identifierInput.value = webhook.identifier || "";
+      sendSelectedTextCheckbox.checked = !!webhook.sendSelectedText;
       urlFilterInput.value = webhook.urlFilter || "";
       customPayloadInput.value = webhook.customPayload || "";
       headers = Array.isArray(webhook.headers) ? [...webhook.headers] : [];
@@ -480,6 +487,7 @@ cancelEditBtn.addEventListener("click", () => {
   urlInput.value = "";
   methodSelect.value = "POST";
   identifierInput.value = "";
+  sendSelectedTextCheckbox.checked = false;
   urlFilterInput.value = "";
   customPayloadInput.value = "";
   headerKeyInput.value = "";

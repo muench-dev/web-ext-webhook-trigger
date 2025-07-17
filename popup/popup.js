@@ -80,6 +80,26 @@ document
       const browserInfo = await browserAPI.runtime.getBrowserInfo?.() || {};
       const platformInfo = await browserAPI.runtime.getPlatformInfo?.() || {};
 
+      let selectedText = '';
+      if (webhook && webhook.sendSelectedText) {
+        try {
+          if (browserAPI.scripting && browserAPI.scripting.executeScript) {
+            const [{ result }] = await browserAPI.scripting.executeScript({
+              target: { tabId: activeTab.id },
+              func: () => window.getSelection().toString(),
+            });
+            selectedText = result || '';
+          } else if (browserAPI.tabs.executeScript) {
+            const [result] = await browserAPI.tabs.executeScript({
+              code: 'window.getSelection().toString();',
+            });
+            selectedText = result || '';
+          }
+        } catch (err) {
+          console.error('Failed to get selected text', err);
+        }
+      }
+
       // Create default payload
       let payload = {
         tab: {
@@ -98,6 +118,10 @@ document
         platform: platformInfo,
         triggeredAt: new Date().toISOString(),
       };
+
+      if (webhook && webhook.sendSelectedText) {
+        payload.selectedText = selectedText;
+      }
 
       if (webhook && webhook.identifier) {
         payload.identifier = webhook.identifier;
@@ -122,10 +146,13 @@ document
             "{{browser}}": JSON.stringify(browserInfo),
             "{{platform.arch}}": platformInfo.arch || "unknown",
             "{{platform.os}}": platformInfo.os || "unknown",
-            "{{platform.version}}": platformInfo.version,
-            "{{triggeredAt}}": new Date().toISOString(),
-            "{{identifier}}": webhook.identifier || ""
-          };
+          "{{platform.version}}": platformInfo.version,
+          "{{triggeredAt}}": new Date().toISOString(),
+          "{{identifier}}": webhook.identifier || ""
+        };
+          if (webhook && webhook.sendSelectedText) {
+            replacements["{{selectedText}}"] = selectedText;
+          }
 
           // Replace placeholders in custom payload
           let customPayloadStr = webhook.customPayload;

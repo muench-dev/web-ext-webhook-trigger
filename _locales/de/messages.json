@@ -198,5 +198,9 @@
   "optionsImportInfo": {
     "message": "Beim Import werden vorhandene Webhooks ersetzt.",
     "description": "Hinweistext neben dem Import-Button."
+  },
+  "optionsSendSelectedTextLabel": {
+    "message": "Ausgewählten Text senden",
+    "description": "Beschriftung für die Checkbox, um ausgewählten Text zu übermitteln."
   }
 }
