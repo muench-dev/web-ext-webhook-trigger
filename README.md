@@ -47,6 +47,7 @@ This browser extension allows you to manage and trigger webhooks directly from y
 1. Click the extension icon in your browser's toolbar to open the popup.
 2. Select the webhook you want to trigger from the list.
 3. Click the "Send" or equivalent button to trigger the webhook.
+4. Alternatively, right-click a page and choose the webhook from the context menu.
 
 ## Localization
 

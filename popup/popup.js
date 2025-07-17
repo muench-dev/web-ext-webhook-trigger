@@ -48,7 +48,6 @@ document
     }
 
     const button = e.target;
-    const url = button.dataset.url;
     const originalLabel = button.dataset.label;
     const statusMessage = document.getElementById("status-message");
     const webhookId = button.dataset.webhookId;
@@ -74,11 +73,6 @@ document
         throw new Error(browserAPI.i18n.getMessage("popupErrorNoActiveTab"));
       }
       const activeTab = tabs[0];
-      const currentUrl = activeTab.url;
-
-      // Get browser and platform info
-      const browserInfo = await browserAPI.runtime.getBrowserInfo?.() || {};
-      const platformInfo = await browserAPI.runtime.getPlatformInfo?.() || {};
 
       let selectedText = '';
       if (webhook && webhook.sendSelectedText) {
@@ -100,118 +94,15 @@ document
         }
       }
 
-      // Create default payload
-      let payload = {
-        tab: {
-          title: activeTab.title,
-          url: currentUrl,
-          id: activeTab.id,
-          windowId: activeTab.windowId,
-          index: activeTab.index,
-          pinned: activeTab.pinned,
-          audible: activeTab.audible,
-          mutedInfo: activeTab.mutedInfo,
-          incognito: activeTab.incognito,
-          status: activeTab.status,
-        },
-        browser: browserInfo,
-        platform: platformInfo,
-        triggeredAt: new Date().toISOString(),
-      };
-
-      if (webhook && webhook.sendSelectedText) {
-        payload.selectedText = selectedText;
-      }
-
-      if (webhook && webhook.identifier) {
-        payload.identifier = webhook.identifier;
-      }
-
-      // Use custom payload if available
-      // The custom payload is a JSON string that can contain placeholders like {{tab.title}}
-      // These placeholders will be replaced with actual values before sending the webhook
-      if (webhook && webhook.customPayload) {
-        try {
-          // Create variable replacements map
-          const replacements = {
-            "{{tab.title}}": activeTab.title,
-            "{{tab.url}}": currentUrl,
-            "{{tab.id}}": activeTab.id,
-            "{{tab.windowId}}": activeTab.windowId,
-            "{{tab.index}}": activeTab.index,
-            "{{tab.pinned}}": activeTab.pinned,
-            "{{tab.audible}}": activeTab.audible,
-            "{{tab.incognito}}": activeTab.incognito,
-            "{{tab.status}}": activeTab.status,
-            "{{browser}}": JSON.stringify(browserInfo),
-            "{{platform.arch}}": platformInfo.arch || "unknown",
-            "{{platform.os}}": platformInfo.os || "unknown",
-          "{{platform.version}}": platformInfo.version,
-          "{{triggeredAt}}": new Date().toISOString(),
-          "{{identifier}}": webhook.identifier || ""
-        };
-          if (webhook && webhook.sendSelectedText) {
-            replacements["{{selectedText}}"] = selectedText;
-          }
-
-          // Replace placeholders in custom payload
-          let customPayloadStr = webhook.customPayload;
-          Object.entries(replacements).forEach(([placeholder, value]) => {
-            // Handle different types of values
-            // For string values in JSON, we need to handle them differently based on context
-            // If the placeholder is inside quotes in the JSON, we should not add quotes again
-            const isPlaceholderInQuotes = customPayloadStr.match(new RegExp(`"[^"]*${placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[^"]*"`, 'g'));
-
-            const replaceValue = typeof value === 'string'
-              ? (isPlaceholderInQuotes ? value.replace(/"/g, '\\"') : `"${value.replace(/"/g, '\\"')}"`)
-              : (value === undefined ? 'null' : JSON.stringify(value));
-
-            customPayloadStr = customPayloadStr.replace(
-              new RegExp(placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'),
-              replaceValue
-            );
-          });
-
-          // Parse the resulting JSON
-          const customPayload = JSON.parse(customPayloadStr);
-          console.log(customPayload);
-
-          // Use the custom payload instead of the default one
-          payload = customPayload;
-        } catch (error) {
-          throw new Error(browserAPI.i18n.getMessage("popupErrorCustomPayloadJsonParseError", error.message));
-        }
-      }
-      // Prepare headers
-      let headers = { "Content-Type": "application/json" };
-      if (webhook && Array.isArray(webhook.headers)) {
-        webhook.headers.forEach(h => {
-          if (h.key && h.value) headers[h.key] = h.value;
-        });
-      }
-      // Determine method
-      const method = webhook && webhook.method ? webhook.method : "POST";
-      // Prepare fetch options
-      const fetchOpts = {
-        method,
-        headers,
-      };
-      if (method === "POST") {
-        fetchOpts.body = JSON.stringify(payload);
-      } else if (method === "GET") {
-        // For GET, append payload as query param
-        const urlObj = new URL(url);
-        urlObj.searchParams.set("payload", encodeURIComponent(JSON.stringify(payload)));
-        fetchOpts.body = undefined;
-        // Overwrite url for fetch
-        fetchOpts._url = urlObj.toString();
-      }
-      // Send the request
-      const fetchUrl = fetchOpts._url || url;
-      const response = await fetch(fetchUrl, fetchOpts);
-
+      const response = await window.sendWebhook(
+        webhook,
+        activeTab,
+        { selectionText: selectedText }
+      );
       if (!response.ok) {
-        throw new Error(browserAPI.i18n.getMessage("popupErrorHttp", response.status));
+        throw new Error(
+          browserAPI.i18n.getMessage("popupErrorHttp", response.status)
+        );
       }
 
       // Success feedback

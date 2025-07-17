@@ -6,11 +6,16 @@
   "default_locale": "en",
   "permissions": [
     "storage",
-    "activeTab"
+    "activeTab",
+    "contextMenus"
   ],
   "host_permissions": [
     "<all_urls>"
   ],
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": false
+  },
   "action": {
     "default_popup": "popup/popup.html",
     "default_icon": {
