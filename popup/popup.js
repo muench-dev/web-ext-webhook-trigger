@@ -7,13 +7,19 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const buttonsContainer = document.getElementById("buttons-container");
 
-  // Load webhooks from storage
-  const { webhooks = [] } = await browserAPI.storage.sync.get("webhooks");
+  let loadWebhooks;
+  let filterWebhooksByUrl;
+  try {
+    ({ loadWebhooks, filterWebhooksByUrl } = require("../utils/webhookUtils"));
+  } catch (e) {
+    loadWebhooks = window.loadWebhooks;
+    filterWebhooksByUrl = window.filterWebhooksByUrl;
+  }
+
   const tabs = await browserAPI.tabs.query({ active: true, currentWindow: true });
   const currentUrl = tabs[0]?.url || "";
-  const visibleWebhooks = webhooks.filter(
-    (wh) => !wh.urlFilter || currentUrl.includes(wh.urlFilter)
-  );
+  const webhooks = await loadWebhooks();
+  const visibleWebhooks = filterWebhooksByUrl(webhooks, currentUrl);
 
   if (visibleWebhooks.length === 0) {
     // Use textContent instead of innerHTML for security
