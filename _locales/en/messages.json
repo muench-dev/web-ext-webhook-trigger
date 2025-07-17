@@ -198,5 +198,9 @@
   "optionsImportInfo": {
     "message": "Importing replaces all existing webhooks.",
     "description": "Information text shown next to the import button."
+  },
+  "optionsSendSelectedTextLabel": {
+    "message": "Send selected text",
+    "description": "Label for checkbox to include selected text in the payload."
   }
 }

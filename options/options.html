@@ -55,6 +55,12 @@
                     <input type="text" id="webhook-identifier" placeholder="__MSG_optionsIdentifierPlaceholder__" />
                 </div>
                 <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="webhook-send-selected-text" />
+                        __MSG_optionsSendSelectedTextLabel__
+                    </label>
+                </div>
+                <div class="form-group">
                     <div class="collapsible-header" id="url-filter-header">
                         <label for="webhook-url-filter">__MSG_optionsURLFilterLabel__</label>
                         <button type="button" id="toggle-url-filter" class="toggle-btn" aria-expanded="false">
@@ -96,6 +102,7 @@
                                 <li><code>{{platform}}</code> - Platform information</li>
                                 <li><code>{{triggeredAt}}</code> - Timestamp when triggered</li>
                                 <li><code>{{identifier}}</code> - Custom identifier</li>
+                                <li><code>{{selectedText}}</code> - Selected text</li>
                             </ul>
                         </div>
                     </div>

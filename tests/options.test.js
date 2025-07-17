@@ -17,6 +17,7 @@ describe('options page', () => {
         <input id="webhook-url" />
         <select id="webhook-method"></select>
         <input id="webhook-identifier" />
+        <input id="webhook-send-selected-text" type="checkbox" />
         <div id="headers-list"></div>
         <input id="header-key" />
         <input id="header-value" />
@@ -181,7 +182,36 @@ describe('options page', () => {
         ],
         identifier: 'test-identifier',
         customPayload,
-        urlFilter: 'example.com'
+        urlFilter: 'example.com',
+      sendSelectedText: false
+      }]
+    });
+  });
+
+  test('sendSelectedText checkbox is stored when checked', async () => {
+    document.getElementById('webhook-label').value = 'SelText';
+    document.getElementById('webhook-url').value = 'https://example.com';
+    document.getElementById('webhook-send-selected-text').checked = true;
+    global.browser.storage.sync.get.mockResolvedValue({ webhooks: [] });
+    global.crypto = { randomUUID: () => 'abc' };
+    const setPromise = new Promise(resolve => {
+      global.browser.storage.sync.set.mockImplementation(data => { resolve(data); return Promise.resolve(); });
+    });
+    const form = document.getElementById('add-webhook-form');
+    const submitEvent = new dom.window.Event('submit');
+    form.dispatchEvent(submitEvent);
+    await setPromise;
+    expect(global.browser.storage.sync.set).toHaveBeenLastCalledWith({
+      webhooks: [{
+        id: 'abc',
+        label: 'SelText',
+        url: 'https://example.com',
+        method: '',
+        headers: [],
+        identifier: '',
+        customPayload: null,
+        urlFilter: '',
+        sendSelectedText: true
       }]
     });
   });

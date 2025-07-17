@@ -108,6 +108,21 @@ describe('popup script', () => {
     expect(sentPayload).toEqual({ message: 'Custom message with Test Page' });
   });
 
+  test('retrieves selected text when configured', async () => {
+    const hook = { id: '1', label: 'Send', url: 'https://hook.test', sendSelectedText: true };
+    browser.storage.sync.get.mockResolvedValue({ webhooks: [hook] });
+    browser.scripting = { executeScript: jest.fn().mockResolvedValue([{ result: 'sel' }]) };
+    require('../popup/popup.js');
+    document.dispatchEvent(new dom.window.Event('DOMContentLoaded'));
+    await new Promise(setImmediate);
+    const btn = document.querySelector('button.webhook-btn');
+    btn.dispatchEvent(new dom.window.Event('click', { bubbles: true }));
+    await new Promise(setImmediate);
+    expect(browser.scripting.executeScript).toHaveBeenCalled();
+    const payload = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(payload.selectedText).toBe('sel');
+  });
+
   test('filters webhooks based on urlFilter', async () => {
     const hooks = [
       { id: '1', label: 'A', url: 'https://hook1.test', urlFilter: 'example.com' },
