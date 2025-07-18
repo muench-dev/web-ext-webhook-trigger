@@ -1,4 +1,4 @@
-# muench-dev Webhook Trigger Browser Extension
+# Webhook Trigger Browser Extension
 
 This browser extension allows you to manage and trigger webhooks directly from your browser. It works with both Firefox and Chrome. It is designed for users who want to quickly send HTTP requests (webhooks) to custom endpoints, such as automation services, APIs, or personal scripts.
 
@@ -15,7 +15,7 @@ This browser extension allows you to manage and trigger webhooks directly from y
 ## Getting Started
 
 1. **Install the Extension**
-   - **Firefox**: The extension is currently under review by the Firefox team and will be available on [addons.mozilla.org](https://addons.mozilla.org) soon. In the meantime, you can load the extension in Firefox via `about:debugging`.
+   - **Firefox**: The extension is available on [addons.mozilla.org](https://addons.mozilla.org).
    - **Chrome**: The extension is available on the [Chrome Web Store](https://chromewebstore.google.com/detail/webhook-trigger/finanbjnojdckpeklepocgcngcikdlfe). You can also load the extension in Chrome via `chrome://extensions` in developer mode by clicking "Load unpacked" and selecting the extension directory.
 
 2. **Open the Options Page**
