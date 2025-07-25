@@ -7,9 +7,22 @@ const loadWebhooks = async () => {
   const message = document.getElementById("no-webhooks-message");
   list.innerHTML = "";
 
-  // Populate group dropdown
+  // Clear the webhook list safely
+  while (list.firstChild) {
+    list.removeChild(list.firstChild);
+  }
+
+  // Populate group dropdown safely
   const groupSelect = document.getElementById("webhook-group");
-  groupSelect.innerHTML = '<option value="" selected>' + browser.i18n.getMessage("optionsNoGroup") + '</option>';
+  // Remove all children
+  while (groupSelect.firstChild) {
+    groupSelect.removeChild(groupSelect.firstChild);
+  }
+  const defaultOption = document.createElement("option");
+  defaultOption.value = "";
+  defaultOption.selected = true;
+  defaultOption.textContent = browser.i18n.getMessage("optionsNoGroup");
+  groupSelect.appendChild(defaultOption);
   groups.forEach(group => {
     const option = document.createElement("option");
     option.value = group.id;
@@ -22,7 +35,7 @@ const loadWebhooks = async () => {
     message.textContent = browser.i18n.getMessage("optionsNoWebhooksMessage");
   } else {
     message.classList.add("hidden");
-    
+
     // Group webhooks by group ID
     const groupedWebhooks = {};
     webhooks.forEach(webhook => {
@@ -32,7 +45,7 @@ const loadWebhooks = async () => {
       }
       groupedWebhooks[groupId].push(webhook);
     });
-    
+
     // Display webhooks grouped by group
     groups.forEach(group => {
       const groupWebhooks = groupedWebhooks[group.id] || [];
@@ -42,7 +55,7 @@ const loadWebhooks = async () => {
         groupHeader.classList.add("group-header");
         groupHeader.textContent = group.name;
         list.appendChild(groupHeader);
-        
+
         // Add webhooks in this group
         groupWebhooks.forEach((webhook) => {
           const listItem = document.createElement("li");
@@ -91,7 +104,7 @@ const loadWebhooks = async () => {
         });
       }
     });
-    
+
     // Display ungrouped webhooks
     const ungroupedWebhooks = groupedWebhooks["ungrouped"] || [];
     if (ungroupedWebhooks.length > 0) {
@@ -100,7 +113,7 @@ const loadWebhooks = async () => {
       ungroupedHeader.classList.add("group-header");
       ungroupedHeader.textContent = browser.i18n.getMessage("optionsNoGroup");
       list.appendChild(ungroupedHeader);
-      
+
       // Add ungrouped webhooks
       ungroupedWebhooks.forEach((webhook) => {
         const listItem = document.createElement("li");
@@ -171,48 +184,48 @@ const loadGroups = async () => {
 const renderGroups = async () => {
   const groups = await loadGroups();
   groupsList.innerHTML = "";
-  
+
   groups.forEach(group => {
     const listItem = document.createElement("li");
     listItem.className = "group-item";
     listItem.dataset.id = group.id;
-    
+
     // Create drag handle (same icon as used for webhooks)
     const dragHandle = document.createElement("span");
     dragHandle.className = "drag-handle";
     dragHandle.textContent = "\u2630"; // common drag icon
     dragHandle.draggable = true;
-    
+
     const nameInput = document.createElement("input");
     nameInput.type = "text";
     nameInput.className = "edit-group-name";
     nameInput.value = group.name;
     nameInput.disabled = true;
-    
+
     const actionsDiv = document.createElement("div");
     actionsDiv.className = "group-actions";
-    
+
     const editBtn = document.createElement("button");
     editBtn.className = "edit-group-btn";
     editBtn.textContent = browser.i18n.getMessage("optionsEditGroupButton") || "Edit";
-    
+
     const saveBtn = document.createElement("button");
     saveBtn.className = "save-group-name hidden";
     saveBtn.textContent = browser.i18n.getMessage("optionsSaveGroupButton") || "Save";
-    
+
     const deleteBtn = document.createElement("button");
     deleteBtn.className = "delete-group";
     deleteBtn.textContent = browser.i18n.getMessage("optionsDeleteGroupButton") || "Delete";
-    
+
     actionsDiv.appendChild(editBtn);
     actionsDiv.appendChild(saveBtn);
     actionsDiv.appendChild(deleteBtn);
-    
+
     listItem.appendChild(dragHandle);
     listItem.appendChild(nameInput);
     listItem.appendChild(actionsDiv);
     groupsList.appendChild(listItem);
-    
+
     // Event listeners for group actions
     editBtn.addEventListener("click", () => {
       nameInput.disabled = false;
@@ -220,23 +233,23 @@ const renderGroups = async () => {
       editBtn.classList.add("hidden");
       saveBtn.classList.remove("hidden");
     });
-    
+
     saveBtn.addEventListener("click", async () => {
       const newName = nameInput.value.trim();
       if (newName && newName !== group.name) {
         // Update group name
         const groups = await loadGroups();
-        const updatedGroups = groups.map(g => 
+        const updatedGroups = groups.map(g =>
           g.id === group.id ? { ...g, name: newName } : g
         );
         await saveGroups(updatedGroups);
-        
+
         // Update group dropdown in the webhook form
         const option = groupSelect.querySelector(`option[value="${group.id}"]`);
         if (option) {
           option.textContent = newName;
         }
-        
+
         // Update UI
         nameInput.disabled = true;
         editBtn.classList.remove("hidden");
@@ -248,41 +261,41 @@ const renderGroups = async () => {
         saveBtn.classList.add("hidden");
       }
     });
-    
+
     deleteBtn.addEventListener("click", async () => {
       if (confirm(`Are you sure you want to delete the group "${group.name}"? All webhooks in this group will become ungrouped.`)) {
         // Remove group
         const groups = await loadGroups();
         const updatedGroups = groups.filter(g => g.id !== group.id);
         await saveGroups(updatedGroups);
-        
+
         // Remove group from webhook form dropdown
         const option = groupSelect.querySelector(`option[value="${group.id}"]`);
         if (option) {
           option.remove();
         }
-        
+
         // Update webhooks that belonged to this group
         const { webhooks = [] } = await browser.storage.sync.get("webhooks");
-        const updatedWebhooks = webhooks.map(wh => 
+        const updatedWebhooks = webhooks.map(wh =>
           wh.groupId === group.id ? { ...wh, groupId: null } : wh
         );
         await saveWebhooks(updatedWebhooks);
-        
+
         // Re-render groups
         renderGroups();
-        
+
         // Reload webhooks to update the list
         loadWebhooks();
       }
     });
-    
+
     // Drag and drop event listeners (only on the drag handle)
     dragHandle.addEventListener("dragstart", (e) => {
       e.dataTransfer.setData("text/plain", group.id);
       listItem.classList.add("dragging");
     });
-    
+
     dragHandle.addEventListener("dragend", () => {
       listItem.classList.remove("dragging");
       // Remove drag-over class from all items
@@ -290,41 +303,41 @@ const renderGroups = async () => {
         item.classList.remove("drag-over");
       });
     });
-    
+
     listItem.addEventListener("dragover", (e) => {
       e.preventDefault();
       listItem.classList.add("drag-over");
     });
-    
+
     listItem.addEventListener("dragleave", () => {
       listItem.classList.remove("drag-over");
     });
-    
+
     listItem.addEventListener("drop", async (e) => {
       e.preventDefault();
       listItem.classList.remove("drag-over");
-      
+
       const draggedId = e.dataTransfer.getData("text/plain");
       if (draggedId !== group.id) {
         // Reorder groups
         const groups = await loadGroups();
         const draggedIndex = groups.findIndex(g => g.id === draggedId);
         const targetIndex = groups.findIndex(g => g.id === group.id);
-        
+
         if (draggedIndex !== -1 && targetIndex !== -1) {
           // Remove dragged item and insert at target position
           const [draggedItem] = groups.splice(draggedIndex, 1);
           groups.splice(targetIndex, 0, draggedItem);
-          
+
           // Save reordered groups
           await saveGroups(groups);
-          
+
           // Re-render groups to reflect new order
           renderGroups();
-          
+
           // Also reload webhooks to ensure correct group order in the list
           loadWebhooks();
-          
+
           // Update group dropdown in webhook form to reflect new order
           const groupSelect = document.getElementById("webhook-group");
           const selectedValue = groupSelect.value;
@@ -454,33 +467,33 @@ addGroupBtn.addEventListener('click', async () => {
   if (groupName) {
     // Load existing groups
     const groups = await loadGroups();
-    
+
     // Check if group with this name already exists
     const existingGroup = groups.find(g => g.name.toLowerCase() === groupName.toLowerCase());
     if (existingGroup) {
       alert(`A group with the name "${groupName}" already exists.`);
       return;
     }
-    
+
     // Add new group
     const newGroup = {
       id: crypto.randomUUID(),
       name: groupName
     };
     groups.push(newGroup);
-    
+
     // Save groups
     await saveGroups(groups);
-    
+
     // Update group dropdown
     const option = document.createElement("option");
     option.value = newGroup.id;
     option.textContent = newGroup.name;
     groupSelect.appendChild(option);
-    
+
     // Reset input
     newGroupNameInput.value = '';
-    
+
     // Re-render groups list
     renderGroups();
   }
