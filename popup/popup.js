@@ -196,7 +196,6 @@ document
 
           // Parse the resulting JSON
           const customPayload = JSON.parse(customPayloadStr);
-          console.log(customPayload);
 
           // Use the custom payload instead of the default one
           payload = customPayload;
