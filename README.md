@@ -40,6 +40,15 @@ This browser extension allows you to manage and trigger webhooks directly from y
 1. On the options page, find the webhook you want to remove.
 2. Click the "Delete" button next to the webhook.
 
+### Organizing Webhooks into Groups
+Webhooks can be organized into groups for better management and clarity. 
+
+- **Group Management**: Open the group management dialog from the options page to add, delete, or rename groups.
+- **Sorting Groups**: Groups can be reordered via drag-and-drop within the group management dialog.
+- **Assigning Webhooks to Groups**: When creating or editing a webhook, you can assign it to a group. This helps keep related webhooks together.
+
+These features allow you to efficiently organize, sort, and manage your webhooks in logical collections.
+
 ## Triggering Webhooks
 
 ![Popup Page Screenshot](./docs/images/popup.png)
