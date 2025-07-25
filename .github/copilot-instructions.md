@@ -21,6 +21,7 @@ This project is a Chrome and Firefox extension. The codebase includes manifest f
    - Update HTML, CSS, or JS files in `popup/` or `options/` as needed.
    - Update `manifest.json` for permissions or features.
    - Add or update translations in `_locales/`.
+   - Do not use Unsafe assignment to innerHTML.
 2. **Test the extension:**
    - Open Firefox and go to `about:debugging#/runtime/this-firefox`.
    - Click "Load Temporary Add-on..." and select the `manifest.json` file.

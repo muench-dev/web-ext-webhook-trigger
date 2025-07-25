@@ -341,7 +341,17 @@ const renderGroups = async () => {
           // Update group dropdown in webhook form to reflect new order
           const groupSelect = document.getElementById("webhook-group");
           const selectedValue = groupSelect.value;
-          groupSelect.innerHTML = '<option value="" selected>' + browser.i18n.getMessage("optionsNoGroup") + '</option>';
+          // Clear existing options
+          while (groupSelect.firstChild) {
+            groupSelect.removeChild(groupSelect.firstChild);
+          }
+
+          // Create default option using DOM methods instead of innerHTML
+          const defaultOption = document.createElement("option");
+          defaultOption.value = "";
+          defaultOption.selected = true;
+          defaultOption.textContent = browser.i18n.getMessage("optionsNoGroup");
+          groupSelect.appendChild(defaultOption);
           groups.forEach(group => {
             const option = document.createElement("option");
             option.value = group.id;
