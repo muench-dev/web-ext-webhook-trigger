@@ -421,13 +421,83 @@ async function handleImport(event) {
   }
 }
 
+// Export webhooks and groups
+const exportData = async () => {
+  const { webhooks = [], groups = [] } = await browser.storage.sync.get(["webhooks", "groups"]);
+  const data = { webhooks, groups };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "webhooks-export.json";
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 0);
+};
+
+// Import webhooks and groups
+const importData = async (file) => {
+  const reader = new FileReader();
+  reader.onload = async (event) => {
+    try {
+      const data = JSON.parse(event.target.result);
+      const webhooks = Array.isArray(data.webhooks) ? data.webhooks : [];
+      const groups = Array.isArray(data.groups) ? data.groups : [];
+      await browser.storage.sync.set({ webhooks, groups });
+      await loadWebhooks();
+      if (typeof renderGroups === 'function') await renderGroups();
+      alert("Import successful!");
+    } catch (e) {
+      alert("Import failed: Invalid file format.");
+    }
+  };
+  reader.readAsText(file);
+};
+
 if (exportWebhooksBtn) {
-  exportWebhooksBtn.addEventListener("click", exportWebhooks);
+  exportWebhooksBtn.addEventListener("click", async () => {
+    const { webhooks = [], groups = [] } = await browser.storage.sync.get(["webhooks", "groups"]);
+    const data = { webhooks, groups };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "webhooks-export.json";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 0);
+  });
 }
 
 if (importWebhooksBtn && importWebhooksInput) {
   importWebhooksBtn.addEventListener("click", () => importWebhooksInput.click());
-  importWebhooksInput.addEventListener("change", handleImport);
+  importWebhooksInput.addEventListener("change", (e) => {
+    if (e.target.files.length > 0) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        try {
+          const data = JSON.parse(event.target.result);
+          const webhooks = Array.isArray(data.webhooks) ? data.webhooks : [];
+          const groups = Array.isArray(data.groups) ? data.groups : [];
+          await browser.storage.sync.set({ webhooks, groups });
+          await loadWebhooks();
+          if (typeof renderGroups === 'function') await renderGroups();
+          alert("Import successful!");
+        } catch (e) {
+          alert("Import failed: Invalid file format.");
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = "";
+    }
+  });
 }
 
 showAddWebhookBtn.addEventListener('click', () => {
