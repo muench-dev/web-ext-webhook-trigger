@@ -49,6 +49,15 @@ Webhooks can be organized into groups for better management and clarity.
 
 These features allow you to efficiently organize, sort, and manage your webhooks in logical collections.
 
+## Exporting and Importing Webhooks and Groups
+
+You can back up and restore your webhooks and groups using the export/import feature:
+
+- **Export**: Creates a single JSON file containing all your webhooks and their group assignments.
+- **Import**: Loads a previously exported JSON file to restore your webhooks and groups, including their organization.
+
+This makes it easy to transfer your configuration between browsers or devices, ensuring both webhooks and groups are preserved together.
+
 ## Triggering Webhooks
 
 ![Popup Page Screenshot](./docs/images/popup.png)
