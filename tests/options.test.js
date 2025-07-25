@@ -12,8 +12,12 @@ describe('options page', () => {
   beforeEach(() => {
     dom = new JSDOM(`<!DOCTYPE html><html><body>
       <button type="button" id="add-new-webhook-btn"></button>
+      <button type="button" id="manage-groups-btn">Manage Groups</button>
       <form id="add-webhook-form" class="hidden">
         <input id="webhook-label" />
+        <select id="webhook-group">
+          <option value="" selected>No Group</option>
+        </select>
         <input id="webhook-url" />
         <select id="webhook-method"></select>
         <input id="webhook-identifier" />
@@ -41,6 +45,26 @@ describe('options page', () => {
         <button type="button" id="cancel-edit-btn" class="hidden"></button>
         <button type="submit"></button>
       </form>
+      
+      <!-- Group Management Modal -->
+      <div id="manage-groups-modal" class="modal hidden">
+        <div class="modal-content">
+          <span class="close-manage-groups">&times;</span>
+          <h2>Manage Groups</h2>
+          <div class="form-group">
+            <label for="new-group-name">New Group Name:</label>
+            <input type="text" id="new-group-name" placeholder="Enter new group name" />
+            <button type="button" id="add-group-btn">Add Group</button>
+          </div>
+          <div id="existing-groups-container">
+            <h3>Existing Groups:</h3>
+            <ul id="groups-list"></ul>
+          </div>
+          <div class="modal-actions">
+            <button type="button" id="close-manage-groups-btn">Close</button>
+          </div>
+        </div>
+      </div>
       <ul id="webhook-list"></ul>
       <p id="no-webhooks-message" class="hidden"></p>
     </body></html>`);
@@ -103,10 +127,10 @@ describe('options page', () => {
   });
 
   test('renders list items when webhooks exist', async () => {
-    const hooks = [{ id: '1', label: 'Test', url: 'http://example.com' }];
+    const hooks = [{ id: '1', label: 'Test', url: 'http://example.com', groupId: null }];
     global.browser.storage.sync.get.mockResolvedValue({ webhooks: hooks });
     await loadWebhooks();
-    const items = document.querySelectorAll('#webhook-list li');
+    const items = document.querySelectorAll('#webhook-list li.webhook-item');
     expect(items.length).toBe(1);
     const item = items[0];
     expect(item.dataset.id).toBe('1');
@@ -181,20 +205,22 @@ describe('options page', () => {
         ],
         identifier: 'test-identifier',
         customPayload,
-        urlFilter: 'example.com'
+        urlFilter: 'example.com',
+        groupId: null
       }]
     });
   });
 
   test('persistWebhookOrder stores list order', async () => {
     const hooks = [
-      { id: '1', label: 'A', url: 'a' },
-      { id: '2', label: 'B', url: 'b' }
+      { id: '1', label: 'A', url: 'a', groupId: null },
+      { id: '2', label: 'B', url: 'b', groupId: null }
     ];
-    global.browser.storage.sync.get.mockResolvedValue({ webhooks: hooks });
+    global.browser.storage.sync.get.mockResolvedValue({ webhooks: hooks, groups: [] });
     await loadWebhooks();
     const list = document.getElementById('webhook-list');
-    list.appendChild(list.firstElementChild); // reorder DOM
+    const items = list.querySelectorAll('li.webhook-item');
+    list.insertBefore(items[1], items[0]); // reorder DOM
 
     await persistWebhookOrder();
 
@@ -212,7 +238,8 @@ describe('options page', () => {
       identifier: 'id1',
       urlFilter: 'example.com',
       customPayload: '',
-      headers: [{ key: 'X', value: '1' }]
+      headers: [{ key: 'X', value: '1' }],
+      groupId: null
     }];
     global.browser.storage.sync.get.mockResolvedValue({ webhooks: hooks });
     await loadWebhooks();
