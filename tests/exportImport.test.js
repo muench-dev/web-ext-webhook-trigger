@@ -11,8 +11,12 @@ describe('export and import logic', () => {
   beforeEach(() => {
     dom = new JSDOM(`<!DOCTYPE html><html><body>
       <button type="button" id="add-new-webhook-btn"></button>
+      <button type="button" id="manage-groups-btn">Manage Groups</button>
       <form id="add-webhook-form" class="hidden">
         <input id="webhook-label" />
+        <select id="webhook-group">
+          <option value="" selected>No Group</option>
+        </select>
         <input id="webhook-url" />
         <select id="webhook-method"></select>
         <input id="webhook-identifier" />
@@ -40,6 +44,27 @@ describe('export and import logic', () => {
         <button type="button" id="cancel-edit-btn" class="hidden"></button>
         <button type="submit"></button>
       </form>
+      
+      <!-- Group Management Modal -->
+      <div id="manage-groups-modal" class="modal hidden">
+        <div class="modal-content">
+          <span class="close-manage-groups">&times;</span>
+          <h2>Manage Groups</h2>
+          <div class="form-group">
+            <label for="new-group-name">New Group Name:</label>
+            <input type="text" id="new-group-name" placeholder="Enter new group name" />
+            <button type="button" id="add-group-btn">Add Group</button>
+          </div>
+          <div id="existing-groups-container">
+            <h3>Existing Groups:</h3>
+            <ul id="groups-list"></ul>
+          </div>
+          <div class="modal-actions">
+            <button type="button" id="close-manage-groups-btn">Close</button>
+          </div>
+        </div>
+      </div>
+      
       <div id="import-export-actions">
         <button type="button" id="export-webhooks-btn"></button>
         <button type="button" id="import-webhooks-btn"></button>

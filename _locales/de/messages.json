@@ -57,15 +57,9 @@
       }
     }
   },
-  "popupErrorCustomPayloadJsonParseError": {
-    "message": "Fehler beim Parsen des benutzerdefinierten Payloads. Fehler: $error$",
-    "description": "Fehler beim JSON Parsen.",
-    "placeholders": {
-      "error": {
-        "content": "$1",
-        "example": "Unexpected token in JSON at position 10"
-      }
-    }
+  "popupNoGroup": {
+    "message": "Keine Gruppe",
+    "description": "Bezeichnung für Webhooks ohne Gruppe im Popup."
   },
   "optionsTitle": {
     "message": "Webhook Konfiguration",
@@ -194,6 +188,54 @@
   "optionsImportButton": {
     "message": "Webhooks importieren",
     "description": "Button-Text zum Import von Webhooks aus einer Datei."
+  },
+  "optionsGroupLabel": {
+    "message": "Gruppe:",
+    "description": "Label für die Webhook-Gruppenauswahl."
+  },
+  "optionsNoGroup": {
+    "message": "Keine Gruppe",
+    "description": "Option für Webhooks ohne Gruppe."
+  },
+  "optionsManageGroupsButton": {
+    "message": "Gruppen verwalten",
+    "description": "Schaltfläche zum Öffnen des Gruppenverwaltungsdialogs."
+  },
+  "optionsManageGroupsHeader": {
+    "message": "Gruppen verwalten",
+    "description": "Überschrift für den Gruppenverwaltungsdialog."
+  },
+  "optionsNewGroupNameLabel": {
+    "message": "Neuer Gruppenname:",
+    "description": "Beschriftung für das neue Gruppennamen-Eingabefeld."
+  },
+  "optionsNewGroupNamePlaceholder": {
+    "message": "Neuen Gruppennamen eingeben",
+    "description": "Platzhalter für das neue Gruppennamen-Eingabefeld."
+  },
+  "optionsAddGroupButton": {
+    "message": "Gruppe hinzufügen",
+    "description": "Schaltfläche zum Hinzufügen einer neuen Gruppe."
+  },
+  "optionsExistingGroupsHeader": {
+    "message": "Vorhandene Gruppen:",
+    "description": "Überschrift für die Liste vorhandener Gruppen."
+  },
+  "optionsEditGroupButton": {
+    "message": "Bearbeiten",
+    "description": "Schaltfläche zum Bearbeiten eines Gruppennamens."
+  },
+  "optionsSaveGroupButton": {
+    "message": "Speichern",
+    "description": "Schaltfläche zum Speichern eines Gruppennamens."
+  },
+  "optionsDeleteGroupButton": {
+    "message": "Löschen",
+    "description": "Schaltfläche zum Löschen einer Gruppe."
+  },
+  "optionsCloseManageGroupsButton": {
+    "message": "Schließen",
+    "description": "Schaltfläche zum Schließen des Gruppenverwaltungsdialogs."
   },
   "optionsImportInfo": {
     "message": "Beim Import werden vorhandene Webhooks ersetzt.",

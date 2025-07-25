@@ -57,15 +57,9 @@
       }
     }
   },
-  "popupErrorCustomPayloadJsonParseError": {
-    "message": "JSON Parse Error in Custom Payload! error: $error$",
-    "description": "Error when JSON parsing fails.",
-    "placeholders": {
-        "error": {
-            "content": "$1",
-            "example": "Unexpected token in JSON at position 10"
-        }
-    }
+  "popupNoGroup": {
+    "message": "No Group",
+    "description": "Label for webhooks without a group in the popup."
   },
   "optionsTitle": {
     "message": "Webhook Configuration",
@@ -194,6 +188,54 @@
   "optionsImportButton": {
     "message": "Import Webhooks",
     "description": "Button text to import webhooks from a file."
+  },
+  "optionsGroupLabel": {
+    "message": "Group:",
+    "description": "Label for the webhook group selection."
+  },
+  "optionsNoGroup": {
+    "message": "No Group",
+    "description": "Option for webhooks without a group."
+  },
+  "optionsManageGroupsButton": {
+    "message": "Manage Groups",
+    "description": "Button to open the group management modal."
+  },
+  "optionsManageGroupsHeader": {
+    "message": "Manage Groups",
+    "description": "Header for the group management modal."
+  },
+  "optionsNewGroupNameLabel": {
+    "message": "New Group Name:",
+    "description": "Label for the new group name input."
+  },
+  "optionsNewGroupNamePlaceholder": {
+    "message": "Enter new group name",
+    "description": "Placeholder for the new group name input."
+  },
+  "optionsAddGroupButton": {
+    "message": "Add Group",
+    "description": "Button to add a new group."
+  },
+  "optionsExistingGroupsHeader": {
+    "message": "Existing Groups:",
+    "description": "Header for the existing groups list."
+  },
+  "optionsEditGroupButton": {
+    "message": "Edit",
+    "description": "Button to edit a group name."
+  },
+  "optionsSaveGroupButton": {
+    "message": "Save",
+    "description": "Button to save a group name."
+  },
+  "optionsDeleteGroupButton": {
+    "message": "Delete",
+    "description": "Button to delete a group."
+  },
+  "optionsCloseManageGroupsButton": {
+    "message": "Close",
+    "description": "Button to close the group management modal."
   },
   "optionsImportInfo": {
     "message": "Importing replaces all existing webhooks.",

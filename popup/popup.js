@@ -7,8 +7,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const buttonsContainer = document.getElementById("buttons-container");
 
-  // Load webhooks from storage
-  const { webhooks = [] } = await browserAPI.storage.sync.get("webhooks");
+  // Load webhooks and groups from storage
+  const { webhooks = [], groups = [] } = await browserAPI.storage.sync.get(["webhooks", "groups"]);
   const tabs = await browserAPI.tabs.query({ active: true, currentWindow: true });
   const currentUrl = tabs[0]?.url || "";
   const visibleWebhooks = webhooks.filter(
@@ -23,16 +23,65 @@ document.addEventListener("DOMContentLoaded", async () => {
     buttonsContainer.textContent = ""; // Clear any existing content
     buttonsContainer.appendChild(p);
   } else {
-    // Create a button for each webhook
-    visibleWebhooks.forEach((webhook) => {
-      const button = document.createElement("button");
-      button.textContent = webhook.label;
-      button.dataset.url = webhook.url;
-      button.dataset.label = webhook.label;
-      button.dataset.webhookId = webhook.id;
-      button.classList.add("webhook-btn");
-      buttonsContainer.appendChild(button);
+    // Group webhooks by group ID
+    const groupedWebhooks = {};
+    visibleWebhooks.forEach(webhook => {
+      const groupId = webhook.groupId || "ungrouped";
+      if (!groupedWebhooks[groupId]) {
+        groupedWebhooks[groupId] = [];
+      }
+      groupedWebhooks[groupId].push(webhook);
     });
+
+    // Create a map of group ID to group name for easy lookup
+    const groupMap = Object.fromEntries(groups.map(group => [group.id, group.name]));
+
+    // Display webhooks grouped by group in the order defined by the groups array
+    // First display groups in their defined order
+    groups.forEach(group => {
+      const groupId = group.id;
+      const groupWebhooks = groupedWebhooks[groupId];
+      if (groupWebhooks && groupWebhooks.length > 0) {
+        // Create group header
+        const groupHeader = document.createElement("h3");
+        groupHeader.className = "group-header";
+        groupHeader.textContent = group.name;
+        buttonsContainer.appendChild(groupHeader);
+
+        // Create a button for each webhook in this group
+        groupWebhooks.forEach((webhook) => {
+          const button = document.createElement("button");
+          button.textContent = webhook.label;
+          button.dataset.url = webhook.url;
+          button.dataset.label = webhook.label;
+          button.dataset.webhookId = webhook.id;
+          button.classList.add("webhook-btn");
+          buttonsContainer.appendChild(button);
+        });
+      }
+    });
+
+    // Then display ungrouped webhooks if they exist
+    const ungroupedWebhooks = groupedWebhooks["ungrouped"];
+    if (ungroupedWebhooks && ungroupedWebhooks.length > 0) {
+      // Create ungrouped header
+      const ungroupedHeader = document.createElement("h3");
+      ungroupedHeader.className = "group-header";
+      ungroupedHeader.textContent = browserAPI.i18n.getMessage("popupNoGroup") || "No Group";
+      buttonsContainer.appendChild(ungroupedHeader);
+
+      // Create a button for each ungrouped webhook
+      ungroupedWebhooks.forEach((webhook) => {
+        const button = document.createElement("button");
+        button.textContent = webhook.label;
+        button.dataset.url = webhook.url;
+        button.dataset.label = webhook.label;
+        button.dataset.webhookId = webhook.id;
+        button.classList.add("webhook-btn");
+        buttonsContainer.appendChild(button);
+      });
+    }
+
     // Store webhooks in a map for quick lookup by id
     window._webhookMap = Object.fromEntries(visibleWebhooks.map(w => [w.id, w]));
   }
