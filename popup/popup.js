@@ -173,7 +173,11 @@ document
             "{{platform.os}}": platformInfo.os || "unknown",
             "{{platform.version}}": platformInfo.version,
             "{{triggeredAt}}": new Date().toISOString(),
-            "{{identifier}}": webhook.identifier || ""
+            "{{identifier}}": webhook.identifier || "",
+            "{{currentUnixTimestamp}}": Math.floor(Date.now() / 1000),
+            "{{currentUnixTimestampMiliseconds}}": Date.now(),
+            "{{currentIsoDate}}": new Date().toISOString().slice(0, 10),
+            "{{currentIsoDateTime}}": new Date().toISOString(),
           };
 
           // Replace placeholders in custom payload
