@@ -187,7 +187,13 @@ const nowLocal = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
             "{{now.unix_ms}}": now.getTime(),
             "{{now.year}}": now.getUTCFullYear(),
             "{{now.month}}": now.getUTCMonth() + 1,
-            "{{now.day}}": now.getUTCDate(),
+"{{now.local.iso}}": (() => {
+  const offsetMinutes = now.getTimezoneOffset();
+  const sign = offsetMinutes > 0 ? "-" : "+";
+  const hours = ("0" + Math.floor(Math.abs(offsetMinutes / 60))).slice(-2);
+  const minutes = ("0" + Math.abs(offsetMinutes % 60)).slice(-2);
+  return nowLocal.toISOString().slice(0, -1) + sign + hours + ":" + minutes;
+})(),
             "{{now.hour}}": now.getUTCHours(),
             "{{now.minute}}": now.getUTCMinutes(),
             "{{now.second}}": now.getUTCSeconds(),
