@@ -159,7 +159,8 @@ document
         try {
           // Create variable replacements map
           const now = new Date();
-          const nowLocal = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+// Create a new Date object with local time values but in UTC, to easily extract local date/time parts.
+const nowLocal = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
 
           const replacements = {
             "{{tab.title}}": activeTab.title,
