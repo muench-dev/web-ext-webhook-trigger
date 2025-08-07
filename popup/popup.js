@@ -158,6 +158,9 @@ document
       if (webhook && webhook.customPayload) {
         try {
           // Create variable replacements map
+          const now = new Date();
+          const nowLocal = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+
           const replacements = {
             "{{tab.title}}": activeTab.title,
             "{{tab.url}}": currentUrl,
@@ -172,30 +175,48 @@ document
             "{{platform.arch}}": platformInfo.arch || "unknown",
             "{{platform.os}}": platformInfo.os || "unknown",
             "{{platform.version}}": platformInfo.version,
-            "{{triggeredAt}}": new Date().toISOString(),
-            "{{identifier}}": webhook.identifier || ""
+            "{{identifier}}": webhook.identifier || "",
+            // Legacy variable
+            "{{triggeredAt}}": now.toISOString(),
+            // New DateTime variables (UTC)
+            "{{now.iso}}": now.toISOString(),
+            "{{now.date}}": now.toISOString().slice(0, 10),
+            "{{now.time}}": now.toISOString().slice(11, 19),
+            "{{now.unix}}": Math.floor(now.getTime() / 1000),
+            "{{now.unix_ms}}": now.getTime(),
+            "{{now.year}}": now.getUTCFullYear(),
+            "{{now.month}}": now.getUTCMonth() + 1,
+            "{{now.day}}": now.getUTCDate(),
+            "{{now.hour}}": now.getUTCHours(),
+            "{{now.minute}}": now.getUTCMinutes(),
+            "{{now.second}}": now.getUTCSeconds(),
+            "{{now.millisecond}}": now.getUTCMilliseconds(),
+            // New DateTime variables (local)
+            "{{now.local.iso}}": nowLocal.toISOString().slice(0, -1) + (now.getTimezoneOffset() > 0 ? "-" : "+") + ("0" + Math.abs(now.getTimezoneOffset() / 60)).slice(-2) + ":" + ("0" + Math.abs(now.getTimezoneOffset() % 60)).slice(-2),
+            "{{now.local.date}}": nowLocal.toISOString().slice(0, 10),
+            "{{now.local.time}}": nowLocal.toISOString().slice(11, 19),
           };
 
-          // Replace placeholders in custom payload
-          let customPayloadStr = webhook.customPayload;
-          Object.entries(replacements).forEach(([placeholder, value]) => {
-            // Handle different types of values
-            // For string values in JSON, we need to handle them differently based on context
-            // If the placeholder is inside quotes in the JSON, we should not add quotes again
-            const isPlaceholderInQuotes = customPayloadStr.match(new RegExp(`"[^"]*${placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[^"]*"`, 'g'));
+          // Parse the custom payload as JSON
+          let customPayload = JSON.parse(webhook.customPayload);
 
-            const replaceValue = typeof value === 'string'
-              ? (isPlaceholderInQuotes ? value.replace(/"/g, '\\"') : `"${value.replace(/"/g, '\\"')}"`)
-              : (value === undefined ? 'null' : JSON.stringify(value));
+          // Recursively replace placeholders
+          const replacePlaceholders = (obj) => {
+            for (const key in obj) {
+              if (obj.hasOwnProperty(key)) {
+                if (typeof obj[key] === 'string') {
+                  const placeholder = obj[key];
+                  if (replacements.hasOwnProperty(placeholder)) {
+                    obj[key] = replacements[placeholder];
+                  }
+                } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+                  replacePlaceholders(obj[key]);
+                }
+              }
+            }
+          };
 
-            customPayloadStr = customPayloadStr.replace(
-              new RegExp(placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'),
-              replaceValue
-            );
-          });
-
-          // Parse the resulting JSON
-          const customPayload = JSON.parse(customPayloadStr);
+          replacePlaceholders(customPayload);
 
           // Use the custom payload instead of the default one
           payload = customPayload;
