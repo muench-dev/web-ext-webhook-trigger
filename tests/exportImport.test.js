@@ -43,6 +43,8 @@ describe('export and import logic', () => {
         </div>
         <button type="button" id="cancel-edit-btn" class="hidden"></button>
         <button type="submit"></button>
+        <button type="button" id="test-webhook-btn" class="hidden">__MSG_optionsTestButton__</button>
+        <p id="form-status-message" class="status-message"></p>
       </form>
       
       <!-- Group Management Modal -->
