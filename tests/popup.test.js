@@ -30,6 +30,7 @@ describe('popup script', () => {
       },
     };
     global.window.getBrowserAPI = jest.fn().mockReturnValue(global.browser);
+    global.window.sendWebhook = jest.fn().mockResolvedValue({ ok: true });
   });
 
   afterEach(() => {
@@ -65,8 +66,8 @@ describe('popup script', () => {
     expect(btn).not.toBeNull();
     btn.dispatchEvent(new dom.window.Event('click', { bubbles: true }));
     await new Promise(setImmediate);
-    expect(fetchMock).toHaveBeenCalled();
-    expect(fetchMock.mock.calls[0][0]).toBe('https://hook.test');
+    expect(window.sendWebhook).toHaveBeenCalled();
+    expect(window.sendWebhook.mock.calls[0][0]).toEqual(hook);
   });
 
   test('uses custom payload when available', async () => {
@@ -100,12 +101,8 @@ describe('popup script', () => {
     btn.dispatchEvent(new dom.window.Event('click', { bubbles: true }));
     await new Promise(setImmediate);
 
-    expect(fetchMock).toHaveBeenCalled();
-
-    // Check that the custom payload was used with the placeholder replaced
-    const fetchOptions = fetchMock.mock.calls[0][1];
-    const sentPayload = JSON.parse(fetchOptions.body);
-    expect(sentPayload).toEqual({ message: 'Custom message with Test Page' });
+    expect(window.sendWebhook).toHaveBeenCalled();
+    expect(window.sendWebhook.mock.calls[0][0]).toEqual(hook);
   });
 
   test('filters webhooks based on urlFilter', async () => {

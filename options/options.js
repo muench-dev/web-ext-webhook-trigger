@@ -380,6 +380,8 @@ const headerValueInput = document.getElementById("header-value");
 const addHeaderBtn = document.getElementById("add-header-btn");
 const cancelEditBtn = document.getElementById("cancel-edit-btn");
 const showAddWebhookBtn = document.getElementById("add-new-webhook-btn");
+const testWebhookBtn = document.getElementById("test-webhook-btn");
+const formStatusMessage = document.getElementById("form-status-message");
 const manageGroupsBtn = document.getElementById("manage-groups-btn");
 const customPayloadInput = document.getElementById("webhook-custom-payload");
 const variablesAutocomplete = document.getElementById("variables-autocomplete");
@@ -514,6 +516,7 @@ showAddWebhookBtn.addEventListener('click', () => {
   form.classList.remove('hidden');
   showAddWebhookBtn.classList.add('hidden');
   cancelEditBtn.classList.remove('hidden');
+  testWebhookBtn.classList.remove('hidden');
   labelInput.focus();
 });
 
@@ -942,6 +945,9 @@ cancelEditBtn.addEventListener("click", () => {
   headers = [];
   renderHeaders();
   cancelEditBtn.classList.add("hidden");
+  testWebhookBtn.classList.add("hidden");
+  formStatusMessage.textContent = "";
+  formStatusMessage.className = "status-message";
   form.querySelector('button[type="submit"]').textContent = browser.i18n.getMessage("optionsSaveButton") || "Save Webhook";
   // Collapse custom payload section
   updateCustomPayloadVisibility();
@@ -1077,3 +1083,36 @@ if (typeof module !== "undefined" && module.exports) {
     handleImport,
   };
 }
+
+testWebhookBtn.addEventListener('click', async () => {
+  const url = urlInput.value.trim();
+  if (!url) {
+    alert('URL is required to send a test webhook.');
+    return;
+  }
+
+  const webhook = {
+    url: url,
+    method: methodSelect.value,
+    headers: [...headers],
+  };
+
+  testWebhookBtn.disabled = true;
+  formStatusMessage.textContent = 'Sending test...';
+  formStatusMessage.className = 'status-message';
+
+  try {
+    await window.sendWebhook(webhook, true);
+    formStatusMessage.textContent = browser.i18n.getMessage('optionsTestSuccess');
+    formStatusMessage.classList.add('success');
+  } catch (error) {
+    formStatusMessage.textContent = browser.i18n.getMessage('optionsTestError') + error.message;
+    formStatusMessage.classList.add('error');
+  } finally {
+    setTimeout(() => {
+      testWebhookBtn.disabled = false;
+      formStatusMessage.textContent = '';
+      formStatusMessage.className = 'status-message';
+    }, 2500);
+  }
+});

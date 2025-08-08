@@ -83,9 +83,143 @@ function replaceI18nPlaceholders() {
   }
 }
 
+async function sendWebhook(webhook, isTest = false) {
+  const browserAPI = getBrowserAPI();
+
+  try {
+    let payload;
+
+    if (isTest) {
+      payload = {
+        url: "https://example.com",
+        test: true,
+        triggeredAt: new Date().toISOString(),
+      };
+    } else {
+      // Get info about the active tab
+      const tabs = await browserAPI.tabs.query({
+        active: true,
+        currentWindow: true,
+      });
+      if (tabs.length === 0) {
+        throw new Error(browserAPI.i18n.getMessage("popupErrorNoActiveTab"));
+      }
+      const activeTab = tabs[0];
+      const currentUrl = activeTab.url;
+
+      // Get browser and platform info
+      const browserInfo = await browserAPI.runtime.getBrowserInfo?.() || {};
+      const platformInfo = await browserAPI.runtime.getPlatformInfo?.() || {};
+
+      // Create default payload
+      payload = {
+        tab: {
+          title: activeTab.title,
+          url: currentUrl,
+          id: activeTab.id,
+          windowId: activeTab.windowId,
+          index: activeTab.index,
+          pinned: activeTab.pinned,
+          audible: activeTab.audible,
+          mutedInfo: activeTab.mutedInfo,
+          incognito: activeTab.incognito,
+          status: activeTab.status,
+        },
+        browser: browserInfo,
+        platform: platformInfo,
+        triggeredAt: new Date().toISOString(),
+      };
+
+      if (webhook && webhook.identifier) {
+        payload.identifier = webhook.identifier;
+      }
+
+      if (webhook && webhook.customPayload) {
+        try {
+          const replacements = {
+            "{{tab.title}}": activeTab.title,
+            "{{tab.url}}": currentUrl,
+            "{{tab.id}}": activeTab.id,
+            "{{tab.windowId}}": activeTab.windowId,
+            "{{tab.index}}": activeTab.index,
+            "{{tab.pinned}}": activeTab.pinned,
+            "{{tab.audible}}": activeTab.audible,
+            "{{tab.incognito}}": activeTab.incognito,
+            "{{tab.status}}": activeTab.status,
+            "{{browser}}": JSON.stringify(browserInfo),
+            "{{platform.arch}}": platformInfo.arch || "unknown",
+            "{{platform.os}}": platformInfo.os || "unknown",
+            "{{platform.version}}": platformInfo.version,
+            "{{triggeredAt}}": new Date().toISOString(),
+            "{{identifier}}": webhook.identifier || ""
+          };
+
+          let customPayloadStr = webhook.customPayload;
+          Object.entries(replacements).forEach(([placeholder, value]) => {
+            const isPlaceholderInQuotes = customPayloadStr.match(new RegExp(`"[^"]*${placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[^"]*"`));
+
+            const replaceValue = typeof value === 'string'
+              ? (isPlaceholderInQuotes ? value.replace(/"/g, '\\"') : `"${value.replace(/"/g, '\\"')}"`)
+              : (value === undefined ? 'null' : JSON.stringify(value));
+
+            customPayloadStr = customPayloadStr.replace(
+              new RegExp(placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'),
+              replaceValue
+            );
+          });
+
+          const customPayload = JSON.parse(customPayloadStr);
+          payload = customPayload;
+        } catch (error) {
+          throw new Error(browserAPI.i18n.getMessage("popupErrorCustomPayloadJsonParseError", error.message));
+        }
+      }
+    }
+
+    let headers = { "Content-Type": "application/json" };
+    if (webhook && Array.isArray(webhook.headers)) {
+      webhook.headers.forEach(h => {
+        if (h.key && h.value) headers[h.key] = h.value;
+      });
+    }
+
+    const method = webhook && webhook.method ? webhook.method : "POST";
+
+    const fetchOpts = {
+      method,
+      headers,
+    };
+
+    const url = webhook.url;
+
+    if (method === "POST") {
+      fetchOpts.body = JSON.stringify(payload);
+    } else if (method === "GET") {
+      const urlObj = new URL(url);
+      urlObj.searchParams.set("payload", encodeURIComponent(JSON.stringify(payload)));
+      fetchOpts.body = undefined;
+      fetchOpts._url = urlObj.toString();
+    }
+
+    const fetchUrl = fetchOpts._url || url;
+    const response = await fetch(fetchUrl, fetchOpts);
+
+    if (!response.ok) {
+      throw new Error(browserAPI.i18n.getMessage("popupErrorHttp", response.status));
+    }
+
+    return response;
+
+  } catch (error) {
+    console.error("Error sending webhook:", error);
+    throw error;
+  }
+}
+
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { replaceI18nPlaceholders, getBrowserAPI };
+  module.exports = { replaceI18nPlaceholders, getBrowserAPI, sendWebhook };
 } else {
   window.replaceI18nPlaceholders = replaceI18nPlaceholders;
   window.getBrowserAPI = getBrowserAPI;
+  window.sendWebhook = sendWebhook;
 }
