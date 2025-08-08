@@ -69,8 +69,25 @@ describe('popup script', () => {
     expect(fetchMock.mock.calls[0][0]).toBe('https://hook.test');
   });
 
-  test('uses custom payload when available', async () => {
-    const customPayload = '{"message": "Custom message with {{tab.title}}"}';
+  test('uses custom payload with all datetime variables', async () => {
+    const customPayload = JSON.stringify({
+      "triggeredAt": "{{triggeredAt}}",
+      "now.iso": "{{now.iso}}",
+      "now.date": "{{now.date}}",
+      "now.time": "{{now.time}}",
+      "now.unix": "{{now.unix}}",
+      "now.unix_ms": "{{now.unix_ms}}",
+      "now.year": "{{now.year}}",
+      "now.month": "{{now.month}}",
+      "now.day": "{{now.day}}",
+      "now.hour": "{{now.hour}}",
+      "now.minute": "{{now.minute}}",
+      "now.second": "{{now.second}}",
+      "now.millisecond": "{{now.millisecond}}",
+      "now.local.iso": "{{now.local.iso}}",
+      "now.local.date": "{{now.local.date}}",
+      "now.local.time": "{{now.local.time}}",
+    });
     const hook = {
       id: '1',
       label: 'Send',
@@ -91,6 +108,18 @@ describe('popup script', () => {
       status: 'complete'
     }]);
 
+    // Mock Date
+    const mockDate = new Date('2025-08-07T10:20:30.123Z');
+    const OriginalDate = global.Date;
+    global.Date = jest.fn((...args) => {
+      if (args.length) {
+        return new OriginalDate(...args);
+      }
+      return mockDate;
+    });
+    global.Date.now = jest.fn(() => mockDate.getTime());
+    global.Date.toISOString = jest.fn(() => mockDate.toISOString());
+
     require('../popup/popup.js');
     document.dispatchEvent(new dom.window.Event('DOMContentLoaded'));
     await new Promise(setImmediate);
@@ -102,10 +131,32 @@ describe('popup script', () => {
 
     expect(fetchMock).toHaveBeenCalled();
 
-    // Check that the custom payload was used with the placeholder replaced
     const fetchOptions = fetchMock.mock.calls[0][1];
     const sentPayload = JSON.parse(fetchOptions.body);
-    expect(sentPayload).toEqual({ message: 'Custom message with Test Page' });
+
+    const expectedPayload = {
+      "triggeredAt": "2025-08-07T10:20:30.123Z",
+      "now.iso": "2025-08-07T10:20:30.123Z",
+      "now.date": "2025-08-07",
+      "now.time": "10:20:30",
+      "now.unix": Math.floor(mockDate.getTime() / 1000),
+      "now.unix_ms": mockDate.getTime(),
+      "now.year": 2025,
+      "now.month": 8,
+      "now.day": 7,
+      "now.hour": 10,
+      "now.minute": 20,
+      "now.second": 30,
+      "now.millisecond": 123,
+      "now.local.iso": "2025-08-07T10:20:30.123+00:00",
+      "now.local.date": "2025-08-07",
+      "now.local.time": "10:20:30"
+    };
+
+    expect(sentPayload).toEqual(expectedPayload);
+
+    // Restore Date mock
+    global.Date = OriginalDate;
   });
 
   test('filters webhooks based on urlFilter', async () => {
