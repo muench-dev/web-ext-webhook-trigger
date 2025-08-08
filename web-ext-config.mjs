@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   verbose: false,
   ignoreFiles: [
     "AGENTS.md",
@@ -7,7 +7,7 @@ module.exports = {
     "package-lock.json",
     "README.md",
     "jest.config.js",
-    "web-ext-config.cjs",
+    "web-ext-config.mjs",
 
     // directories to ignore
     "docs",
