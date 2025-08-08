@@ -240,5 +240,17 @@
   "optionsImportInfo": {
     "message": "Importing replaces all existing webhooks.",
     "description": "Information text shown next to the import button."
+  },
+  "optionsTestButton": {
+    "message": "Test",
+    "description": "Text for the test button."
+  },
+  "optionsTestSuccess": {
+    "message": "Test webhook sent successfully.",
+    "description": "Success message for the test webhook."
+  },
+  "optionsTestError": {
+    "message": "Error sending test webhook: ",
+    "description": "Error message for the test webhook."
   }
 }

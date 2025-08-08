@@ -240,5 +240,17 @@
   "optionsImportInfo": {
     "message": "Beim Import werden vorhandene Webhooks ersetzt.",
     "description": "Hinweistext neben dem Import-Button."
+  },
+  "optionsTestButton": {
+    "message": "Testen",
+    "description": "Text für den Test-Button."
+  },
+  "optionsTestSuccess": {
+    "message": "Test-Webhook erfolgreich gesendet.",
+    "description": "Erfolgsmeldung für den Test-Webhook."
+  },
+  "optionsTestError": {
+    "message": "Fehler beim Senden des Test-Webhooks: ",
+    "description": "Fehlermeldung für den Test-Webhook."
   }
 }

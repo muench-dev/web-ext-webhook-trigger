@@ -12,6 +12,7 @@ Easily manage and trigger webhooks directly from your browser! Compatible with F
 - **🌍 Localization:** Available in multiple languages (see `_locales/`).
 - **📤 Export/Import:** Backup or restore your webhooks using JSON files.
 - **🗂️ Group Webhooks:** Organize webhooks into groups for clarity and easier management.
+- **🧪 Test Webhooks:** Test your webhooks right from the options page to ensure they are configured correctly.
 
 ## 🛠️ Getting Started
 
@@ -36,6 +37,9 @@ Easily manage and trigger webhooks directly from your browser! Compatible with F
 
 **🗑️ Delete a Webhook:**
 - Find the webhook, click "Delete".
+
+**🧪 Test a Webhook:**
+- When adding or editing a webhook, click the 'Test' button to send a test payload to your URL.
 
 **🗂️ Organize into Groups:**
 - Use the group management dialog to add, delete, rename, or reorder groups via drag-and-drop.
