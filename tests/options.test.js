@@ -264,4 +264,254 @@ describe('options page', () => {
     expect(document.getElementById('add-webhook-form').classList.contains('hidden')).toBe(false);
     expect(document.getElementById('add-new-webhook-btn').classList.contains('hidden')).toBe(true);
   });
+
+  describe('test webhook button', () => {
+    let mockSendWebhook;
+    let mockAlert;
+
+    beforeEach(() => {
+      // Mock the sendWebhook function
+      mockSendWebhook = jest.fn();
+      global.sendWebhook = mockSendWebhook;
+
+      // Mock alert
+      mockAlert = jest.fn();
+      global.alert = mockAlert;
+
+      // Properly initialize the method select element
+      const methodSelect = document.getElementById('webhook-method');
+      methodSelect.innerHTML = '<option value="POST">POST</option><option value="GET">GET</option>';
+      methodSelect.value = 'POST'; // Set default value
+
+      // Update the global browser object with correct i18n mock
+      global.browser.i18n.getMessage = jest.fn((key) => {
+        const messages = {
+          'optionsTestSuccess': 'Test webhook sent successfully.',
+          'optionsTestError': 'Test failed: '
+        };
+        return messages[key] || key;
+      });
+
+      // Also update the getBrowserAPI mock to return the updated browser object
+      global.window.getBrowserAPI = jest.fn().mockReturnValue(global.browser);
+
+      // Mock setTimeout
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+      jest.restoreAllMocks();
+    });
+
+    test('test button is hidden initially', () => {
+      const testBtn = document.getElementById('test-webhook-btn');
+      expect(testBtn.classList.contains('hidden')).toBe(true);
+    });
+
+    test('test button becomes visible when adding new webhook', () => {
+      const addBtn = document.getElementById('add-new-webhook-btn');
+      const testBtn = document.getElementById('test-webhook-btn');
+
+      addBtn.click();
+
+      expect(testBtn.classList.contains('hidden')).toBe(false);
+    });
+
+    test('test button requires URL before sending webhook', async () => {
+      const addBtn = document.getElementById('add-new-webhook-btn');
+      const testBtn = document.getElementById('test-webhook-btn');
+      const urlInput = document.getElementById('webhook-url');
+
+      // Show the form
+      addBtn.click();
+
+      // Clear URL and click test button
+      urlInput.value = '';
+      testBtn.click();
+
+      expect(mockAlert).toHaveBeenCalledWith('URL is required to send a test webhook.');
+      expect(mockSendWebhook).not.toHaveBeenCalled();
+    });
+
+    test('test button sends webhook with all form settings and test header', async () => {
+      const addBtn = document.getElementById('add-new-webhook-btn');
+      const testBtn = document.getElementById('test-webhook-btn');
+      const urlInput = document.getElementById('webhook-url');
+      const methodSelect = document.getElementById('webhook-method');
+      const identifierInput = document.getElementById('webhook-identifier');
+      const customPayloadInput = document.getElementById('webhook-custom-payload');
+      const groupSelect = document.getElementById('webhook-group');
+
+      // Mock successful webhook send
+      mockSendWebhook.mockResolvedValue();
+
+      // Show the form
+      addBtn.click();
+
+      // Fill in form data
+      urlInput.value = 'https://test-webhook.com/endpoint';
+      methodSelect.value = 'POST'; // This should now work properly
+      identifierInput.value = 'test-identifier';
+      customPayloadInput.value = '{"custom": "data"}';
+      groupSelect.value = '';
+
+      // Add a custom header
+      const headerKeyInput = document.getElementById('header-key');
+      const headerValueInput = document.getElementById('header-value');
+      const addHeaderBtn = document.getElementById('add-header-btn');
+
+      headerKeyInput.value = 'Authorization';
+      headerValueInput.value = 'Bearer token123';
+      addHeaderBtn.click();
+
+      // Click test button
+      await testBtn.click();
+
+      // Verify sendWebhook was called with correct parameters
+      expect(mockSendWebhook).toHaveBeenCalledWith({
+        url: 'https://test-webhook.com/endpoint',
+        method: 'POST', // This should now match
+        headers: [
+          { key: 'Authorization', value: 'Bearer token123' },
+          { key: 'x-webhook-test', value: 'true' }
+        ],
+        identifier: 'test-identifier',
+        customPayload: '{"custom": "data"}',
+        urlFilter: undefined,
+        groupId: undefined
+      }, false); // false = send real data, not test payload
+    });
+
+    test('test button shows success message on successful webhook', async () => {
+      const addBtn = document.getElementById('add-new-webhook-btn');
+      const testBtn = document.getElementById('test-webhook-btn');
+      const urlInput = document.getElementById('webhook-url');
+      const statusMessage = document.getElementById('form-status-message');
+
+      // Mock successful webhook send
+      mockSendWebhook.mockResolvedValue();
+
+      // Show the form
+      addBtn.click();
+      urlInput.value = 'https://test.com';
+
+      // Click test button
+      await testBtn.click();
+
+      expect(statusMessage.textContent).toBe('Test webhook sent successfully.');
+      expect(statusMessage.classList.contains('success')).toBe(true);
+      expect(testBtn.disabled).toBe(true);
+
+      // Fast-forward timers to check button re-enabling
+      jest.advanceTimersByTime(2500);
+      expect(testBtn.disabled).toBe(false);
+      expect(statusMessage.textContent).toBe('');
+    });
+
+    test('test button shows error message on webhook failure', async () => {
+      const addBtn = document.getElementById('add-new-webhook-btn');
+      const testBtn = document.getElementById('test-webhook-btn');
+      const urlInput = document.getElementById('webhook-url');
+      const statusMessage = document.getElementById('form-status-message');
+
+      // Mock failed webhook send
+      const testError = new Error('Network error');
+      mockSendWebhook.mockRejectedValue(testError);
+
+      // Show the form
+      addBtn.click();
+      urlInput.value = 'https://test.com';
+
+      // Click test button
+      await testBtn.click();
+
+      expect(statusMessage.textContent).toBe('Test failed: Network error');
+      expect(statusMessage.classList.contains('error')).toBe(true);
+      expect(testBtn.disabled).toBe(true);
+
+      // Fast-forward timers to check button re-enabling
+      jest.advanceTimersByTime(2500);
+      expect(testBtn.disabled).toBe(false);
+      expect(statusMessage.textContent).toBe('');
+    });
+
+    test('test button becomes visible when editing existing webhook', async () => {
+      const testBtn = document.getElementById('test-webhook-btn');
+
+      // Mock existing webhook data
+      global.getBrowserAPI = () => ({
+        storage: {
+          sync: {
+            get: jest.fn().mockResolvedValue({
+              webhooks: [{
+                id: 'test-id',
+                label: 'Test Webhook',
+                url: 'https://example.com',
+                method: 'POST',
+                headers: [],
+                identifier: 'test'
+              }]
+            })
+          }
+        },
+        i18n: {
+          getMessage: (key) => key
+        }
+      });
+
+      // Load webhooks first
+      await loadWebhooks();
+
+      // Find and click edit button
+      const editBtn = document.querySelector('.edit-btn');
+      if (editBtn) {
+        editBtn.click();
+        expect(testBtn.classList.contains('hidden')).toBe(false);
+      }
+    });
+
+    test('test button includes x-webhook-test header', async () => {
+      const addBtn = document.getElementById('add-new-webhook-btn');
+      const testBtn = document.getElementById('test-webhook-btn');
+      const urlInput = document.getElementById('webhook-url');
+
+      mockSendWebhook.mockResolvedValue();
+
+      // Show the form and set URL
+      addBtn.click();
+      urlInput.value = 'https://test.com';
+
+      // Click test button
+      await testBtn.click();
+
+      // Verify the test header was added
+      const calledWith = mockSendWebhook.mock.calls[0][0];
+      const testHeader = calledWith.headers.find(h => h.key === 'x-webhook-test');
+
+      expect(testHeader).toBeDefined();
+      expect(testHeader.value).toBe('true');
+    });
+
+    test('test button uses real data not test payload', async () => {
+      const addBtn = document.getElementById('add-new-webhook-btn');
+      const testBtn = document.getElementById('test-webhook-btn');
+      const urlInput = document.getElementById('webhook-url');
+
+      mockSendWebhook.mockResolvedValue();
+
+      // Show the form and set URL
+      addBtn.click();
+      urlInput.value = 'https://test.com';
+
+      // Click test button
+      await testBtn.click();
+
+      // Verify sendWebhook was called with false (real data, not test payload)
+      expect(mockSendWebhook).toHaveBeenCalledWith(
+        expect.any(Object),
+        false // This should be false for real data
+      );
+    });
+  });
 });

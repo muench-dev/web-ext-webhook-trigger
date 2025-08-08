@@ -1093,16 +1093,25 @@ testWebhookBtn.addEventListener('click', async () => {
     return;
   }
 
+  // Create webhook object with all current form settings
   const webhook = {
     url: url,
     method: methodSelect.value,
     headers: [...headers],
-    // Add other properties as needed
+    identifier: identifierInput.value.trim() || undefined,
+    customPayload: customPayloadInput.value.trim() || undefined,
+    urlFilter: urlFilterInput.value.trim() || undefined,
+    groupId: groupSelect.value || undefined
   };
+
+  // Add test header to identify this as a test webhook
+  webhook.headers = [...webhook.headers, { key: 'x-webhook-test', value: 'true' }];
+
   formStatusMessage.className = 'status-message';
+  testWebhookBtn.disabled = true;
 
   try {
-    await sendWebhook(webhook, true);
+    await sendWebhook(webhook, false); // Use false to send real data instead of test payload
     formStatusMessage.textContent = browser.i18n.getMessage('optionsTestSuccess');
     formStatusMessage.classList.add('success');
   } catch (error) {
