@@ -1095,11 +1095,8 @@ testWebhookBtn.addEventListener('click', async () => {
     url: url,
     method: methodSelect.value,
     headers: [...headers],
-  if (!url) {
-    formStatusMessage.textContent = 'URL is required to send a test webhook.';
-    formStatusMessage.className = 'status-message error';
-    return;
-  }
+    // Add other properties as needed
+  };
   formStatusMessage.className = 'status-message';
 
   try {
