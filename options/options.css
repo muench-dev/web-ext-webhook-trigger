@@ -259,6 +259,16 @@ button:hover {
     background-color: #dc2626;
 }
 
+/* Test webhook button styling */
+#test-webhook-btn {
+    background-color: #f59e0b;
+    color: white;
+}
+
+#test-webhook-btn:hover {
+    background-color: #d97706;
+}
+
 #add-new-webhook-btn {
     margin-bottom: 20px;
 }

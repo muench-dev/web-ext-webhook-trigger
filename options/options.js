@@ -895,6 +895,7 @@ webhookList.addEventListener("click", async (e) => {
       headers = Array.isArray(webhook.headers) ? [...webhook.headers] : [];
       renderHeaders();
       cancelEditBtn.classList.remove("hidden");
+      testWebhookBtn.classList.remove("hidden");
       form.classList.remove('hidden');
       showAddWebhookBtn.classList.add('hidden');
       // Always set to save button when entering edit mode
@@ -920,6 +921,7 @@ webhookList.addEventListener("click", async (e) => {
       headers = Array.isArray(webhook.headers) ? [...webhook.headers] : [];
       renderHeaders();
       cancelEditBtn.classList.remove("hidden");
+      testWebhookBtn.classList.remove("hidden");
       form.classList.remove('hidden');
       showAddWebhookBtn.classList.add('hidden');
       form.querySelector('button[type="submit"]').textContent = browser.i18n.getMessage("optionsSaveButton") || "Save Webhook";
@@ -1100,7 +1102,7 @@ testWebhookBtn.addEventListener('click', async () => {
   formStatusMessage.className = 'status-message';
 
   try {
-    await window.sendWebhook(webhook, true);
+    await sendWebhook(webhook, true);
     formStatusMessage.textContent = browser.i18n.getMessage('optionsTestSuccess');
     formStatusMessage.classList.add('success');
   } catch (error) {
