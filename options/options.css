@@ -410,7 +410,7 @@ button:hover {
     position: relative;
 }
 
-.close, .close-manage-groups {
+.close, .close-manage-groups, .close-manage-appearance {
     position: absolute;
     right: 15px;
     top: 15px;
@@ -420,7 +420,7 @@ button:hover {
     color: #6b7280;
 }
 
-.close:hover, .close-manage-groups:hover {
+.close:hover, .close-manage-groups:hover, .close-manage-appearance:hover {
     color: #1f2937;
 }
 
@@ -520,3 +520,44 @@ button:hover {
 .delete-group:hover {
     background-color: #dc2626;
 }
+
+/* Emoji icons for options buttons (non-intrusive: does not change textContent) */
+#add-new-webhook-btn::before,
+#manage-groups-btn::before,
+#manage-appearance-btn::before,
+#cancel-edit-btn::before,
+#close-manage-groups-btn::before,
+#close-manage-appearance-btn::before,
+#add-webhook-form button[type="submit"]::before,
+#add-header-btn::before,
+#add-group-btn::before,
+#export-webhooks-btn::before,
+#import-webhooks-btn::before,
+.edit-btn::before,
+.duplicate-btn::before,
+.delete-btn::before,
+.remove-header-btn::before,
+.save-group-name::before,
+.delete-group::before,
+.edit-group-btn::before {
+    display: inline-block;
+    margin-right: 6px;
+}
+
+#add-new-webhook-btn::before { content: "➕"; }
+#manage-groups-btn::before { content: "🗂️"; }
+#add-header-btn::before { content: "➕"; }
+#add-group-btn::before { content: "➕"; }
+#export-webhooks-btn::before { content: "📤"; }
+#import-webhooks-btn::before { content: "📥"; }
+#manage-appearance-btn::before { content: "🌓"; }
+#add-webhook-form button[type="submit"]::before { content: "💾"; }
+#cancel-edit-btn::before { content: "↩️"; }
+#close-manage-groups-btn::before, #close-manage-appearance-btn::before { content: "✖️"; }
+.edit-btn::before { content: "✏️"; }
+.duplicate-btn::before { content: "📄"; }
+.delete-btn::before { content: "🗑️"; }
+.remove-header-btn::before { content: "❌"; }
+.save-group-name::before { content: "💾"; }
+.delete-group::before { content: "🗑️"; }
+.edit-group-btn::before { content: "✏️"; }
