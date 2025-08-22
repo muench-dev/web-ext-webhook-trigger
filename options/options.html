@@ -2,6 +2,7 @@
 <html lang="de">
     <head>
         <meta charset="UTF-8" />
+        <meta name="color-scheme" content="light dark" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>__MSG_optionsTitle__</title>
         <link rel="stylesheet" href="options.css" />
@@ -10,6 +11,8 @@
         <div class="container">
             <h1>__MSG_optionsPageHeader__</h1>
             <p>__MSG_optionsPageDescription__</p>
+
+            <button type="button" id="manage-appearance-btn">__MSG_optionsManageAppearanceButton__</button>
             <button type="button" id="add-new-webhook-btn">
                 __MSG_optionsAddNewWebhookButton__
             </button>
@@ -167,6 +170,25 @@
                 </div>
                 <div class="modal-actions">
                     <button type="button" id="close-manage-groups-btn">__MSG_optionsCloseManageGroupsButton__</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Appearance Management Modal -->
+        <div id="manage-appearance-modal" class="modal hidden">
+            <div class="modal-content">
+                <span class="close-manage-appearance">&times;</span>
+                <h2>__MSG_optionsAppearanceHeader__</h2>
+                <div class="form-group">
+                    <label for="theme-select">__MSG_optionsThemeLabel__</label>
+                    <select id="theme-select">
+                        <option value="system">__MSG_optionsThemeSystem__</option>
+                        <option value="light">__MSG_optionsThemeLight__</option>
+                        <option value="dark">__MSG_optionsThemeDark__</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" id="close-manage-appearance-btn">__MSG_optionsCloseAppearanceButton__</button>
                 </div>
             </div>
         </div>

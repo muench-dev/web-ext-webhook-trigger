@@ -253,4 +253,33 @@
     "message": "Error sending test webhook: ",
     "description": "Error message for the test webhook."
   }
+  ,
+  "optionsAppearanceHeader": {
+    "message": "Appearance",
+    "description": "Header for the appearance section."
+  },
+  "optionsThemeLabel": {
+    "message": "Theme",
+    "description": "Label for the theme selector."
+  },
+  "optionsThemeSystem": {
+    "message": "System default",
+    "description": "System default theme option."
+  },
+  "optionsThemeLight": {
+    "message": "Light",
+    "description": "Light theme option."
+  },
+  "optionsThemeDark": {
+    "message": "Dark",
+    "description": "Dark theme option."
+  },
+  "optionsManageAppearanceButton": {
+    "message": "Appearance",
+    "description": "Button to open the appearance modal."
+  },
+  "optionsCloseAppearanceButton": {
+    "message": "Close",
+    "description": "Button to close the appearance modal."
+  }
 }

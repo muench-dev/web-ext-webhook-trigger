@@ -383,6 +383,7 @@ const showAddWebhookBtn = document.getElementById("add-new-webhook-btn");
 const testWebhookBtn = document.getElementById("test-webhook-btn");
 const formStatusMessage = document.getElementById("form-status-message");
 const manageGroupsBtn = document.getElementById("manage-groups-btn");
+const manageAppearanceBtn = document.getElementById("manage-appearance-btn");
 const customPayloadInput = document.getElementById("webhook-custom-payload");
 const variablesAutocomplete = document.getElementById("variables-autocomplete");
 const toggleCustomPayloadBtn = document.getElementById("toggle-custom-payload");
@@ -395,11 +396,15 @@ const importWebhooksBtn = document.getElementById("import-webhooks-btn");
 const importWebhooksInput = document.getElementById("import-webhooks-input");
 const groupSelect = document.getElementById("webhook-group");
 const manageGroupsModal = document.getElementById("manage-groups-modal");
+const manageAppearanceModal = document.getElementById("manage-appearance-modal");
 const newGroupNameInput = document.getElementById("new-group-name");
 const addGroupBtn = document.getElementById("add-group-btn");
 const groupsList = document.getElementById("groups-list");
 const closeManageGroupsBtn = document.getElementById("close-manage-groups-btn");
 const closeManageGroups = document.querySelector("#manage-groups-modal .close-manage-groups");
+const closeManageAppearanceBtn = document.getElementById("close-manage-appearance-btn");
+const closeManageAppearance = document.querySelector("#manage-appearance-modal .close-manage-appearance");
+const themeSelect = document.getElementById("theme-select");
 let headers = [];
 
 async function exportWebhooks() {
@@ -528,6 +533,16 @@ manageGroupsBtn.addEventListener('click', async () => {
   await renderGroups();
 });
 
+// Manage appearance button
+if (manageAppearanceBtn) {
+  manageAppearanceBtn.addEventListener('click', async () => {
+    manageAppearanceModal.classList.remove('hidden');
+    // Initialize theme select when opening
+    const { theme } = await browser.storage.sync.get('theme');
+    themeSelect.value = theme || 'system';
+  });
+}
+
 // Close modal functions
 const closeManageGroupsModalFunc = () => {
   manageGroupsModal.classList.add('hidden');
@@ -537,12 +552,28 @@ const closeManageGroupsModalFunc = () => {
 closeManageGroupsBtn.addEventListener('click', closeManageGroupsModalFunc);
 closeManageGroups.addEventListener('click', closeManageGroupsModalFunc);
 
+// Close appearance modal
+const closeManageAppearanceModalFunc = () => {
+  manageAppearanceModal.classList.add('hidden');
+};
+if (closeManageAppearanceBtn) closeManageAppearanceBtn.addEventListener('click', closeManageAppearanceModalFunc);
+if (closeManageAppearance) closeManageAppearance.addEventListener('click', closeManageAppearanceModalFunc);
+
 // Close modals when clicking outside
 manageGroupsModal.addEventListener('click', (e) => {
   if (e.target === manageGroupsModal) {
     closeManageGroupsModalFunc();
   }
 });
+
+// Close appearance modal when clicking outside
+if (manageAppearanceModal) {
+  manageAppearanceModal.addEventListener('click', (e) => {
+    if (e.target === manageAppearanceModal) {
+      closeManageAppearanceModalFunc();
+    }
+  });
+}
 
 // Add group
 addGroupBtn.addEventListener('click', async () => {
@@ -1072,6 +1103,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Load webhooks
   loadWebhooks();
+
+  // Initialize theme select
+  if (themeSelect) {
+    browser.storage.sync.get("theme").then((res) => {
+      const value = res && res.theme ? res.theme : "system";
+      themeSelect.value = value;
+    });
+
+    themeSelect.addEventListener("change", () => {
+      const value = themeSelect.value;
+      browser.storage.sync.set({ theme: value });
+    });
+  }
 });
 
 // Export functions for testing in Node environment

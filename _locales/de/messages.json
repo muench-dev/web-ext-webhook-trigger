@@ -252,5 +252,33 @@
   "optionsTestError": {
     "message": "Fehler beim Senden des Test-Webhooks: ",
     "description": "Fehlermeldung für den Test-Webhook."
+  },
+  "optionsAppearanceHeader": {
+    "message": "Erscheinungsbild",
+    "description": "Überschrift für den Bereich Erscheinungsbild."
+  },
+  "optionsThemeLabel": {
+    "message": "Theme",
+    "description": "Beschriftung für die Theme-Auswahl."
+  },
+  "optionsThemeSystem": {
+    "message": "Systemstandard",
+    "description": "Option für das systemweite Standard-Theme."
+  },
+  "optionsThemeLight": {
+    "message": "Hell",
+    "description": "Option für das helle Theme."
+  },
+  "optionsThemeDark": {
+    "message": "Dunkel",
+    "description": "Option für das dunkle Theme."
+  },
+  "optionsManageAppearanceButton": {
+    "message": "Erscheinungsbild",
+    "description": "Schaltfläche zum Öffnen des Erscheinungsbild-Dialogs."
+  },
+  "optionsCloseAppearanceButton": {
+    "message": "Schließen",
+    "description": "Schaltfläche zum Schließen des Erscheinungsbild-Dialogs."
   }
 }

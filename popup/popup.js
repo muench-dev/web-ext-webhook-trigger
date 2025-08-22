@@ -7,6 +7,20 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const buttonsContainer = document.getElementById("buttons-container");
 
+  // Apply theme preference (system | light | dark)
+  try {
+    const themeResult = await browserAPI.storage.sync.get("theme");
+    const theme = themeResult && themeResult.theme ? themeResult.theme : "system";
+    const root = document.documentElement;
+    if (theme === "light" || theme === "dark") {
+      root.setAttribute("data-theme", theme);
+    } else {
+      root.removeAttribute("data-theme");
+    }
+  } catch (_) {
+    // ignore theme errors, fallback to system
+  }
+
   // Load webhooks and groups from storage
   const { webhooks = [], groups = [] } = await browserAPI.storage.sync.get(["webhooks", "groups"]);
   const tabs = await browserAPI.tabs.query({ active: true, currentWindow: true });
