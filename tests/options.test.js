@@ -208,7 +208,8 @@ describe('options page', () => {
         identifier: 'test-identifier',
         customPayload,
         urlFilter: 'example.com',
-        groupId: null
+        groupId: null,
+        emoji: ''
       }]
     });
   });

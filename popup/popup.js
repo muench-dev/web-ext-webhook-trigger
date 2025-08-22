@@ -65,9 +65,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         // Create a button for each webhook in this group
         groupWebhooks.forEach((webhook) => {
           const button = document.createElement("button");
-          button.textContent = webhook.label;
+          const displayLabel = `${webhook.emoji ? webhook.emoji + ' ' : ''}${webhook.label}`;
+          button.textContent = displayLabel;
           button.dataset.url = webhook.url;
-          button.dataset.label = webhook.label;
+          button.dataset.label = displayLabel;
           button.dataset.webhookId = webhook.id;
           button.classList.add("webhook-btn");
           buttonsContainer.appendChild(button);
@@ -87,9 +88,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       // Create a button for each ungrouped webhook
       ungroupedWebhooks.forEach((webhook) => {
         const button = document.createElement("button");
-        button.textContent = webhook.label;
+        const displayLabel = `${webhook.emoji ? webhook.emoji + ' ' : ''}${webhook.label}`;
+        button.textContent = displayLabel;
         button.dataset.url = webhook.url;
-        button.dataset.label = webhook.label;
+        button.dataset.label = displayLabel;
         button.dataset.webhookId = webhook.id;
         button.classList.add("webhook-btn");
         buttonsContainer.appendChild(button);

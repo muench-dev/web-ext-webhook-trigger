@@ -72,7 +72,7 @@ const loadWebhooks = async () => {
 
           const labelSpan = document.createElement("span");
           labelSpan.classList.add("label");
-          labelSpan.textContent = webhook.label;
+          labelSpan.textContent = `${webhook.emoji ? webhook.emoji + ' ' : ''}${webhook.label}`;
 
           const urlSpan = document.createElement("span");
           urlSpan.classList.add("url");
@@ -130,7 +130,7 @@ const loadWebhooks = async () => {
 
         const labelSpan = document.createElement("span");
         labelSpan.classList.add("label");
-        labelSpan.textContent = webhook.label;
+        labelSpan.textContent = `${webhook.emoji ? webhook.emoji + ' ' : ''}${webhook.label}`;
 
         const urlSpan = document.createElement("span");
         urlSpan.classList.add("url");
@@ -374,6 +374,7 @@ const labelInput = document.getElementById("webhook-label");
 const urlInput = document.getElementById("webhook-url");
 const methodSelect = document.getElementById("webhook-method");
 const identifierInput = document.getElementById("webhook-identifier");
+const emojiInput = document.getElementById("webhook-emoji");
 const headersListDiv = document.getElementById("headers-list");
 const headerKeyInput = document.getElementById("header-key");
 const headerValueInput = document.getElementById("header-value");
@@ -405,6 +406,11 @@ const closeManageGroups = document.querySelector("#manage-groups-modal .close-ma
 const closeManageAppearanceBtn = document.getElementById("close-manage-appearance-btn");
 const closeManageAppearance = document.querySelector("#manage-appearance-modal .close-manage-appearance");
 const themeSelect = document.getElementById("theme-select");
+// Emoji picker elements
+const openEmojiPickerBtn = document.getElementById('open-emoji-picker-btn');
+const clearEmojiBtn = document.getElementById('clear-emoji-btn');
+const emojiPicker = document.getElementById('emoji-picker');
+const emojiGrid = document.getElementById('emoji-grid');
 let headers = [];
 
 async function exportWebhooks() {
@@ -428,7 +434,9 @@ async function handleImport(event) {
     const data = JSON.parse(text);
     const hooks = Array.isArray(data) ? data : data.webhooks;
     if (Array.isArray(hooks)) {
-      await saveWebhooks(hooks);
+      // Backward compatibility: ensure emoji field exists
+      const normalized = hooks.map(h => ({ ...h, emoji: h.emoji || "" }));
+      await saveWebhooks(normalized);
       loadWebhooks();
     }
   } catch (e) {
@@ -461,8 +469,10 @@ const importData = async (file) => {
   reader.onload = async (event) => {
     try {
       const data = JSON.parse(event.target.result);
-      const webhooks = Array.isArray(data.webhooks) ? data.webhooks : [];
+      let webhooks = Array.isArray(data.webhooks) ? data.webhooks : [];
       const groups = Array.isArray(data.groups) ? data.groups : [];
+      // Ensure emoji field exists
+      webhooks = webhooks.map(h => ({ ...h, emoji: h.emoji || "" }));
       await browser.storage.sync.set({ webhooks, groups });
       await loadWebhooks();
       if (typeof renderGroups === 'function') await renderGroups();
@@ -501,8 +511,10 @@ if (importWebhooksBtn && importWebhooksInput) {
       reader.onload = async (event) => {
         try {
           const data = JSON.parse(event.target.result);
-          const webhooks = Array.isArray(data.webhooks) ? data.webhooks : [];
+          let webhooks = Array.isArray(data.webhooks) ? data.webhooks : [];
           const groups = Array.isArray(data.groups) ? data.groups : [];
+          // Ensure emoji field exists
+          webhooks = webhooks.map(h => ({ ...h, emoji: h.emoji || "" }));
           await browser.storage.sync.set({ webhooks, groups });
           await loadWebhooks();
           if (typeof renderGroups === 'function') await renderGroups();
@@ -782,6 +794,7 @@ form.addEventListener("submit", async (e) => {
   const url = urlInput.value.trim();
   const method = methodSelect.value;
   const identifier = identifierInput.value.trim();
+  const emoji = emojiInput ? emojiInput.value.trim() : "";
   const urlFilter = urlFilterInput.value.trim();
   const customPayload = customPayloadInput.value.trim();
   const groupId = groupSelect.value || null;
@@ -799,7 +812,8 @@ form.addEventListener("submit", async (e) => {
         identifier,
         customPayload: customPayload || null,
         urlFilter: urlFilter || "",
-        groupId
+        groupId,
+        emoji: emoji || ""
       } : wh
     );
     editWebhookId = null;
@@ -815,7 +829,8 @@ form.addEventListener("submit", async (e) => {
       identifier,
       customPayload: customPayload || null,
       urlFilter: urlFilter || "",
-      groupId
+      groupId,
+      emoji: emoji || ""
     };
     webhooks.push(newWebhook);
   }
@@ -825,6 +840,7 @@ form.addEventListener("submit", async (e) => {
   urlInput.value = "";
   methodSelect.value = "POST";
   identifierInput.value = "";
+  if (emojiInput) emojiInput.value = "";
   urlFilterInput.value = "";
   customPayloadInput.value = "";
   headerKeyInput.value = "";
@@ -923,6 +939,7 @@ webhookList.addEventListener("click", async (e) => {
       urlFilterInput.value = webhook.urlFilter || "";
       customPayloadInput.value = webhook.customPayload || "";
       groupSelect.value = webhook.groupId || "";
+      if (emojiInput) emojiInput.value = webhook.emoji || "";
       headers = Array.isArray(webhook.headers) ? [...webhook.headers] : [];
       renderHeaders();
       cancelEditBtn.classList.remove("hidden");
@@ -949,6 +966,7 @@ webhookList.addEventListener("click", async (e) => {
       urlFilterInput.value = webhook.urlFilter || "";
       customPayloadInput.value = webhook.customPayload || "";
       groupSelect.value = webhook.groupId || "";
+      if (emojiInput) emojiInput.value = webhook.emoji || "";
       headers = Array.isArray(webhook.headers) ? [...webhook.headers] : [];
       renderHeaders();
       cancelEditBtn.classList.remove("hidden");
@@ -975,6 +993,7 @@ cancelEditBtn.addEventListener("click", () => {
   headerKeyInput.value = "";
   headerValueInput.value = "";
   groupSelect.value = "";
+  if (emojiInput) emojiInput.value = "";
   headers = [];
   renderHeaders();
   cancelEditBtn.classList.add("hidden");
@@ -1115,6 +1134,46 @@ document.addEventListener("DOMContentLoaded", () => {
       const value = themeSelect.value;
       browser.storage.sync.set({ theme: value });
     });
+  }
+
+  // Initialize emoji picker if present
+  if (openEmojiPickerBtn && emojiPicker && emojiGrid && emojiInput) {
+    const EMOJIS = [
+      '🔔','✅','🚀','⚠️','❗','ℹ️','⭐','🔥','🛠️','🧪','📦','📣','📝','🧰','💡','🖥️','📱','🌐','🔒','🔑','🛡️','💾','📤','📥','🔄','⏱️','🕒','🧭','📊','📈','🧹','🧼','🧯','🧩','🧠','🛎️','🚨','🎉','🧵','🔍','🧰','🔗','✉️','📫','📬','🛰️','🌟','🎯','🪄','🧲','🧪','🧱','🪵'
+    ];
+
+    function renderEmojiGrid() {
+      emojiGrid.textContent = '';
+      EMOJIS.forEach(e => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'emoji-item';
+        btn.textContent = e;
+        btn.addEventListener('click', () => {
+          emojiInput.value = e;
+          emojiPicker.classList.add('hidden');
+          emojiInput.focus();
+        });
+        emojiGrid.appendChild(btn);
+      });
+    }
+
+    openEmojiPickerBtn.addEventListener('click', () => {
+      if (emojiPicker.classList.contains('hidden')) {
+        renderEmojiGrid();
+        emojiPicker.classList.remove('hidden');
+      } else {
+        emojiPicker.classList.add('hidden');
+      }
+    });
+
+    if (clearEmojiBtn) {
+      clearEmojiBtn.addEventListener('click', () => {
+        emojiInput.value = '';
+        emojiInput.focus();
+      });
+    }
+
   }
 });
 

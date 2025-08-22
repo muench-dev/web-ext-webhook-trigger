@@ -32,6 +32,23 @@
                     />
                 </div>
                 <div class="form-group">
+                    <label for="webhook-emoji">__MSG_optionsEmojiLabel__</label>
+                    <div class="emoji-input-row">
+                        <input
+                            type="text"
+                            id="webhook-emoji"
+                            placeholder="__MSG_optionsEmojiPlaceholder__"
+                            maxlength="4"
+                            style="max-width: 140px; display: inline-block; margin-right: 8px;"
+                        />
+                        <button type="button" id="open-emoji-picker-btn">__MSG_optionsEmojiChooseButton__</button>
+                        <button type="button" id="clear-emoji-btn" style="margin-left: 8px; background-color: #6b7280;">__MSG_optionsEmojiClearButton__</button>
+                    </div>
+                    <div id="emoji-picker" class="emoji-picker hidden">
+                        <div id="emoji-grid" class="emoji-grid"></div>
+                    </div>
+                </div>
+                <div class="form-group">
                     <label for="webhook-group">__MSG_optionsGroupLabel__</label>
                     <select id="webhook-group">
                         <option value="" selected>__MSG_optionsNoGroup__</option>
