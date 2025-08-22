@@ -81,6 +81,26 @@
     "message": "Label:",
     "description": "Label für das Eingabefeld des Webhook-Labels."
   },
+  "optionsEmojiLabel": {
+    "message": "Emoji (optional):",
+    "description": "Beschriftung für das Emoji-Eingabefeld."
+  },
+  "optionsEmojiPlaceholder": {
+    "message": "Emoji wählen, z. B. 🔔",
+    "description": "Platzhalter für das Emoji-Eingabefeld."
+  },
+  "optionsEmojiChooseButton": {
+    "message": "Emoji auswählen",
+    "description": "Schaltflächentext zum Öffnen des Emoji-Pickers."
+  },
+  "optionsEmojiClearButton": {
+    "message": "Leeren",
+    "description": "Schaltflächentext zum Leeren des Emoji-Feldes."
+  },
+  "optionsEmojiSearchPlaceholder": {
+    "message": "Emoji suchen...",
+    "description": "Platzhalter für das Emoji-Suchfeld."
+  },
   "optionsLabelInputPlaceholder": {
     "message": "z.B. 'An Slack senden'",
     "description": "Platzhalter für die Eingabe des Webhook-Labels."

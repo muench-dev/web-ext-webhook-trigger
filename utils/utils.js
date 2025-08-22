@@ -32,6 +32,15 @@ const getBrowserAPI = () => {
 function replaceI18nPlaceholders() {
   const browserAPI = getBrowserAPI();
 
+  // Helper to replace __MSG_key__ tokens within a string
+  const replaceTokens = (value) => {
+    if (!value || typeof value !== 'string' || !value.includes('__MSG_')) return value;
+    return value.replace(/__MSG_([^_]+)__/g, (match, key) => {
+      const msg = browserAPI.i18n?.getMessage ? browserAPI.i18n.getMessage(key) : '';
+      return msg || match;
+    });
+  };
+
   // Replace textContent of elements with data-i18n attribute
   const elements = document.querySelectorAll('[data-i18n]');
   elements.forEach(element => {
@@ -49,37 +58,28 @@ function replaceI18nPlaceholders() {
     if (element.childNodes && element.childNodes.length > 0) {
       element.childNodes.forEach(node => {
         if (node.nodeType === Node.TEXT_NODE && node.nodeValue && node.nodeValue.includes('__MSG_')) {
-          const matches = node.nodeValue.match(/__MSG_([^_]+)__/g);
-          if (matches) {
-            let newValue = node.nodeValue;
-            matches.forEach(match => {
-              const key = match.replace('__MSG_', '').replace('__', '');
-              const message = browserAPI.i18n.getMessage(key);
-              if (message) {
-                newValue = newValue.replace(match, message);
-              }
-            });
-            node.nodeValue = newValue;
-          }
+          node.nodeValue = replaceTokens(node.nodeValue);
         }
       });
     }
   });
 
+  // Replace __MSG_...__ patterns in common attributes (e.g., placeholder, title, aria-label)
+  document.querySelectorAll('*').forEach(el => {
+    if (!el.attributes) return;
+    Array.from(el.attributes).forEach(attr => {
+      if (typeof attr.value === 'string' && attr.value.includes('__MSG_')) {
+        const newVal = replaceTokens(attr.value);
+        if (newVal !== attr.value) {
+          el.setAttribute(attr.name, newVal);
+        }
+      }
+    });
+  });
+
   // Replace __MSG_...__ patterns in the document title
   if (document.title && document.title.includes('__MSG_')) {
-    const matches = document.title.match(/__MSG_([^_]+)__/g);
-    if (matches) {
-      let newTitle = document.title;
-      matches.forEach(match => {
-        const key = match.replace('__MSG_', '').replace('__', '');
-        const message = browserAPI.i18n.getMessage(key);
-        if (message) {
-          newTitle = newTitle.replace(match, message);
-        }
-      });
-      document.title = newTitle;
-    }
+    document.title = replaceTokens(document.title);
   }
 }
 

@@ -155,7 +155,7 @@ describe('export and import logic', () => {
 
     await handleImport(event);
 
-    expect(global.browser.storage.sync.set).toHaveBeenCalledWith({ webhooks: hooks });
+    expect(global.browser.storage.sync.set).toHaveBeenCalledWith({ webhooks: hooks.map(h => ({...h, emoji: ''})) });
     expect(event.target.value).toBe('');
   });
 });
