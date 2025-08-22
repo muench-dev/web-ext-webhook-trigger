@@ -262,7 +262,7 @@
     "description": "Information text shown next to the import button."
   },
   "optionsTestButton": {
-    "message": "Test",
+    "message": "🧪 Test",
     "description": "Text for the test button."
   },
   "optionsTestSuccess": {
