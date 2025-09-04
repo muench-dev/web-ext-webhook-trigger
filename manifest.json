@@ -4,13 +4,8 @@
   "version": "1.9.0",
   "description": "__MSG_extensionDescription__",
   "default_locale": "en",
-  "permissions": [
-    "storage",
-    "activeTab"
-  ],
-  "host_permissions": [
-    "<all_urls>"
-  ],
+  "permissions": ["storage", "activeTab"],
+  "host_permissions": ["<all_urls>"],
   "action": {
     "default_popup": "popup/popup.html",
     "default_icon": {
@@ -18,7 +13,29 @@
       "24": "icons/logo_24.png",
       "48": "icons/logo_48.png",
       "96": "icons/logo_96.png"
-    }
+    },
+    "theme_icons": [
+      {
+        "light": "icons/logo_16.png",
+        "dark": "icons/logo_dark_16.png",
+        "size": 16
+      },
+      {
+        "light": "icons/logo_24.png",
+        "dark": "icons/logo_dark_24.png",
+        "size": 24
+      },
+      {
+        "light": "icons/logo_48.png",
+        "dark": "icons/logo_dark_48.png",
+        "size": 48
+      },
+      {
+        "light": "icons/logo_96.png",
+        "dark": "icons/logo_dark_96.png",
+        "size": 96
+      }
+    ]
   },
   "options_ui": {
     "page": "options/options.html",
