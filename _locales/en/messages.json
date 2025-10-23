@@ -257,6 +257,63 @@
     "message": "Close",
     "description": "Button to close the group management modal."
   },
+  "optionsSelectorsLabel": {
+    "message": "Captured selectors",
+    "description": "Label for the selectors management section."
+  },
+  "optionsSelectorsHint": {
+    "message": "Select elements via the popup or add selectors manually. Maximum of 10 per webhook.",
+    "description": "Helper text explaining how selectors are managed."
+  },
+  "optionsSelectorPlaceholder": {
+    "message": ".main-content h1",
+    "description": "Placeholder text for the selector input."
+  },
+  "optionsAddSelectorButton": {
+    "message": "Add selector",
+    "description": "Button text to add a selector manually."
+  },
+  "optionsSelectorsEmptyMessage": {
+    "message": "No selectors saved yet. Use the popup capture mode or add one manually.",
+    "description": "Message shown when no selectors are stored."
+  },
+  "optionsSelectorMoveUpButton": {
+    "message": "↑",
+    "description": "Button label to move a selector up."
+  },
+  "optionsSelectorMoveDownButton": {
+    "message": "↓",
+    "description": "Button label to move a selector down."
+  },
+  "optionsSelectorEditButton": {
+    "message": "Edit",
+    "description": "Button label to edit a selector."
+  },
+  "optionsSelectorDeleteButton": {
+    "message": "Remove",
+    "description": "Button label to delete a selector."
+  },
+  "optionsSelectorEmptyError": {
+    "message": "Selector cannot be empty.",
+    "description": "Error shown when the selector input is empty."
+  },
+  "optionsSelectorLimitError": {
+    "message": "You can store up to $1 selectors per webhook.",
+    "placeholders": {
+      "limit": {
+        "content": "$1"
+      }
+    },
+    "description": "Error shown when the selector limit is exceeded."
+  },
+  "optionsSelectorDuplicateError": {
+    "message": "This selector is already on the list.",
+    "description": "Error shown when the selector already exists."
+  },
+  "optionsSelectorEditPrompt": {
+    "message": "Edit selector",
+    "description": "Prompt message shown when editing a selector."
+  },
   "optionsImportInfo": {
     "message": "Importing replaces all existing webhooks.",
     "description": "Information text shown next to the import button."
@@ -301,5 +358,117 @@
   "optionsCloseAppearanceButton": {
     "message": "Close",
     "description": "Button to close the appearance modal."
+  },
+  "popupResponseHeader": {
+    "message": "Latest Response",
+    "description": "Header for the response panel in the popup."
+  },
+  "popupCopyResponseButton": {
+    "message": "Copy",
+    "description": "Button label for copying the webhook response."
+  },
+  "popupCopySuccess": {
+    "message": "Response copied to clipboard.",
+    "description": "Status message shown when copying the response succeeds."
+  },
+  "popupCopyError": {
+    "message": "Unable to copy the response.",
+    "description": "Status message shown when copying the response fails."
+  },
+  "popupCaptureButtonLabel": {
+    "message": "Capture ($1/$2)",
+    "placeholders": {
+      "current": {
+        "content": "$1"
+      },
+      "max": {
+        "content": "$2"
+      }
+    },
+    "description": "Label for the selector capture button. Placeholders are current count and max selectors."
+  },
+  "popupCaptureLimitReachedTooltip": {
+    "message": "Maximum of $1 selectors reached.",
+    "placeholders": {
+      "limit": {
+        "content": "$1"
+      }
+    },
+    "description": "Tooltip or status message shown when the selector limit is reached."
+  },
+  "popupCaptureStarted": {
+    "message": "Capture mode active. $1 selectors remaining. Click elements to save text, press Esc to stop.",
+    "placeholders": {
+      "remaining": {
+        "content": "$1"
+      }
+    },
+    "description": "Status message shown after capture mode starts."
+  },
+  "popupCaptureStartError": {
+    "message": "Failed to start selector capture. Try reloading the page.",
+    "description": "Status message shown when capture mode cannot be started."
+  },
+  "popupCaptureContentNotAvailable": {
+    "message": "No eligible content for selector capture on this page.",
+    "description": "Warning shown when the content script is unavailable or the page blocks injection."
+  },
+  "popupNoActiveTabError": {
+    "message": "Unable to find an active tab.",
+    "description": "Error shown when there is no active tab."
+  },
+  "popupCaptureDuplicate": {
+    "message": "You already captured this element.",
+    "description": "Status message shown when the same selector is captured twice."
+  },
+  "popupCaptureSaved": {
+    "message": "Saved “$1”. $2 selectors remaining.",
+    "placeholders": {
+      "preview": {
+        "content": "$1"
+      },
+      "remaining": {
+        "content": "$2"
+      }
+    },
+    "description": "Status message shown when a selector has been captured successfully. First placeholder is a preview of the text, second is remaining count."
+  },
+  "popupCaptureGenericError": {
+    "message": "Unable to capture this element.",
+    "description": "Generic error shown when capture fails."
+  },
+  "popupCaptureEmptyText": {
+    "message": "The selected element does not contain any text.",
+    "description": "Error shown when the element has no text content."
+  },
+  "popupCaptureNoSelector": {
+    "message": "Could not determine a selector for this element.",
+    "description": "Error shown when a selector cannot be generated."
+  },
+  "popupCaptureEnded": {
+    "message": "Capture mode ended. You can store up to $1 selectors.",
+    "placeholders": {
+      "limit": {
+        "content": "$1"
+      }
+    },
+    "description": "Status message shown when capture mode stops."
+  },
+  "popupCaptureCancelled": {
+    "message": "Capture cancelled. Up to $1 selectors can be saved.",
+    "placeholders": {
+      "limit": {
+        "content": "$1"
+      }
+    },
+    "description": "Status message shown when the user cancels capture mode."
+  },
+  "popupCaptureUnsupported": {
+    "message": "Selector capture is not available in this context.",
+    "description": "Displayed when the browser does not support selector capture in the current environment."
+  },
+  "selectorCaptureTooltip": {
+    "message": "Click elements to capture their text. Press Esc to stop.",
+    "description": "Tooltip shown during selector capture mode."
   }
 }

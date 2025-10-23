@@ -20,6 +20,19 @@ describe('export and import logic', () => {
         <input id="webhook-url" />
         <select id="webhook-method"></select>
         <input id="webhook-identifier" />
+        <div class="form-group">
+          <div class="selectors-header">
+            <label for="selector-input">Selectors</label>
+            <span id="selectors-count">0/10</span>
+          </div>
+          <p class="form-hint"></p>
+          <ul id="selectors-list" class="selectors-list"></ul>
+          <div class="selector-input-row">
+            <input type="text" id="selector-input" />
+            <button type="button" id="add-selector-btn"></button>
+          </div>
+          <p id="selector-error" class="error-message hidden"></p>
+        </div>
         <div id="headers-list"></div>
         <input id="header-key" />
         <input id="header-value" />
@@ -143,7 +156,13 @@ describe('export and import logic', () => {
     expect(global.URL.createObjectURL).toHaveBeenCalled();
     const blob = global.URL.createObjectURL.mock.calls[0][0];
     const text = await blob.text();
-    expect(JSON.parse(text)).toEqual({ webhooks: hooks });
+    const normalizedHooks = hooks.map(h => ({
+      ...h,
+      headers: [],
+      emoji: '',
+      selectors: []
+    }));
+    expect(JSON.parse(text)).toEqual({ webhooks: normalizedHooks });
     expect(clickSpy).toHaveBeenCalled();
   });
 
@@ -155,7 +174,13 @@ describe('export and import logic', () => {
 
     await handleImport(event);
 
-    expect(global.browser.storage.sync.set).toHaveBeenCalledWith({ webhooks: hooks.map(h => ({...h, emoji: ''})) });
+    const normalizedHooks = hooks.map(h => ({
+      ...h,
+      headers: [],
+      emoji: '',
+      selectors: []
+    }));
+    expect(global.browser.storage.sync.set).toHaveBeenCalledWith({ webhooks: normalizedHooks });
     expect(event.target.value).toBe('');
   });
 });
