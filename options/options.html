@@ -84,6 +84,19 @@
                     <input type="text" id="webhook-identifier" placeholder="__MSG_optionsIdentifierPlaceholder__" />
                 </div>
                 <div class="form-group">
+                    <div class="selectors-header">
+                        <label for="selector-input">__MSG_optionsSelectorsLabel__</label>
+                        <span id="selectors-count" class="selectors-count">0/10</span>
+                    </div>
+                    <p class="form-hint">__MSG_optionsSelectorsHint__</p>
+                    <ul id="selectors-list" class="selectors-list"></ul>
+                    <div class="selector-input-row">
+                        <input type="text" id="selector-input" placeholder="__MSG_optionsSelectorPlaceholder__" />
+                        <button type="button" id="add-selector-btn">__MSG_optionsAddSelectorButton__</button>
+                    </div>
+                    <p id="selector-error" class="error-message hidden"></p>
+                </div>
+                <div class="form-group">
                     <div class="collapsible-header" id="url-filter-header">
                         <label for="webhook-url-filter">__MSG_optionsURLFilterLabel__</label>
                         <button type="button" id="toggle-url-filter" class="toggle-btn" aria-expanded="false">

@@ -50,6 +50,100 @@ label {
     color: #4b5563;
 }
 
+.form-hint {
+    margin: -4px 0 10px 0;
+    font-size: 0.9em;
+    color: #6b7280;
+}
+
+.selectors-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.selectors-count {
+    font-size: 0.85em;
+    color: #6b7280;
+    background: #eef2ff;
+    border-radius: 9999px;
+    padding: 2px 10px;
+}
+
+.selectors-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.selector-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #f9fafb;
+}
+
+.selector-item code {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 0.9em;
+    color: #1f2937;
+    word-break: break-word;
+    white-space: pre-wrap;
+}
+
+.selector-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.selector-action-btn {
+    background: #e5e7eb;
+    color: #1f2937;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.75em;
+    box-shadow: none;
+    border: none;
+}
+
+.selector-action-btn:hover {
+    background: #d1d5db;
+    transform: none;
+}
+
+.selector-input-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.selector-input-row input {
+    flex: 1;
+}
+
+.error-message {
+    color: #b91c1c;
+    font-size: 0.85em;
+    margin-top: 6px;
+}
+
+.selector-empty {
+    padding: 10px 12px;
+    border: 1px dashed #d1d5db;
+    border-radius: 8px;
+    background: #f9fafb;
+    color: #6b7280;
+    font-size: 0.9em;
+}
+
 input[type="text"],
 input[type="url"],
 select,

@@ -85,6 +85,8 @@ function replaceI18nPlaceholders() {
 
 async function sendWebhook(webhook, isTest = false) {
   const browserAPI = getBrowserAPI();
+  let selectors = Array.isArray(webhook?.selectors) ? [...webhook.selectors] : [];
+  let selectorContent = [];
 
   try {
     let payload;
@@ -106,6 +108,62 @@ async function sendWebhook(webhook, isTest = false) {
       }
       const activeTab = tabs[0];
       const currentUrl = activeTab.url;
+
+      if ((!selectors || selectors.length === 0) && webhook?.id) {
+        try {
+          const stored = await browserAPI.storage.sync.get("webhooks");
+          const storedHooks = Array.isArray(stored?.webhooks) ? stored.webhooks : [];
+          const storedMatch = storedHooks.find((w) => w.id === webhook.id);
+          if (storedMatch && Array.isArray(storedMatch.selectors)) {
+            selectors = storedMatch.selectors.filter((value) => typeof value === "string" && value.trim().length > 0);
+          }
+        } catch (error) {
+          console.debug("Failed to load stored selectors", error);
+        }
+      }
+
+      const canSendMessage =
+        typeof browserAPI.tabs?.sendMessage === "function" ||
+        (typeof browser !== "undefined" && typeof browser.tabs?.sendMessage === "function") ||
+        (typeof chrome !== "undefined" && typeof chrome.tabs?.sendMessage === "function");
+
+      if (selectors.length > 0 && canSendMessage) {
+        try {
+          let response;
+          if (browserAPI.tabs && typeof browserAPI.tabs.sendMessage === "function") {
+            response = await browserAPI.tabs.sendMessage(activeTab.id, {
+              type: "GET_SELECTOR_CONTENT",
+              selectors,
+            });
+          } else if (typeof browser !== "undefined" && typeof browser.tabs?.sendMessage === "function") {
+            response = await browser.tabs.sendMessage(activeTab.id, {
+              type: "GET_SELECTOR_CONTENT",
+              selectors,
+            });
+          } else if (typeof chrome !== "undefined" && typeof chrome.tabs?.sendMessage === "function") {
+            response = await new Promise((resolve, reject) => {
+              chrome.tabs.sendMessage(activeTab.id, {
+                type: "GET_SELECTOR_CONTENT",
+                selectors,
+              }, (res) => {
+                const err = chrome.runtime?.lastError;
+                if (err) {
+                  reject(new Error(err.message));
+                } else {
+                  resolve(res);
+                }
+              });
+            });
+          }
+          if (response && Array.isArray(response.selectorContent)) {
+            selectorContent = response.selectorContent.map((value) =>
+              typeof value === "string" ? value.trim() : ""
+            );
+          }
+        } catch (error) {
+          console.warn("Failed to retrieve selector content", error);
+        }
+      }
 
       // Get browser and platform info
       const browserInfo = await browserAPI.runtime.getBrowserInfo?.() || {};
@@ -134,6 +192,10 @@ async function sendWebhook(webhook, isTest = false) {
         payload.identifier = webhook.identifier;
       }
 
+      if (selectors.length > 0) {
+        payload.selectorContent = selectorContent;
+      }
+
       if (webhook && webhook.customPayload) {
         try {
           const replacements = {
@@ -151,7 +213,8 @@ async function sendWebhook(webhook, isTest = false) {
             "{{platform.os}}": platformInfo.os || "unknown",
             "{{platform.version}}": platformInfo.version,
             "{{triggeredAt}}": new Date().toISOString(),
-            "{{identifier}}": webhook.identifier || ""
+            "{{identifier}}": webhook.identifier || "",
+            "{{selectorContent}}": selectorContent
           };
 
           let customPayloadStr = webhook.customPayload;
