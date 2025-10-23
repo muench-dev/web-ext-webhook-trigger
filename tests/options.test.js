@@ -21,6 +21,19 @@ describe('options page', () => {
         <input id="webhook-url" />
         <select id="webhook-method"></select>
         <input id="webhook-identifier" />
+        <div class="form-group">
+          <div class="selectors-header">
+            <label for="selector-input">Selectors</label>
+            <span id="selectors-count">0/10</span>
+          </div>
+          <p class="form-hint"></p>
+          <ul id="selectors-list" class="selectors-list"></ul>
+          <div class="selector-input-row">
+            <input type="text" id="selector-input" />
+            <button type="button" id="add-selector-btn"></button>
+          </div>
+          <p id="selector-error" class="error-message hidden"></p>
+        </div>
         <div id="headers-list"></div>
         <input id="header-key" />
         <input id="header-value" />
@@ -118,6 +131,7 @@ describe('options page', () => {
     delete global.Node;
     delete global.browser;
     delete global.replaceI18nPlaceholders;
+    delete global.crypto;
   });
 
   test('shows message when no webhooks are stored', async () => {
@@ -143,7 +157,14 @@ describe('options page', () => {
   test('saveWebhooks writes to storage', async () => {
     const hooks = [{ id: 'a' }];
     await saveWebhooks(hooks);
-    expect(global.browser.storage.sync.set).toHaveBeenCalledWith({ webhooks: hooks });
+    expect(global.browser.storage.sync.set).toHaveBeenCalledWith({
+      webhooks: [{
+        id: 'a',
+        headers: [],
+        emoji: '',
+        selectors: []
+      }]
+    });
   });
 
   test('webhook with custom payload is properly stored', async () => {
@@ -209,8 +230,39 @@ describe('options page', () => {
         customPayload,
         urlFilter: 'example.com',
         groupId: null,
-        emoji: ''
+        emoji: '',
+        selectors: []
       }]
+    });
+  });
+
+  test('manually added selectors are persisted', async () => {
+    document.getElementById('webhook-label').value = 'Selector Test';
+    document.getElementById('webhook-url').value = 'https://example.com/hook';
+    const selectorInput = document.getElementById('selector-input');
+    selectorInput.value = '.profile-name';
+    document.getElementById('add-selector-btn').click();
+
+    global.browser.storage.sync.get.mockResolvedValue({ webhooks: [] });
+    global.crypto = { randomUUID: () => 'sel-123' };
+
+    const setPromise = new Promise(resolve => {
+      global.browser.storage.sync.set.mockImplementation(data => {
+        resolve(data);
+        return Promise.resolve();
+      });
+    });
+
+    const form = document.getElementById('add-webhook-form');
+    const submitEvent = new dom.window.Event('submit');
+    form.dispatchEvent(submitEvent);
+
+    await setPromise;
+
+    expect(global.browser.storage.sync.set).toHaveBeenCalledWith({
+      webhooks: [expect.objectContaining({
+        selectors: ['.profile-name']
+      })]
     });
   });
 
@@ -227,9 +279,10 @@ describe('options page', () => {
 
     await persistWebhookOrder();
 
-    expect(global.browser.storage.sync.set).toHaveBeenLastCalledWith({
-      webhooks: [hooks[1], hooks[0]]
-    });
+    const lastCall = global.browser.storage.sync.set.mock.calls.pop();
+    expect(lastCall).toBeDefined();
+    const saved = lastCall[0].webhooks;
+    expect(saved.map((w) => w.id)).toEqual(['2', '1']);
   });
 
   test('duplicate button prefills the form without edit mode', async () => {
@@ -370,9 +423,9 @@ describe('options page', () => {
       await testBtn.click();
 
       // Verify sendWebhook was called with correct parameters
-      expect(mockSendWebhook).toHaveBeenCalledWith({
+      expect(mockSendWebhook).toHaveBeenCalledWith(expect.objectContaining({
         url: 'https://test-webhook.com/endpoint',
-        method: 'POST', // This should now match
+        method: 'POST',
         headers: [
           { key: 'Authorization', value: 'Bearer token123' },
           { key: 'x-webhook-test', value: 'true' }
@@ -380,8 +433,9 @@ describe('options page', () => {
         identifier: 'test-identifier',
         customPayload: '{"custom": "data"}',
         urlFilter: undefined,
-        groupId: undefined
-      }, false); // false = send real data, not test payload
+        groupId: undefined,
+        selectors: []
+      }), false); // false = send real data, not test payload
     });
 
     test('test button shows success message on successful webhook', async () => {

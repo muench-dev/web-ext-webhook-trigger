@@ -257,6 +257,63 @@
     "message": "Schließen",
     "description": "Schaltfläche zum Schließen des Gruppenverwaltungsdialogs."
   },
+  "optionsSelectorsLabel": {
+    "message": "Erfasste Selektoren",
+    "description": "Beschriftung für den Bereich zur Verwaltung der Selektoren."
+  },
+  "optionsSelectorsHint": {
+    "message": "Wählen Sie Elemente über das Popup oder fügen Sie Selektoren manuell hinzu. Maximal 10 pro Webhook.",
+    "description": "Hinweistext, der erklärt, wie Selektoren verwaltet werden."
+  },
+  "optionsSelectorPlaceholder": {
+    "message": ".main-content h1",
+    "description": "Platzhaltertext für das Selektor-Eingabefeld."
+  },
+  "optionsAddSelectorButton": {
+    "message": "Selektor hinzufügen",
+    "description": "Button-Text zum manuellen Hinzufügen eines Selektors."
+  },
+  "optionsSelectorsEmptyMessage": {
+    "message": "Noch keine Selektoren gespeichert. Verwenden Sie den Auswahlmodus im Popup oder fügen Sie einen Selektor manuell hinzu.",
+    "description": "Hinweistext, wenn noch keine Selektoren vorhanden sind."
+  },
+  "optionsSelectorMoveUpButton": {
+    "message": "↑",
+    "description": "Button-Beschriftung, um einen Selektor nach oben zu verschieben."
+  },
+  "optionsSelectorMoveDownButton": {
+    "message": "↓",
+    "description": "Button-Beschriftung, um einen Selektor nach unten zu verschieben."
+  },
+  "optionsSelectorEditButton": {
+    "message": "Bearbeiten",
+    "description": "Button-Beschriftung zum Bearbeiten eines Selektors."
+  },
+  "optionsSelectorDeleteButton": {
+    "message": "Entfernen",
+    "description": "Button-Beschriftung zum Löschen eines Selektors."
+  },
+  "optionsSelectorEmptyError": {
+    "message": "Selektor darf nicht leer sein.",
+    "description": "Fehlermeldung, wenn das Selektor-Eingabefeld leer ist."
+  },
+  "optionsSelectorLimitError": {
+    "message": "Pro Webhook können maximal $1 Selektoren gespeichert werden.",
+    "placeholders": {
+      "limit": {
+        "content": "$1"
+      }
+    },
+    "description": "Fehlermeldung, wenn das Selektoren-Limit überschritten wird."
+  },
+  "optionsSelectorDuplicateError": {
+    "message": "Dieser Selektor ist bereits vorhanden.",
+    "description": "Fehlermeldung, wenn ein Selektor doppelt vorkommt."
+  },
+  "optionsSelectorEditPrompt": {
+    "message": "Selektor bearbeiten",
+    "description": "Prompt-Text beim Bearbeiten eines Selektors."
+  },
   "optionsImportInfo": {
     "message": "Beim Import werden vorhandene Webhooks ersetzt.",
     "description": "Hinweistext neben dem Import-Button."
@@ -300,5 +357,117 @@
   "optionsCloseAppearanceButton": {
     "message": "Schließen",
     "description": "Schaltfläche zum Schließen des Erscheinungsbild-Dialogs."
+  },
+  "popupResponseHeader": {
+    "message": "Letzte Antwort",
+    "description": "Überschrift für den Antwortbereich im Popup."
+  },
+  "popupCopyResponseButton": {
+    "message": "Kopieren",
+    "description": "Buttonbeschriftung zum Kopieren der Antwort."
+  },
+  "popupCopySuccess": {
+    "message": "Antwort wurde in die Zwischenablage kopiert.",
+    "description": "Statusmeldung, wenn das Kopieren erfolgreich war."
+  },
+  "popupCopyError": {
+    "message": "Antwort konnte nicht kopiert werden.",
+    "description": "Statusmeldung, wenn das Kopieren fehlgeschlagen ist."
+  },
+  "popupCaptureButtonLabel": {
+    "message": "Auswahl ($1/$2)",
+    "placeholders": {
+      "current": {
+        "content": "$1"
+      },
+      "max": {
+        "content": "$2"
+      }
+    },
+    "description": "Beschriftung für den Button zum Erfassen von Selektoren. Platzhalter für aktuelle Anzahl und Maximum."
+  },
+  "popupCaptureLimitReachedTooltip": {
+    "message": "Maximal $1 Selektoren erreicht.",
+    "placeholders": {
+      "limit": {
+        "content": "$1"
+      }
+    },
+    "description": "Hinweis, wenn das Selektoren-Limit erreicht wurde."
+  },
+  "popupCaptureStarted": {
+    "message": "Auswahlmodus aktiv. $1 Selektoren verbleiben. Klicken Sie auf Elemente, um Text zu speichern, drücken Sie Esc zum Beenden.",
+    "placeholders": {
+      "remaining": {
+        "content": "$1"
+      }
+    },
+    "description": "Statusmeldung nach dem Start des Auswahlmodus."
+  },
+  "popupCaptureStartError": {
+    "message": "Auswahlmodus konnte nicht gestartet werden. Bitte laden Sie die Seite neu.",
+    "description": "Statusmeldung, wenn der Auswahlmodus nicht gestartet werden konnte."
+  },
+  "popupCaptureContentNotAvailable": {
+    "message": "Für diese Seite steht kein Auswahlmodus zur Verfügung.",
+    "description": "Hinweis, wenn das Inhalts-Skript nicht geladen werden kann oder die Seite blockiert ist."
+  },
+  "popupNoActiveTabError": {
+    "message": "Kein aktiver Tab gefunden.",
+    "description": "Fehlermeldung, wenn kein aktiver Tab vorhanden ist."
+  },
+  "popupCaptureDuplicate": {
+    "message": "Dieses Element wurde bereits erfasst.",
+    "description": "Statusmeldung, wenn derselbe Selektor erneut erfasst wird."
+  },
+  "popupCaptureSaved": {
+    "message": "„$1“ gespeichert. $2 Selektoren verbleiben.",
+    "placeholders": {
+      "preview": {
+        "content": "$1"
+      },
+      "remaining": {
+        "content": "$2"
+      }
+    },
+    "description": "Statusmeldung, wenn ein Selektor erfolgreich erfasst wurde."
+  },
+  "popupCaptureGenericError": {
+    "message": "Dieses Element kann nicht erfasst werden.",
+    "description": "Allgemeine Fehlermeldung, wenn die Auswahl fehlschlägt."
+  },
+  "popupCaptureEmptyText": {
+    "message": "Das ausgewählte Element enthält keinen Text.",
+    "description": "Fehlermeldung, wenn das Element keinen Text besitzt."
+  },
+  "popupCaptureNoSelector": {
+    "message": "Für dieses Element konnte kein Selektor bestimmt werden.",
+    "description": "Fehlermeldung, wenn kein Selektor generiert werden kann."
+  },
+  "popupCaptureEnded": {
+    "message": "Auswahlmodus beendet. Es können bis zu $1 Selektoren gespeichert werden.",
+    "placeholders": {
+      "limit": {
+        "content": "$1"
+      }
+    },
+    "description": "Statusmeldung, wenn der Auswahlmodus endet."
+  },
+  "popupCaptureCancelled": {
+    "message": "Auswahl abgebrochen. Bis zu $1 Selektoren können gespeichert werden.",
+    "placeholders": {
+      "limit": {
+        "content": "$1"
+      }
+    },
+    "description": "Statusmeldung, wenn der Auswahlmodus abgebrochen wird."
+  },
+  "popupCaptureUnsupported": {
+    "message": "Der Auswahlmodus ist in diesem Kontext nicht verfügbar.",
+    "description": "Wird angezeigt, wenn der Browser den Auswahlmodus nicht unterstützt."
+  },
+  "selectorCaptureTooltip": {
+    "message": "Klicken Sie auf Elemente, um deren Text zu erfassen. Drücken Sie Esc zum Beenden.",
+    "description": "Tooltip, der im Auswahlmodus angezeigt wird."
   }
 }
