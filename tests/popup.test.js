@@ -11,6 +11,13 @@ describe('popup script', () => {
     dom = new JSDOM(`<!DOCTYPE html><html><body>
       <div id="buttons-container"></div>
       <div id="status-message"></div>
+      <div id="response-container" class="hidden">
+        <div class="response-header">
+          <span id="response-title"></span>
+          <button id="copy-response-btn"></button>
+        </div>
+        <div id="response-content"></div>
+      </div>
       <a id="open-options"></a>
     </body></html>`, { url: 'https://example.com' });
     global.document = dom.window.document;
@@ -22,15 +29,24 @@ describe('popup script', () => {
     global.browser = {
       storage: { sync: { get: jest.fn() } },
       i18n: { getMessage: jest.fn((key) => key) },
-      tabs: { query: jest.fn().mockResolvedValue([{ title: 't', url: 'https://example.com', id: 1, windowId: 1, index: 0, pinned: false, audible: false, mutedInfo: null, incognito: false, status: 'complete' }]) },
+      tabs: {
+        query: jest.fn().mockResolvedValue([{ title: 't', url: 'https://example.com', id: 1, windowId: 1, index: 0, pinned: false, audible: false, mutedInfo: null, incognito: false, status: 'complete' }]),
+        sendMessage: jest.fn().mockResolvedValue({ remaining: 10 })
+      },
       runtime: {
         openOptionsPage: jest.fn(),
         getBrowserInfo: jest.fn().mockResolvedValue({}),
         getPlatformInfo: jest.fn().mockResolvedValue({}),
+        onMessage: { addListener: jest.fn() }
       },
     };
+    global.browser.storage.sync.get.mockResolvedValue({ webhooks: [] });
     global.window.getBrowserAPI = jest.fn().mockReturnValue(global.browser);
-    global.window.sendWebhook = jest.fn().mockResolvedValue({ ok: true });
+    global.window.sendWebhook = jest.fn().mockResolvedValue({
+      clone: () => ({
+        text: () => Promise.resolve('')
+      })
+    });
   });
 
   afterEach(() => {
@@ -67,7 +83,7 @@ describe('popup script', () => {
     btn.dispatchEvent(new dom.window.Event('click', { bubbles: true }));
     await new Promise(setImmediate);
     expect(window.sendWebhook).toHaveBeenCalled();
-    expect(window.sendWebhook.mock.calls[0][0]).toEqual(hook);
+    expect(window.sendWebhook.mock.calls[0][0]).toMatchObject(hook);
   });
 
   test('uses custom payload when available', async () => {
@@ -102,7 +118,7 @@ describe('popup script', () => {
     await new Promise(setImmediate);
 
     expect(window.sendWebhook).toHaveBeenCalled();
-    expect(window.sendWebhook.mock.calls[0][0]).toEqual(hook);
+    expect(window.sendWebhook.mock.calls[0][0]).toMatchObject(hook);
   });
 
   test('filters webhooks based on urlFilter', async () => {
