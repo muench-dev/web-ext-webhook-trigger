@@ -3,6 +3,7 @@ export default {
   ignoreFiles: [
     "AGENTS.md",
     ".amo-upload-uuid",
+    ".release-it.json",
     "package.json",
     "package-lock.json",
     "README.md",
