@@ -158,9 +158,19 @@ async function sendWebhook(webhook, isTest = false) {
           Object.entries(replacements).forEach(([placeholder, value]) => {
             const isPlaceholderInQuotes = customPayloadStr.match(new RegExp(`"[^"]*${placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[^"]*"`));
 
-            const replaceValue = typeof value === 'string'
-              ? (isPlaceholderInQuotes ? value.replace(/"/g, '\\"') : `"${value.replace(/"/g, '\\"')}"`)
-              : (value === undefined ? 'null' : JSON.stringify(value));
+            let replaceValue;
+            if (typeof value === 'string') {
+              replaceValue = JSON.stringify(value);
+              if (isPlaceholderInQuotes) {
+                // Remove the surrounding quotes added by JSON.stringify
+                replaceValue = replaceValue.slice(1, -1);
+              }
+            } else {
+              replaceValue = value === undefined ? 'null' : JSON.stringify(value);
+            }
+
+            // Escape special replacement patterns ($) to prevent them from being interpreted by String.prototype.replace
+            replaceValue = replaceValue.replace(/\$/g, '$$$$');
 
             customPayloadStr = customPayloadStr.replace(
               new RegExp(placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'),
