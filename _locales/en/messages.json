@@ -329,8 +329,19 @@
   "optionsTestError": {
     "message": "Error sending test webhook: ",
     "description": "Error message for the test webhook."
-  }
-  ,
+  },
+  "optionsErrorInvalidUrlScheme": {
+    "message": "Invalid URL scheme. Only http:// and https:// are allowed.",
+    "description": "Error message when a webhook URL has an invalid scheme."
+  },
+  "optionsErrorInvalidUrl": {
+    "message": "Invalid URL.",
+    "description": "Error message when a webhook URL is invalid."
+  },
+  "optionsErrorUrlRequired": {
+    "message": "URL is required.",
+    "description": "Error message when a webhook URL is missing."
+  },
   "optionsAppearanceHeader": {
     "message": "Appearance",
     "description": "Header for the appearance section."
