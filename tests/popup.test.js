@@ -121,4 +121,30 @@ describe('popup script', () => {
     expect(btns.length).toBe(1);
     expect(btns[0].textContent).toBe('A');
   });
+
+  test('displays error message when webhook fails', async () => {
+    const hook = { id: '1', label: 'Fail', url: 'https://fail.test' };
+    browser.storage.sync.get.mockResolvedValue({ webhooks: [hook] });
+    browser.tabs.query.mockResolvedValue([{ title: 't', url: 'https://example.com', id: 1, windowId: 1, index: 0, pinned: false, audible: false, mutedInfo: null, incognito: false, status: 'complete' }]);
+
+    // Mock sendWebhook to fail
+    const errorMsg = 'Network Error';
+    window.sendWebhook.mockRejectedValue(new Error(errorMsg));
+
+    require('../popup/popup.js');
+    document.dispatchEvent(new dom.window.Event('DOMContentLoaded'));
+    await new Promise(setImmediate);
+
+    const btn = document.querySelector('button.webhook-btn');
+    expect(btn).not.toBeNull();
+    btn.dispatchEvent(new dom.window.Event('click', { bubbles: true }));
+
+    // Wait for async operations
+    await new Promise(setImmediate);
+
+    const statusMessage = document.getElementById('status-message');
+    expect(statusMessage.textContent).toBe(`popupStatusErrorPrefix ${errorMsg}`);
+    expect(statusMessage.classList.contains('error')).toBe(true);
+    expect(btn.textContent).toBe('popupBtnTextFailed');
+  });
 });
