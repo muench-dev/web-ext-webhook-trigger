@@ -1,5 +1,21 @@
 
 
+/**
+ * Helper function to create a webhook button element.
+ * @param {Object} webhook - The webhook data object.
+ * @returns {HTMLButtonElement} The created button element.
+ */
+function createWebhookButton(webhook) {
+  const button = document.createElement("button");
+  const displayLabel = `${webhook.emoji ? webhook.emoji + ' ' : ''}${webhook.label}`;
+  button.textContent = displayLabel;
+  button.dataset.url = webhook.url;
+  button.dataset.label = displayLabel;
+  button.dataset.webhookId = webhook.id;
+  button.classList.add("webhook-btn");
+  return button;
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   const browserAPI = window.getBrowserAPI();
   // Replace i18n placeholders
@@ -64,13 +80,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         // Create a button for each webhook in this group
         groupWebhooks.forEach((webhook) => {
-          const button = document.createElement("button");
-          const displayLabel = `${webhook.emoji ? webhook.emoji + ' ' : ''}${webhook.label}`;
-          button.textContent = displayLabel;
-          button.dataset.url = webhook.url;
-          button.dataset.label = displayLabel;
-          button.dataset.webhookId = webhook.id;
-          button.classList.add("webhook-btn");
+          const button = createWebhookButton(webhook);
           buttonsContainer.appendChild(button);
         });
       }
@@ -87,13 +97,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       // Create a button for each ungrouped webhook
       ungroupedWebhooks.forEach((webhook) => {
-        const button = document.createElement("button");
-        const displayLabel = `${webhook.emoji ? webhook.emoji + ' ' : ''}${webhook.label}`;
-        button.textContent = displayLabel;
-        button.dataset.url = webhook.url;
-        button.dataset.label = displayLabel;
-        button.dataset.webhookId = webhook.id;
-        button.classList.add("webhook-btn");
+        const button = createWebhookButton(webhook);
         buttonsContainer.appendChild(button);
       });
     }
