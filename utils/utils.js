@@ -192,6 +192,24 @@ async function sendWebhook(webhook, isTest = false) {
 
     const url = webhook.url;
 
+    if (!url) {
+      throw new Error(browserAPI.i18n.getMessage("optionsErrorUrlRequired") || "URL is required.");
+    }
+
+    try {
+      const urlObj = new URL(url);
+      if (urlObj.protocol !== "http:" && urlObj.protocol !== "https:") {
+        const schemeError = new Error(browserAPI.i18n.getMessage("optionsErrorInvalidUrlScheme") || "Invalid URL scheme. Only http:// and https:// are allowed.");
+        schemeError.name = "SchemeError";
+        throw schemeError;
+      }
+    } catch (e) {
+      if (e.name === "SchemeError") {
+        throw e;
+      }
+      throw new Error(browserAPI.i18n.getMessage("optionsErrorInvalidUrl") || "Invalid URL.");
+    }
+
     if (method === "POST") {
       fetchOpts.body = JSON.stringify(payload);
     } else if (method === "GET") {
