@@ -65,17 +65,24 @@ function replaceI18nPlaceholders() {
   });
 
   // Replace __MSG_...__ patterns in common attributes (e.g., placeholder, title, aria-label)
-  document.querySelectorAll('*').forEach(el => {
-    if (!el.attributes) return;
-    Array.from(el.attributes).forEach(attr => {
-      if (typeof attr.value === 'string' && attr.value.includes('__MSG_')) {
-        const newVal = replaceTokens(attr.value);
-        if (newVal !== attr.value) {
-          el.setAttribute(attr.name, newVal);
+  if (document.documentElement) {
+    const walker = document.createTreeWalker(document.documentElement, NodeFilter.SHOW_ELEMENT);
+    let el = walker.currentNode;
+    while (el) {
+      if (el.hasAttributes()) {
+        for (let i = 0; i < el.attributes.length; i++) {
+          const attr = el.attributes[i];
+          if (typeof attr.value === 'string' && attr.value.includes('__MSG_')) {
+            const newVal = replaceTokens(attr.value);
+            if (newVal !== attr.value) {
+              el.setAttribute(attr.name, newVal);
+            }
+          }
         }
       }
-    });
-  });
+      el = walker.nextNode();
+    }
+  }
 
   // Replace __MSG_...__ patterns in the document title
   if (document.title && document.title.includes('__MSG_')) {

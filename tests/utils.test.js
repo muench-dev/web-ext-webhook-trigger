@@ -11,6 +11,7 @@ describe('replaceI18nPlaceholders', () => {
     dom = new JSDOM(`<!DOCTYPE html><html><head><title data-i18n="title"></title></head><body><span data-i18n="hello"></span><p>__MSG_world__</p></body></html>`);
     global.document = dom.window.document;
     global.Node = dom.window.Node;
+    global.NodeFilter = dom.window.NodeFilter;
     global.browser = {
       i18n: {
         getMessage: (key) => ({ title: 'Title', hello: 'Hello', world: 'World' }[key])
@@ -21,6 +22,7 @@ describe('replaceI18nPlaceholders', () => {
     dom.window.close();
     delete global.document;
     delete global.Node;
+    delete global.NodeFilter;
     delete global.browser;
   });
   test('replaces placeholders in elements and text nodes', () => {
