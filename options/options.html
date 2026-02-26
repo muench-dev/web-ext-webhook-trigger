@@ -131,12 +131,27 @@
                                 <li><code>{{tab.audible}}</code> - Is tab playing audio</li>
                                 <li><code>{{tab.incognito}}</code> - Is tab in incognito mode</li>
                                 <li><code>{{tab.status}}</code> - Tab loading status</li>
-                                <li><code>{{platform.arch}}</code> - Plaform architecture</li>
+                                <li><code>{{platform.arch}}</code> - Platform architecture</li>
                                 <li><code>{{platform.os}}</code> - Operating system</li>
                                 <li><code>{{platform.version}}</code> - Platform version</li>
                                 <li><code>{{browser}}</code> - Browser information</li>
                                 <li><code>{{platform}}</code> - Platform information</li>
-                                <li><code>{{triggeredAt}}</code> - Timestamp when triggered</li>
+                                <li><code>{{now.iso}}</code> - Current UTC time as ISO 8601</li>
+                                <li><code>{{now.date}}</code> - Current UTC date (YYYY-MM-DD)</li>
+                                <li><code>{{now.time}}</code> - Current UTC time (HH:mm:ss)</li>
+                                <li><code>{{now.unix}}</code> - Current UTC Unix timestamp in seconds</li>
+                                <li><code>{{now.unix_ms}}</code> - Current UTC Unix timestamp in milliseconds</li>
+                                <li><code>{{now.year}}</code> - Current UTC year</li>
+                                <li><code>{{now.month}}</code> - Current UTC month (1-12)</li>
+                                <li><code>{{now.day}}</code> - Current UTC day of month (1-31)</li>
+                                <li><code>{{now.hour}}</code> - Current UTC hour (0-23)</li>
+                                <li><code>{{now.minute}}</code> - Current UTC minute (0-59)</li>
+                                <li><code>{{now.second}}</code> - Current UTC second (0-59)</li>
+                                <li><code>{{now.millisecond}}</code> - Current UTC millisecond (0-999)</li>
+                                <li><code>{{now.local.iso}}</code> - Current local time as ISO 8601</li>
+                                <li><code>{{now.local.date}}</code> - Current local date (YYYY-MM-DD)</li>
+                                <li><code>{{now.local.time}}</code> - Current local time (HH:mm:ss)</li>
+                                <li><code>{{triggeredAt}}</code> - Alias for <code>{{now.iso}}</code></li>
                                 <li><code>{{identifier}}</code> - Custom identifier</li>
                             </ul>
                         </div>

@@ -90,6 +90,52 @@ function replaceI18nPlaceholders() {
   }
 }
 
+const padDatePart = (value, length = 2) => String(value).padStart(length, '0');
+
+const toLocalIsoString = (date) => {
+  const year = date.getFullYear();
+  const month = padDatePart(date.getMonth() + 1);
+  const day = padDatePart(date.getDate());
+  const hour = padDatePart(date.getHours());
+  const minute = padDatePart(date.getMinutes());
+  const second = padDatePart(date.getSeconds());
+  const millisecond = padDatePart(date.getMilliseconds(), 3);
+  const offsetMinutes = -date.getTimezoneOffset();
+  const sign = offsetMinutes >= 0 ? '+' : '-';
+  const absoluteOffset = Math.abs(offsetMinutes);
+  const offsetHour = padDatePart(Math.floor(absoluteOffset / 60));
+  const offsetMinute = padDatePart(absoluteOffset % 60);
+
+  return `${year}-${month}-${day}T${hour}:${minute}:${second}.${millisecond}${sign}${offsetHour}:${offsetMinute}`;
+};
+
+const buildDateTimeVariables = (date = new Date()) => {
+  const nowIso = date.toISOString();
+  const timestampMs = date.getTime();
+
+  return {
+    nowIso,
+    values: {
+      "{{now.iso}}": nowIso,
+      "{{now.date}}": nowIso.slice(0, 10),
+      "{{now.time}}": nowIso.slice(11, 19),
+      "{{now.unix}}": Math.floor(timestampMs / 1000),
+      "{{now.unix_ms}}": timestampMs,
+      "{{now.year}}": date.getUTCFullYear(),
+      "{{now.month}}": date.getUTCMonth() + 1,
+      "{{now.day}}": date.getUTCDate(),
+      "{{now.hour}}": date.getUTCHours(),
+      "{{now.minute}}": date.getUTCMinutes(),
+      "{{now.second}}": date.getUTCSeconds(),
+      "{{now.millisecond}}": date.getUTCMilliseconds(),
+      "{{now.local.iso}}": toLocalIsoString(date),
+      "{{now.local.date}}": `${date.getFullYear()}-${padDatePart(date.getMonth() + 1)}-${padDatePart(date.getDate())}`,
+      "{{now.local.time}}": `${padDatePart(date.getHours())}:${padDatePart(date.getMinutes())}:${padDatePart(date.getSeconds())}`,
+      "{{triggeredAt}}": nowIso,
+    },
+  };
+};
+
 async function sendWebhook(webhook, isTest = false) {
   const browserAPI = getBrowserAPI();
   let selectors = Array.isArray(webhook?.selectors) ? [...webhook.selectors] : [];
@@ -98,11 +144,13 @@ async function sendWebhook(webhook, isTest = false) {
   try {
     let payload;
 
+    const dateTimeVariables = buildDateTimeVariables();
+
     if (isTest) {
       payload = {
         url: "https://example.com",
         test: true,
-        triggeredAt: new Date().toISOString(),
+        triggeredAt: dateTimeVariables.nowIso,
       };
     } else {
       // Get info about the active tab
@@ -192,7 +240,7 @@ async function sendWebhook(webhook, isTest = false) {
         },
         browser: browserInfo,
         platform: platformInfo,
-        triggeredAt: new Date().toISOString(),
+        triggeredAt: dateTimeVariables.nowIso,
       };
 
       if (webhook && webhook.identifier) {
@@ -219,9 +267,9 @@ async function sendWebhook(webhook, isTest = false) {
             "{{platform.arch}}": platformInfo.arch || "unknown",
             "{{platform.os}}": platformInfo.os || "unknown",
             "{{platform.version}}": platformInfo.version,
-            "{{triggeredAt}}": new Date().toISOString(),
             "{{identifier}}": webhook.identifier || "",
-            "{{selectorContent}}": selectorContent
+            "{{selectorContent}}": selectorContent,
+            ...dateTimeVariables.values,
           };
 
           let customPayloadStr = webhook.customPayload;

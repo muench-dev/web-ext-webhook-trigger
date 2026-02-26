@@ -50,6 +50,7 @@ describe('sendWebhook', () => {
     global.fetch = originalFetch;
     global.browser = originalBrowser;
     console.error = originalConsoleError;
+    jest.useRealTimers();
     jest.clearAllMocks();
   });
 
@@ -173,5 +174,52 @@ describe('sendWebhook', () => {
     };
     await expect(sendWebhook(webhook, false))
       .rejects.toThrow('popupErrorCustomPayloadJsonParseError');
+  });
+
+  test('should replace all new now datetime placeholders', async () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2025-08-07T10:20:30.123Z'));
+
+    const webhook = {
+      url: 'https://custom.com',
+      customPayload: '{"iso":"{{now.iso}}","date":"{{now.date}}","time":"{{now.time}}","unix":{{now.unix}},"unixMs":{{now.unix_ms}},"year":{{now.year}},"month":{{now.month}},"day":{{now.day}},"hour":{{now.hour}},"minute":{{now.minute}},"second":{{now.second}},"millisecond":{{now.millisecond}},"localIso":"{{now.local.iso}}","localDate":"{{now.local.date}}","localTime":"{{now.local.time}}"}'
+    };
+
+    await sendWebhook(webhook, false);
+
+    const fetchBody = JSON.parse(global.fetch.mock.calls[0][1].body);
+    expect(fetchBody.iso).toBe('2025-08-07T10:20:30.123Z');
+    expect(fetchBody.date).toBe('2025-08-07');
+    expect(fetchBody.time).toBe('10:20:30');
+    expect(fetchBody.unix).toBe(1754562030);
+    expect(fetchBody.unixMs).toBe(1754562030123);
+    expect(fetchBody.year).toBe(2025);
+    expect(fetchBody.month).toBe(8);
+    expect(fetchBody.day).toBe(7);
+    expect(fetchBody.hour).toBe(10);
+    expect(fetchBody.minute).toBe(20);
+    expect(fetchBody.second).toBe(30);
+    expect(fetchBody.millisecond).toBe(123);
+    expect(fetchBody.localDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(fetchBody.localTime).toMatch(/^\d{2}:\d{2}:\d{2}$/);
+    expect(fetchBody.localIso).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}[+-]\d{2}:\d{2}$/);
+
+  });
+
+  test('should keep triggeredAt as alias for now.iso', async () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2025-08-07T10:20:30.123Z'));
+
+    const webhook = {
+      url: 'https://custom.com',
+      customPayload: '{"now":"{{now.iso}}","legacy":"{{triggeredAt}}"}'
+    };
+
+    await sendWebhook(webhook, false);
+
+    const fetchBody = JSON.parse(global.fetch.mock.calls[0][1].body);
+    expect(fetchBody.now).toBe('2025-08-07T10:20:30.123Z');
+    expect(fetchBody.legacy).toBe('2025-08-07T10:20:30.123Z');
+
   });
 });
