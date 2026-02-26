@@ -3,6 +3,12 @@
   "git": {
     "commitMessage": "chore: release v${version}"
   },
+  "npm": {
+    "publish": false
+  },
+  "hooks": {
+    "after:bump": "npm run sync-version"
+  },
   "github": {
     "release": true
   }
