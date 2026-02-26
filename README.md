@@ -41,6 +41,10 @@ Easily manage and trigger webhooks directly from your browser! Compatible with F
 **🧪 Test a Webhook:**
 - When adding or editing a webhook, click the 'Test' button to send a test payload to your URL.
 
+**🕒 DateTime Variables in Custom Payload:**
+- You can use `{{now.*}}` placeholders in custom payload JSON, including UTC values like `{{now.iso}}`, `{{now.date}}`, `{{now.time}}`, `{{now.unix}}`, and local values like `{{now.local.iso}}`.
+- Existing `{{triggeredAt}}` remains available as an alias for `{{now.iso}}` for backward compatibility.
+
 **🗂️ Organize into Groups:**
 - Use the group management dialog to add, delete, rename, or reorder groups via drag-and-drop.
 

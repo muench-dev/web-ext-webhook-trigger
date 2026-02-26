@@ -663,6 +663,10 @@ const availableVariables = [
   "{{tab.index}}", "{{tab.pinned}}", "{{tab.audible}}", "{{tab.incognito}}",
   "{{tab.status}}", "{{browser}}", "{{platform}}", "{{triggeredAt}}", "{{identifier}}",
   "{{platform.arch}}", "{{platform.os}}", "{{platform.version}}",
+  "{{now.iso}}", "{{now.date}}", "{{now.time}}", "{{now.unix}}", "{{now.unix_ms}}",
+  "{{now.year}}", "{{now.month}}", "{{now.day}}", "{{now.hour}}", "{{now.minute}}",
+  "{{now.second}}", "{{now.millisecond}}", "{{now.local.iso}}", "{{now.local.date}}",
+  "{{now.local.time}}",
 ];
 
 // Implement autocompletion for custom payload
