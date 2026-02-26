@@ -6,6 +6,7 @@ const { JSDOM } = require('jsdom');
 describe('popup script', () => {
   let dom;
   let fetchMock;
+  const originalConsoleError = console.error;
 
   beforeEach(() => {
     dom = new JSDOM(`<!DOCTYPE html><html><body>
@@ -47,11 +48,13 @@ describe('popup script', () => {
         text: () => Promise.resolve('')
       })
     });
+    console.error = jest.fn();
   });
 
   afterEach(() => {
     jest.resetModules();
     dom.window.close();
+    console.error = originalConsoleError;
     delete global.document;
     delete global.window.getBrowserAPI;
     delete global.window;
