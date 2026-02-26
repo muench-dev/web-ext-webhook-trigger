@@ -15,4 +15,5 @@ jobs:
         with:
           node-version: '20'
       - uses: taiki-e/install-action@just
+      - run: npm ci
       - run: just ci
