@@ -24,12 +24,9 @@ const loadWebhooks = async () => {
   const normalizedWebhooks = webhooks.map(normalizeWebhookRecord);
   const list = document.getElementById("webhook-list");
   const message = document.getElementById("no-webhooks-message");
-  list.innerHTML = "";
 
-  // Clear the webhook list safely
-  while (list.firstChild) {
-    list.removeChild(list.firstChild);
-  }
+  // Clear the webhook list safely using textContent
+  list.textContent = "";
 
   // Populate group dropdown safely
   const groupSelect = document.getElementById("webhook-group");
@@ -203,7 +200,7 @@ const loadGroups = async () => {
 // Function to render groups in the group management modal
 const renderGroups = async () => {
   const groups = await loadGroups();
-  groupsList.innerHTML = "";
+  groupsList.textContent = "";
 
   groups.forEach(group => {
     const listItem = document.createElement("li");
@@ -684,7 +681,7 @@ customPayloadInput.addEventListener('input', function(e) {
 
     if (matchingVars.length > 0) {
       // Show autocomplete dropdown
-      variablesAutocomplete.innerHTML = '';
+      variablesAutocomplete.textContent = '';
       variablesAutocomplete.classList.remove('hidden');
 
       matchingVars.forEach(variable => {
