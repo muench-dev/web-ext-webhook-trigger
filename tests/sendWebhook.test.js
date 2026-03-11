@@ -222,4 +222,14 @@ describe('sendWebhook', () => {
     expect(fetchBody.legacy).toBe('2025-08-07T10:20:30.123Z');
 
   });
+
+  test('should throw SchemeError for invalid URL schemes', async () => {
+    const webhook = { url: 'ftp://example.com' };
+
+    await expect(sendWebhook(webhook, true))
+      .rejects.toThrow(expect.objectContaining({
+        name: 'SchemeError',
+        message: expect.stringContaining('optionsErrorInvalidUrlScheme')
+      }));
+  });
 });
