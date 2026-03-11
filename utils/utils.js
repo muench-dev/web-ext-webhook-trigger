@@ -25,6 +25,35 @@ const getBrowserAPI = () => {
 };
 
 /**
+ * Sends a message to a specific tab, handling cross-browser differences.
+ * @param {number} tabId - The ID of the tab to send the message to.
+ * @param {Object} message - The message object to send.
+ * @returns {Promise<any>} A promise that resolves with the response from the tab.
+ */
+async function sendMessageToTab(tabId, message) {
+  const browserAPI = getBrowserAPI();
+  if (browserAPI.tabs && typeof browserAPI.tabs.sendMessage === "function") {
+    return browserAPI.tabs.sendMessage(tabId, message);
+  }
+  if (typeof browser !== "undefined" && typeof browser.tabs?.sendMessage === "function") {
+    return browser.tabs.sendMessage(tabId, message);
+  }
+  if (typeof chrome !== "undefined" && typeof chrome.tabs?.sendMessage === "function") {
+    return new Promise((resolve, reject) => {
+      chrome.tabs.sendMessage(tabId, message, (response) => {
+        const error = chrome.runtime?.lastError;
+        if (error) {
+          reject(new Error(error.message));
+        } else {
+          resolve(response);
+        }
+      });
+    });
+  }
+  throw new Error("tabs.sendMessage API is unavailable");
+}
+
+/**
  * Replaces i18n placeholders in the HTML document.
  * It targets elements with the 'data-i18n' attribute,
  * text nodes containing '__MSG_...__', and the document title.
@@ -177,39 +206,12 @@ async function sendWebhook(webhook, isTest = false) {
         }
       }
 
-      const canSendMessage =
-        typeof browserAPI.tabs?.sendMessage === "function" ||
-        (typeof browser !== "undefined" && typeof browser.tabs?.sendMessage === "function") ||
-        (typeof chrome !== "undefined" && typeof chrome.tabs?.sendMessage === "function");
-
-      if (selectors.length > 0 && canSendMessage) {
+      if (selectors.length > 0) {
         try {
-          let response;
-          if (browserAPI.tabs && typeof browserAPI.tabs.sendMessage === "function") {
-            response = await browserAPI.tabs.sendMessage(activeTab.id, {
-              type: "GET_SELECTOR_CONTENT",
-              selectors,
-            });
-          } else if (typeof browser !== "undefined" && typeof browser.tabs?.sendMessage === "function") {
-            response = await browser.tabs.sendMessage(activeTab.id, {
-              type: "GET_SELECTOR_CONTENT",
-              selectors,
-            });
-          } else if (typeof chrome !== "undefined" && typeof chrome.tabs?.sendMessage === "function") {
-            response = await new Promise((resolve, reject) => {
-              chrome.tabs.sendMessage(activeTab.id, {
-                type: "GET_SELECTOR_CONTENT",
-                selectors,
-              }, (res) => {
-                const err = chrome.runtime?.lastError;
-                if (err) {
-                  reject(new Error(err.message));
-                } else {
-                  resolve(res);
-                }
-              });
-            });
-          }
+          const response = await sendMessageToTab(activeTab.id, {
+            type: "GET_SELECTOR_CONTENT",
+            selectors,
+          });
           if (response && Array.isArray(response.selectorContent)) {
             selectorContent = response.selectorContent.map((value) =>
               typeof value === "string" ? value.trim() : ""
@@ -363,9 +365,10 @@ async function sendWebhook(webhook, isTest = false) {
 }
 
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { replaceI18nPlaceholders, getBrowserAPI, sendWebhook };
+  module.exports = { replaceI18nPlaceholders, getBrowserAPI, sendMessageToTab, sendWebhook };
 } else {
   window.replaceI18nPlaceholders = replaceI18nPlaceholders;
   window.getBrowserAPI = getBrowserAPI;
+  window.sendMessageToTab = sendMessageToTab;
   window.sendWebhook = sendWebhook;
 }
