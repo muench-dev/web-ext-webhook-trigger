@@ -102,31 +102,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     return false;
   };
 
-  const sendMessageToTab = (tabId, message) => {
-    if (browserAPI.tabs && typeof browserAPI.tabs.sendMessage === "function") {
-      return browserAPI.tabs.sendMessage(tabId, message);
-    }
-    if (typeof browser !== "undefined" && browser.tabs?.sendMessage) {
-      return browser.tabs.sendMessage(tabId, message);
-    }
-    if (typeof chrome !== "undefined" && chrome.tabs?.sendMessage) {
-      return new Promise((resolve, reject) => {
-        try {
-          chrome.tabs.sendMessage(tabId, message, (response) => {
-            const error = chrome.runtime?.lastError;
-            if (error) {
-              reject(new Error(error.message));
-            } else {
-              resolve(response);
-            }
-          });
-        } catch (error) {
-          reject(error);
-        }
-      });
-    }
-    throw new Error("tabs.sendMessage API is unavailable");
-  };
+  const sendMessageToTab = window.sendMessageToTab;
 
   const updateCaptureButtonState = (webhookId) => {
     const button = captureButtonMap.get(webhookId);
