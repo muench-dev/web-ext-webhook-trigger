@@ -481,5 +481,41 @@
   "selectorCaptureTooltip": {
     "message": "Click elements to capture their text. Press Esc to stop.",
     "description": "Tooltip shown during selector capture mode."
+  },
+  "popupNoActiveJobposting": {
+    "message": "No active jobposting",
+    "description": "Status when no jobposting is set as active."
+  },
+  "popupJobpostingMatch": {
+    "message": "Active jobposting",
+    "description": "Status when current tab matches the active jobposting."
+  },
+  "popupJobpostingMismatch": {
+    "message": "Different job tab!",
+    "description": "Status when current tab shows a different jobposting than the active one."
+  },
+  "popupSetActiveJobposting": {
+    "message": "Set as active",
+    "description": "Button text to set current jobposting as active."
+  },
+  "popupActiveJobposting": {
+    "message": "Active",
+    "description": "Label for the active jobposting."
+  },
+  "popupClearActiveJobposting": {
+    "message": "Reset",
+    "description": "Button text to reset the active jobposting."
+  },
+  "popupJobpostingSetSuccess": {
+    "message": "Jobposting set",
+    "description": "Success message when setting the active jobposting."
+  },
+  "popupJobpostingSetError": {
+    "message": "Error setting jobposting",
+    "description": "Error message when setting the active jobposting fails."
+  },
+  "popupJobpostingCleared": {
+    "message": "Reset complete",
+    "description": "Message when the active jobposting was reset."
   }
 }
