@@ -256,7 +256,7 @@ async function sendWebhook(webhook, isTest = false) {
 
       // Include active jobposting KID if available
       if (activeJobpostingKid) {
-        payload.jobposting_kid = activeJobpostingKid;
+        payload.job_kid = activeJobpostingKid;
       }
 
       if (webhook && webhook.identifier) {

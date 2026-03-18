@@ -13,6 +13,37 @@ const ADMIN_JOBPOSTING_PATTERN = /^https:\/\/admin\.schnellestelle\.(?:de|club)\
 const JOBPOSTING_STORAGE_KEY = 'active_jobposting';
 
 /**
+ * Update the extension icon to reflect jobposting status
+ * @param {string} status - 'none', 'match', or 'mismatch'
+ */
+async function updateIcon(status) {
+  try {
+    // Use badge to show status color
+    const badgeColors = {
+      'none': '#9ca3af',    // Gray
+      'match': '#22c55e',   // Green
+      'mismatch': '#ef4444' // Red
+    };
+
+    const badgeTexts = {
+      'none': '',
+      'match': '✓',
+      'mismatch': '!'
+    };
+
+    if (browser.action) {
+      await browser.action.setBadgeBackgroundColor({ color: badgeColors[status] || '#9ca3af' });
+      await browser.action.setBadgeText({ text: badgeTexts[status] || '' });
+    } else if (browser.browserAction) {
+      await browser.browserAction.setBadgeBackgroundColor({ color: badgeColors[status] || '#9ca3af' });
+      await browser.browserAction.setBadgeText({ text: badgeTexts[status] || '' });
+    }
+  } catch (error) {
+    console.debug('Failed to update icon:', error);
+  }
+}
+
+/**
  * Extract jobposting KID from URL if it matches the admin jobposting pattern
  * @param {string} url
  * @returns {string|null}
@@ -55,6 +86,9 @@ async function checkActiveTab() {
     }
 
     console.debug('Jobposting status:', status);
+
+    // Update extension icon to show status
+    updateIcon(status);
 
     // Store current tab info for popup
     await browser.storage.local.set({

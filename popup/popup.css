@@ -319,6 +319,17 @@ body {
   animation: pulse-red 2s infinite;
 }
 
+/* Jobposting KID link styling */
+.jobposting-kid-link {
+  color: var(--primary, #0060df);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.jobposting-kid-link:hover {
+  opacity: 0.8;
+}
+
 @keyframes pulse-green {
   0% { box-shadow: 0 0 8px #22c55e, 0 0 12px rgba(34, 197, 94, 0.5); }
   50% { box-shadow: 0 0 12px #22c55e, 0 0 16px rgba(34, 197, 94, 0.7); }

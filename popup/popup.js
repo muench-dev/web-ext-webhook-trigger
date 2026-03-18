@@ -63,6 +63,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   let activeCaptureWebhookId = null;
   let currentResponseText = "";
   let currentTabKid = null;
+  let currentTabUrl = null;
+  let activeJobpostingUrl = null;
 
   // Update jobposting UI based on current state
   const updateJobpostingUI = (active, current) => {
@@ -77,6 +79,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const status = current?.status || 'none';
     currentTabKid = current?.kid || null;
+    currentTabUrl = current?.url || null;
+    activeJobpostingUrl = active?.url || null;
 
     // Update status LED and text
     statusLed.className = 'status-led';
@@ -112,6 +116,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       console.debug('Showing jobposting-current section');
       jobpostingCurrent.classList.remove('hidden');
       jobpostingCurrentKid.textContent = currentTabKid;
+      jobpostingCurrentKid.onclick = () => {
+        if (currentTabUrl) {
+          chrome.tabs.create({ url: currentTabUrl });
+          window.close();
+        }
+      };
     } else {
       console.debug('Hiding jobposting-current section');
       jobpostingCurrent.classList.add('hidden');
@@ -121,6 +131,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (active?.kid) {
       jobpostingActive.classList.remove('hidden');
       jobpostingActiveKid.textContent = active.kid;
+            jobpostingActiveKid.onclick = () => {
+        if (activeJobpostingUrl) {
+          chrome.tabs.create({ url: activeJobpostingUrl });
+          window.close();
+        }
+      };
     } else {
       jobpostingActive.classList.add('hidden');
     }

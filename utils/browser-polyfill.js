@@ -188,6 +188,58 @@ browserAPI.runtime = {
   }
 };
 
+// Tabs API - add create and update methods
+browserAPI.tabs.create = function(createProperties) {
+  const nativeCreate = isFirefox
+    ? nativeBrowser?.tabs?.create
+    : nativeChrome?.tabs?.create;
+  if (nativeCreate && nativeCreate !== browserAPI.tabs.create) {
+    if (isFirefox) {
+      return nativeCreate.call(nativeBrowser.tabs, createProperties);
+    }
+    return new Promise(resolve => nativeCreate.call(nativeChrome.tabs, createProperties, resolve));
+  }
+  return Promise.resolve({});
+};
+
+browserAPI.tabs.update = function(tabId, updateProperties) {
+  const nativeUpdate = isFirefox
+    ? nativeBrowser?.tabs?.update
+    : nativeChrome?.tabs?.update;
+  if (nativeUpdate && nativeUpdate !== browserAPI.tabs.update) {
+    if (isFirefox) {
+      return nativeUpdate.call(nativeBrowser.tabs, tabId, updateProperties);
+    }
+    return new Promise(resolve => nativeUpdate.call(nativeChrome.tabs, tabId, updateProperties, resolve));
+  }
+  return Promise.resolve({});
+};
+
+// Action API (for Manifest V3 icon/badge)
+browserAPI.action = {
+  setBadgeText: function(details) {
+    const nativeAction = isFirefox ? nativeBrowser?.action : nativeChrome?.action;
+    const nativeBrowserAction = isFirefox ? nativeBrowser?.browserAction : nativeChrome?.browserAction;
+    const api = nativeAction || nativeBrowserAction;
+    if (api?.setBadgeText) {
+      return new Promise((resolve) => api.setBadgeText(details, resolve));
+    }
+    return Promise.resolve();
+  },
+  setBadgeBackgroundColor: function(details) {
+    const nativeAction = isFirefox ? nativeBrowser?.action : nativeChrome?.action;
+    const nativeBrowserAction = isFirefox ? nativeBrowser?.browserAction : nativeChrome?.browserAction;
+    const api = nativeAction || nativeBrowserAction;
+    if (api?.setBadgeBackgroundColor) {
+      return new Promise((resolve) => api.setBadgeBackgroundColor(details, resolve));
+    }
+    return Promise.resolve();
+  }
+};
+
+// BrowserAction API (Manifest V2 compatibility)
+browserAPI.browserAction = browserAPI.action;
+
 // Tabs API
 browserAPI.tabs = {
   query: function(queryInfo) {
