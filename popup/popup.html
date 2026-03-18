@@ -8,6 +8,29 @@
     </head>
     <body>
         <div class="container">
+            <!-- Active Jobposting Section -->
+            <div id="jobposting-section" class="jobposting-section">
+                <div class="jobposting-header">
+                    <span id="jobposting-status-led" class="status-led gray"></span>
+                    <span id="jobposting-status-text" data-i18n="popupNoActiveJobposting">__MSG_popupNoActiveJobposting__</span>
+                </div>
+
+                <div id="jobposting-current" class="jobposting-current hidden">
+                    <span id="jobposting-current-kid"></span>
+                    <button type="button" id="set-active-jobposting-btn" class="btn-small">
+                        __MSG_popupSetActiveJobposting__
+                    </button>
+                </div>
+
+                <div id="jobposting-active" class="jobposting-active hidden">
+                    <span>__MSG_popupActiveJobposting__: </span>
+                    <strong id="jobposting-active-kid"></strong>
+                    <button type="button" id="clear-active-jobposting-btn" class="btn-small btn-link">
+                        __MSG_popupClearActiveJobposting__
+                    </button>
+                </div>
+            </div>
+
             <div id="buttons-container">
                 <!-- Buttons werden hier dynamisch eingefügt -->
             </div>

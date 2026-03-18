@@ -146,6 +146,17 @@ async function sendWebhook(webhook, isTest = false) {
 
     const dateTimeVariables = buildDateTimeVariables();
 
+    // Get active jobposting KID from storage
+    let activeJobpostingKid = null;
+    try {
+      if (browserAPI.storage && browserAPI.storage.local) {
+        const stored = await browserAPI.storage.local.get('active_jobposting');
+        activeJobpostingKid = stored?.active_jobposting?.kid || null;
+      }
+    } catch (error) {
+      console.debug('Failed to load active jobposting:', error);
+    }
+
     if (isTest) {
       payload = {
         url: "https://example.com",
@@ -242,6 +253,11 @@ async function sendWebhook(webhook, isTest = false) {
         platform: platformInfo,
         triggeredAt: dateTimeVariables.nowIso,
       };
+
+      // Include active jobposting KID if available
+      if (activeJobpostingKid) {
+        payload.jobposting_kid = activeJobpostingKid;
+      }
 
       if (webhook && webhook.identifier) {
         payload.identifier = webhook.identifier;

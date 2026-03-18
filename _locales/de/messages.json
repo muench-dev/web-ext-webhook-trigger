@@ -469,5 +469,41 @@
   "selectorCaptureTooltip": {
     "message": "Klicken Sie auf Elemente, um deren Text zu erfassen. Drücken Sie Esc zum Beenden.",
     "description": "Tooltip, der im Auswahlmodus angezeigt wird."
+  },
+  "popupNoActiveJobposting": {
+    "message": "Kein aktives Jobposting",
+    "description": "Status wenn kein Jobposting aktiv gesetzt ist."
+  },
+  "popupJobpostingMatch": {
+    "message": "Aktives Jobposting",
+    "description": "Status wenn der aktuelle Tab dem aktiven Jobposting entspricht."
+  },
+  "popupJobpostingMismatch": {
+    "message": "Anderer Job-Tab!",
+    "description": "Status wenn der aktuelle Tab ein anderes Jobposting als das aktive zeigt."
+  },
+  "popupSetActiveJobposting": {
+    "message": "Als aktiv setzen",
+    "description": "Button-Text zum Setzen des aktuellen Jobpostings als aktiv."
+  },
+  "popupActiveJobposting": {
+    "message": "Aktiv",
+    "description": "Label für das aktive Jobposting."
+  },
+  "popupClearActiveJobposting": {
+    "message": "Zurücksetzen",
+    "description": "Button-Text zum Zurücksetzen des aktiven Jobpostings."
+  },
+  "popupJobpostingSetSuccess": {
+    "message": "Jobposting gesetzt",
+    "description": "Erfolgsmeldung beim Setzen des aktiven Jobpostings."
+  },
+  "popupJobpostingSetError": {
+    "message": "Fehler beim Setzen",
+    "description": "Fehlermeldung wenn das Setzen des aktiven Jobpostings fehlschlägt."
+  },
+  "popupJobpostingCleared": {
+    "message": "Zurückgesetzt",
+    "description": "Meldung wenn das aktive Jobposting zurückgesetzt wurde."
   }
 }

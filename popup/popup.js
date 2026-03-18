@@ -1,3 +1,5 @@
+console.log('=== POPUP.JS LOADING ===');
+
 const MAX_SELECTORS_PER_WEBHOOK = 10;
 const STATUS_VARIANTS = ["success", "error", "info", "hidden"];
 
@@ -18,9 +20,8 @@ function createWebhookButton(webhook) {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-  const browserAPI = window.getBrowserAPI();
-  replaceI18nPlaceholders();
-
+  console.log('=== DOMContentLoaded FIRED ===');
+  // Get elements first
   const buttonsContainer = document.getElementById("buttons-container");
   const statusMessageEl = document.getElementById("status-message");
   const responseContainer = document.getElementById("response-container");
@@ -28,8 +29,226 @@ document.addEventListener("DOMContentLoaded", async () => {
   const copyResponseBtn = document.getElementById("copy-response-btn");
   const captureButtonMap = new Map();
 
+  // Jobposting UI elements
+  const jobpostingSection = document.getElementById("jobposting-section");
+  const statusLed = document.getElementById("jobposting-status-led");
+  const statusText = document.getElementById("jobposting-status-text");
+
+  // Ensure browserAPI is available
+  console.log('Getting browserAPI...');
+  const browserAPI = window.getBrowserAPI();
+  console.log('browserAPI:', browserAPI);
+  if (!browserAPI) {
+    console.error('browserAPI is not available');
+    return;
+  }
+
+  console.log('DOMContentLoaded - Popup initialized');
+
+  replaceI18nPlaceholders();
+
+  // Debug: Check if elements exist
+  console.debug('Jobposting elements found:', {
+    section: jobpostingSection,
+    led: statusLed,
+    text: statusText
+  });
+  const jobpostingCurrent = document.getElementById("jobposting-current");
+  const jobpostingCurrentKid = document.getElementById("jobposting-current-kid");
+  const setActiveBtn = document.getElementById("set-active-jobposting-btn");
+  const jobpostingActive = document.getElementById("jobposting-active");
+  const jobpostingActiveKid = document.getElementById("jobposting-active-kid");
+  const clearActiveBtn = document.getElementById("clear-active-jobposting-btn");
+
   let activeCaptureWebhookId = null;
   let currentResponseText = "";
+  let currentTabKid = null;
+
+  // Update jobposting UI based on current state
+  const updateJobpostingUI = (active, current) => {
+    if (!jobpostingSection) {
+      console.debug('Jobposting section element not found');
+      return;
+    }
+
+    console.debug('updateJobpostingUI called:', { active, current });
+
+    jobpostingSection.classList.remove("hidden");
+
+    const status = current?.status || 'none';
+    currentTabKid = current?.kid || null;
+
+    // Update status LED and text
+    statusLed.className = 'status-led';
+    let statusTextValue = 'Kein aktives Jobposting';
+    if (status === 'match') {
+      statusLed.classList.add('green');
+      statusTextValue = 'Aktives Jobposting';
+    } else if (status === 'mismatch') {
+      statusLed.classList.add('red');
+      statusTextValue = 'Anderer Job-Tab!';
+    } else {
+      statusLed.classList.add('gray');
+    }
+
+    // Safely get i18n message
+    try {
+      if (browserAPI?.i18n?.getMessage) {
+        const messageKey = status === 'match' ? 'popupJobpostingMatch' :
+                          status === 'mismatch' ? 'popupJobpostingMismatch' :
+                          'popupNoActiveJobposting';
+        const message = browserAPI.i18n.getMessage(messageKey);
+        if (message) statusTextValue = message;
+      }
+    } catch (e) {
+      console.debug('i18n error:', e);
+    }
+
+    statusText.textContent = statusTextValue;
+
+    // Show current tab jobposting if on jobposting page
+    console.debug('currentTabKid:', currentTabKid);
+    if (currentTabKid) {
+      console.debug('Showing jobposting-current section');
+      jobpostingCurrent.classList.remove('hidden');
+      jobpostingCurrentKid.textContent = currentTabKid;
+    } else {
+      console.debug('Hiding jobposting-current section');
+      jobpostingCurrent.classList.add('hidden');
+    }
+
+    // Show active jobposting info
+    if (active?.kid) {
+      jobpostingActive.classList.remove('hidden');
+      jobpostingActiveKid.textContent = active.kid;
+    } else {
+      jobpostingActive.classList.add('hidden');
+    }
+  };
+
+  // Initialize jobposting section
+  const initJobpostingSection = async () => {
+    console.log('initJobpostingSection called');
+    try {
+      console.log('Initializing jobposting section...');
+
+      // Ensure browserAPI is available
+      if (!browserAPI || !browserAPI.runtime || !browserAPI.runtime.sendMessage) {
+        console.log('browserAPI not available');
+        return;
+      }
+
+      console.log('Reading jobposting data from storage...');
+      let response = null;
+      try {
+        // Get current tab info directly
+        const tabs = await browserAPI.tabs.query({ active: true, currentWindow: true });
+        console.log('Current tabs:', tabs);
+
+        if (tabs && tabs.length > 0) {
+          const currentUrl = tabs[0].url;
+          console.log('Current URL:', currentUrl);
+
+          // Extract KID from URL (same pattern as background)
+          const pattern = /^https:\/\/admin\.schnellestelle\.(?:de|club)\/jobpostings\/(?<kid>[a-z0-9]{9})/;
+          const match = currentUrl?.match(pattern);
+          const currentKid = match?.groups?.kid || null;
+          console.log('Extracted KID:', currentKid);
+
+          // Get stored active jobposting
+          const stored = await browserAPI.storage.local.get(['active_jobposting']);
+          const activeJobposting = stored.active_jobposting || null;
+          console.log('Active jobposting from storage:', activeJobposting);
+
+          // Calculate status
+          let status = 'none';
+          if (!activeJobposting?.kid) {
+            status = 'none';
+          } else if (currentKid === activeJobposting.kid) {
+            status = 'match';
+          } else if (currentKid) {
+            status = 'mismatch';
+          }
+
+          response = {
+            active: activeJobposting,
+            current: {
+              kid: currentKid,
+              url: currentUrl,
+              status: status
+            }
+          };
+          console.log('Built response:', response);
+        }
+      } catch (err) {
+        console.error('Error reading data:', err);
+      }
+
+      if (response) {
+        console.log('Active:', response.active);
+        console.log('Current:', response.current);
+        console.log('Current KID:', response.current?.kid);
+        updateJobpostingUI(response.active, response.current);
+      } else {
+        console.log('No response, using default state');
+        // Still show the section even if no jobposting is detected
+        jobpostingSection?.classList.remove('hidden');
+        updateJobpostingUI(null, null);
+      }
+    } catch (error) {
+      console.error('Failed to initialize jobposting section:', error);
+      // Show section with default state on error
+      jobpostingSection?.classList.remove('hidden');
+      updateJobpostingUI(null, null);
+    }
+  };
+
+  // Handle set active jobposting
+  if (setActiveBtn) {
+    setActiveBtn.addEventListener('click', async () => {
+      if (!currentTabKid) return;
+
+      try {
+        const tabs = await browserAPI.tabs.query({ active: true, currentWindow: true });
+        if (!tabs || tabs.length === 0) return;
+
+        // Store active jobposting directly in storage
+        await browserAPI.storage.local.set({
+          'active_jobposting': {
+            kid: currentTabKid,
+            url: tabs[0].url,
+            setAt: new Date().toISOString()
+          }
+        });
+
+        // Refresh UI
+        await initJobpostingSection();
+
+        const successMsg = browserAPI.i18n.getMessage('popupJobpostingSetSuccess') || 'Jobposting gesetzt';
+        setStatus('success', successMsg);
+      } catch (error) {
+        console.error('Failed to set active jobposting:', error);
+        const errorMsg = browserAPI.i18n.getMessage('popupJobpostingSetError') || 'Fehler beim Setzen';
+        setStatus('error', errorMsg);
+      }
+    });
+  }
+
+  // Handle clear active jobposting
+  if (clearActiveBtn) {
+    clearActiveBtn.addEventListener('click', async () => {
+      try {
+        // Remove active jobposting directly from storage
+        await browserAPI.storage.local.remove('active_jobposting');
+        await initJobpostingSection();
+
+        const successMsg = browserAPI.i18n.getMessage('popupJobpostingCleared') || 'Zurückgesetzt';
+        setStatus('success', successMsg);
+      } catch (error) {
+        console.error('Failed to clear active jobposting:', error);
+      }
+    });
+  }
 
   const setStatus = (variant, message) => {
     if (!statusMessageEl) return;
@@ -572,7 +791,20 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   await applyThemePreference();
+
+  // Debug: Check if LED is visible before initialization
+  console.debug('Pre-init LED check:', {
+    led: statusLed,
+    ledVisible: statusLed ? window.getComputedStyle(statusLed).display : 'N/A',
+    ledOpacity: statusLed ? window.getComputedStyle(statusLed).opacity : 'N/A',
+    ledBackground: statusLed ? window.getComputedStyle(statusLed).backgroundColor : 'N/A'
+  });
+
+  console.log('About to call initJobpostingSection...');
+  await initJobpostingSection();
+  console.log('initJobpostingSection done, about to renderWebhooks...');
   await renderWebhooks();
+  console.log('renderWebhooks done');
 });
 
 const extractResponseMessage = async (response) => {

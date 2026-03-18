@@ -267,3 +267,122 @@ body {
 .footer a:hover {
   text-decoration: underline;
 }
+
+/* Active Jobposting Section */
+.jobposting-section {
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  min-height: 40px; /* Ensure section has minimum height */
+}
+
+.jobposting-section.hidden {
+  display: none;
+}
+
+.jobposting-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.status-led {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block !important;
+  flex-shrink: 0;
+  box-shadow: inset 0 0 2px rgba(0,0,0,0.3);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0,0,0,0.2);
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.status-led.gray {
+  background-color: #9ca3af !important;
+  box-shadow: 0 0 4px #9ca3af !important;
+}
+
+.status-led.green {
+  background-color: #22c55e !important;
+  box-shadow: 0 0 8px #22c55e, 0 0 12px rgba(34, 197, 94, 0.5) !important;
+  animation: pulse-green 2s infinite;
+}
+
+.status-led.red {
+  background-color: #ef4444 !important;
+  box-shadow: 0 0 8px #ef4444, 0 0 12px rgba(239, 68, 68, 0.5) !important;
+  animation: pulse-red 2s infinite;
+}
+
+@keyframes pulse-green {
+  0% { box-shadow: 0 0 8px #22c55e, 0 0 12px rgba(34, 197, 94, 0.5); }
+  50% { box-shadow: 0 0 12px #22c55e, 0 0 16px rgba(34, 197, 94, 0.7); }
+  100% { box-shadow: 0 0 8px #22c55e, 0 0 12px rgba(34, 197, 94, 0.5); }
+}
+
+@keyframes pulse-red {
+  0% { box-shadow: 0 0 8px #ef4444, 0 0 12px rgba(239, 68, 68, 0.5); }
+  50% { box-shadow: 0 0 12px #ef4444, 0 0 16px rgba(239, 68, 68, 0.7); }
+  100% { box-shadow: 0 0 8px #ef4444, 0 0 12px rgba(239, 68, 68, 0.5); }
+}
+
+#jobposting-status-text {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.jobposting-current,
+.jobposting-active {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+.jobposting-current code,
+.jobposting-active strong {
+  font-family: monospace;
+  font-size: 11px;
+  background: var(--bg);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--primary);
+}
+
+.btn-small {
+  padding: 4px 10px;
+  font-size: 11px;
+  border: 1px solid var(--primary);
+  border-radius: 6px;
+  background: var(--btn-bg);
+  color: var(--primary-contrast);
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.06s ease;
+}
+
+.btn-small:hover {
+  background: var(--btn-bg-hover);
+}
+
+.btn-small:active {
+  transform: translateY(1px);
+}
+
+.btn-link {
+  background: transparent;
+  color: var(--muted);
+  border-color: transparent;
+  text-decoration: underline;
+}
+
+.btn-link:hover {
+  color: var(--text);
+  background: transparent;
+}
