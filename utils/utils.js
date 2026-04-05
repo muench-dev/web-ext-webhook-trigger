@@ -363,9 +363,17 @@ async function sendWebhook(webhook, isTest = false) {
 }
 
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { replaceI18nPlaceholders, getBrowserAPI, sendWebhook };
+  module.exports = {
+    replaceI18nPlaceholders,
+    getBrowserAPI,
+    sendWebhook,
+    toLocalIsoString,
+    padDatePart
+  };
 } else {
   window.replaceI18nPlaceholders = replaceI18nPlaceholders;
   window.getBrowserAPI = getBrowserAPI;
   window.sendWebhook = sendWebhook;
+  window.toLocalIsoString = toLocalIsoString;
+  window.padDatePart = padDatePart;
 }

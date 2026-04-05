@@ -110,3 +110,54 @@ describe('sendWebhook', () => {
     expect(payload).toEqual({ message: ['John Doe'] });
   });
 });
+
+describe('toLocalIsoString', () => {
+  const originalGetTimezoneOffset = Date.prototype.getTimezoneOffset;
+
+  afterEach(() => {
+    Date.prototype.getTimezoneOffset = originalGetTimezoneOffset;
+  });
+
+  test('correctly formats a date with single digit components', () => {
+    const date = new Date(2023, 0, 5, 8, 4, 2, 3); // Jan 5, 2023, 08:04:02.003
+    // Mock timezone to UTC
+    Date.prototype.getTimezoneOffset = jest.fn(() => 0);
+
+    // year: 2023
+    // month: 0 + 1 = 1 -> "01"
+    // day: 5 -> "05"
+    // hour: 8 -> "08"
+    // minute: 4 -> "04"
+    // second: 2 -> "02"
+    // millisecond: 3 -> "003"
+    // offset: 0 -> "+00:00"
+
+    expect(utils.toLocalIsoString(date)).toBe('2023-01-05T08:04:02.003+00:00');
+  });
+
+  test('handles positive timezone offset (e.g., UTC-5)', () => {
+    const date = new Date(2023, 0, 5, 8, 4, 2, 3);
+    Date.prototype.getTimezoneOffset = jest.fn(() => 300); // 300 minutes = 5 hours
+    // sign = - (offsetMinutes = -300)
+    expect(utils.toLocalIsoString(date)).toMatch(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}-05:00/);
+  });
+
+  test('handles negative timezone offset (e.g., UTC+2)', () => {
+    const date = new Date(2023, 0, 5, 8, 4, 2, 3);
+    Date.prototype.getTimezoneOffset = jest.fn(() => -120); // -120 minutes = -2 hours
+    // sign = + (offsetMinutes = 120)
+    expect(utils.toLocalIsoString(date)).toMatch(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+02:00/);
+  });
+
+  test('handles leap year (Feb 29)', () => {
+    const date = new Date(2024, 1, 29, 12, 0, 0);
+    Date.prototype.getTimezoneOffset = jest.fn(() => 0);
+    expect(utils.toLocalIsoString(date)).toBe('2024-02-29T12:00:00.000+00:00');
+  });
+
+  test('handles end of year boundary', () => {
+    const date = new Date(2023, 11, 31, 23, 59, 59, 999);
+    Date.prototype.getTimezoneOffset = jest.fn(() => 0);
+    expect(utils.toLocalIsoString(date)).toBe('2023-12-31T23:59:59.999+00:00');
+  });
+});
