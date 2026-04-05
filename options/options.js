@@ -18,6 +18,54 @@ const normalizeWebhookRecord = (webhook) => {
   };
 };
 
+// Helper to create a webhook list item
+const createWebhookListItem = (webhook) => {
+  const listItem = document.createElement("li");
+  listItem.dataset.id = webhook.id;
+  listItem.draggable = true;
+  listItem.classList.add("webhook-item");
+
+  const dragHandle = document.createElement("span");
+  dragHandle.classList.add("drag-handle");
+  dragHandle.textContent = "\u2630"; // common drag icon
+
+  const textContent = document.createElement("div");
+  textContent.classList.add("webhook-info");
+
+  const labelSpan = document.createElement("span");
+  labelSpan.classList.add("label");
+  labelSpan.textContent = `${webhook.emoji ? webhook.emoji + ' ' : ''}${webhook.label}`;
+
+  const urlSpan = document.createElement("span");
+  urlSpan.classList.add("url");
+  urlSpan.textContent = webhook.url;
+
+  textContent.appendChild(labelSpan);
+  textContent.appendChild(urlSpan);
+
+  const deleteButton = document.createElement("button");
+  // Use localized text for the button
+  deleteButton.textContent = browser.i18n.getMessage("optionsDeleteButton");
+  deleteButton.classList.add("delete-btn");
+
+  // Add edit button
+  const editButton = document.createElement("button");
+  editButton.textContent = browser.i18n.getMessage("optionsEditButton") || "Edit";
+  editButton.classList.add("edit-btn");
+
+  const duplicateButton = document.createElement("button");
+  duplicateButton.textContent = browser.i18n.getMessage("optionsDuplicateButton") || "Duplicate";
+  duplicateButton.classList.add("duplicate-btn");
+
+  listItem.appendChild(dragHandle);
+  listItem.appendChild(textContent);
+  listItem.appendChild(editButton);
+  listItem.appendChild(duplicateButton);
+  listItem.appendChild(deleteButton);
+
+  return listItem;
+};
+
 // Function to load and display webhooks
 const loadWebhooks = async () => {
   const { webhooks = [], groups = [] } = await browser.storage.sync.get(["webhooks", "groups"]);
@@ -77,49 +125,7 @@ const loadWebhooks = async () => {
 
         // Add webhooks in this group
         groupWebhooks.forEach((webhook) => {
-          const listItem = document.createElement("li");
-          listItem.dataset.id = webhook.id;
-          listItem.draggable = true;
-          listItem.classList.add("webhook-item");
-
-          const dragHandle = document.createElement("span");
-          dragHandle.classList.add("drag-handle");
-          dragHandle.textContent = "\u2630"; // common drag icon
-
-          const textContent = document.createElement("div");
-          textContent.classList.add("webhook-info");
-
-          const labelSpan = document.createElement("span");
-          labelSpan.classList.add("label");
-          labelSpan.textContent = `${webhook.emoji ? webhook.emoji + ' ' : ''}${webhook.label}`;
-
-          const urlSpan = document.createElement("span");
-          urlSpan.classList.add("url");
-          urlSpan.textContent = webhook.url;
-
-          textContent.appendChild(labelSpan);
-          textContent.appendChild(urlSpan);
-
-          const deleteButton = document.createElement("button");
-          // Use localized text for the button
-          deleteButton.textContent = browser.i18n.getMessage("optionsDeleteButton");
-          deleteButton.classList.add("delete-btn");
-
-          // Add edit button
-          const editButton = document.createElement("button");
-          editButton.textContent = browser.i18n.getMessage("optionsEditButton") || "Edit";
-          editButton.classList.add("edit-btn");
-
-          const duplicateButton = document.createElement("button");
-          duplicateButton.textContent = browser.i18n.getMessage("optionsDuplicateButton") || "Duplicate";
-          duplicateButton.classList.add("duplicate-btn");
-
-          listItem.appendChild(dragHandle);
-          listItem.appendChild(textContent);
-          listItem.appendChild(editButton);
-          listItem.appendChild(duplicateButton);
-          listItem.appendChild(deleteButton);
-          list.appendChild(listItem);
+          list.appendChild(createWebhookListItem(webhook));
         });
       }
     });
@@ -135,49 +141,7 @@ const loadWebhooks = async () => {
 
       // Add ungrouped webhooks
       ungroupedWebhooks.forEach((webhook) => {
-        const listItem = document.createElement("li");
-        listItem.dataset.id = webhook.id;
-        listItem.draggable = true;
-        listItem.classList.add("webhook-item");
-
-        const dragHandle = document.createElement("span");
-        dragHandle.classList.add("drag-handle");
-        dragHandle.textContent = "\u2630"; // common drag icon
-
-        const textContent = document.createElement("div");
-        textContent.classList.add("webhook-info");
-
-        const labelSpan = document.createElement("span");
-        labelSpan.classList.add("label");
-        labelSpan.textContent = `${webhook.emoji ? webhook.emoji + ' ' : ''}${webhook.label}`;
-
-        const urlSpan = document.createElement("span");
-        urlSpan.classList.add("url");
-        urlSpan.textContent = webhook.url;
-
-        textContent.appendChild(labelSpan);
-        textContent.appendChild(urlSpan);
-
-        const deleteButton = document.createElement("button");
-        // Use localized text for the button
-        deleteButton.textContent = browser.i18n.getMessage("optionsDeleteButton");
-        deleteButton.classList.add("delete-btn");
-
-        // Add edit button
-        const editButton = document.createElement("button");
-        editButton.textContent = browser.i18n.getMessage("optionsEditButton") || "Edit";
-        editButton.classList.add("edit-btn");
-
-        const duplicateButton = document.createElement("button");
-        duplicateButton.textContent = browser.i18n.getMessage("optionsDuplicateButton") || "Duplicate";
-        duplicateButton.classList.add("duplicate-btn");
-
-        listItem.appendChild(dragHandle);
-        listItem.appendChild(textContent);
-        listItem.appendChild(editButton);
-        listItem.appendChild(duplicateButton);
-        listItem.appendChild(deleteButton);
-        list.appendChild(listItem);
+        list.appendChild(createWebhookListItem(webhook));
       });
     }
   }
