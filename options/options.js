@@ -72,19 +72,11 @@ const loadWebhooks = async () => {
   const normalizedWebhooks = webhooks.map(normalizeWebhookRecord);
   const list = document.getElementById("webhook-list");
   const message = document.getElementById("no-webhooks-message");
-  list.innerHTML = "";
-
-  // Clear the webhook list safely
-  while (list.firstChild) {
-    list.removeChild(list.firstChild);
-  }
+  list.replaceChildren();
 
   // Populate group dropdown safely
   const groupSelect = document.getElementById("webhook-group");
-  // Remove all children
-  while (groupSelect.firstChild) {
-    groupSelect.removeChild(groupSelect.firstChild);
-  }
+  groupSelect.replaceChildren();
   const defaultOption = document.createElement("option");
   defaultOption.value = "";
   defaultOption.selected = true;
@@ -167,7 +159,7 @@ const loadGroups = async () => {
 // Function to render groups in the group management modal
 const renderGroups = async () => {
   const groups = await loadGroups();
-  groupsList.innerHTML = "";
+  groupsList.replaceChildren();
 
   groups.forEach(group => {
     const listItem = document.createElement("li");
@@ -326,9 +318,7 @@ const renderGroups = async () => {
           const groupSelect = document.getElementById("webhook-group");
           const selectedValue = groupSelect.value;
           // Clear existing options
-          while (groupSelect.firstChild) {
-            groupSelect.removeChild(groupSelect.firstChild);
-          }
+          groupSelect.replaceChildren();
 
           // Create default option using DOM methods instead of innerHTML
           const defaultOption = document.createElement("option");
@@ -648,7 +638,7 @@ customPayloadInput.addEventListener('input', function(e) {
 
     if (matchingVars.length > 0) {
       // Show autocomplete dropdown
-      variablesAutocomplete.innerHTML = '';
+      variablesAutocomplete.replaceChildren();
       variablesAutocomplete.classList.remove('hidden');
 
       matchingVars.forEach(variable => {
@@ -732,7 +722,7 @@ customPayloadInput.addEventListener('keydown', function(e) {
 });
 
 function renderHeaders() {
-  headersListDiv.textContent = '';
+  headersListDiv.replaceChildren();
   headers.forEach((header, idx) => {
     const div = document.createElement('div');
     div.style.display = 'flex';
@@ -831,7 +821,7 @@ function renderSelectors() {
     .filter((value) => value.length > 0)
     .slice(0, MAX_SELECTORS_PER_WEBHOOK);
 
-  selectorsList.textContent = '';
+  selectorsList.replaceChildren();
   updateSelectorsCount();
   clearSelectorError();
 
@@ -1351,7 +1341,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ];
 
     function renderEmojiGrid() {
-      emojiGrid.textContent = '';
+      emojiGrid.replaceChildren();
       EMOJIS.forEach(e => {
         const btn = document.createElement('button');
         btn.type = 'button';
