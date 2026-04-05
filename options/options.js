@@ -319,7 +319,7 @@ const renderGroups = async () => {
     dragHandle.addEventListener("dragend", () => {
       listItem.classList.remove("dragging");
       // Remove drag-over class from all items
-      document.querySelectorAll(".group-item").forEach(item => {
+      groupsList.querySelectorAll(".group-item.drag-over").forEach(item => {
         item.classList.remove("drag-over");
       });
     });
