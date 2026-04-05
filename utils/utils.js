@@ -173,7 +173,7 @@ async function sendWebhook(webhook, isTest = false) {
             selectors = storedMatch.selectors.filter((value) => typeof value === "string" && value.trim().length > 0);
           }
         } catch (error) {
-          console.debug("Failed to load stored selectors", error);
+          // Failed to load stored selectors
         }
       }
 

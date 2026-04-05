@@ -97,7 +97,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         return true;
       }
     } catch (error) {
-      console.debug("Failed to inject selector capture script", error);
+      // Failed to inject selector capture script
     }
     return false;
   };
@@ -406,7 +406,6 @@ document.addEventListener("DOMContentLoaded", async () => {
           await attemptStart();
           return;
         } catch (retryError) {
-          console.debug("Selector capture retry failed", retryError);
           lastError = retryError;
         }
       }
