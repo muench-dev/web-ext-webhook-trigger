@@ -272,9 +272,23 @@ async function sendWebhook(webhook, isTest = false) {
             ...dateTimeVariables.values,
           };
 
-          let customPayloadStr = webhook.customPayload;
-          Object.entries(replacements).forEach(([placeholder, value]) => {
-            const isPlaceholderInQuotes = customPayloadStr.match(new RegExp(`"[^"]*${placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[^"]*"`));
+          const customPayloadTemplate = webhook.customPayload;
+          const placeholders = Object.keys(replacements).sort((a, b) => b.length - a.length);
+          const escapedPlaceholders = placeholders.map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+          const combinedRegex = new RegExp(escapedPlaceholders.join('|'), 'g');
+
+          // Cache which placeholders are inside quotes in the template
+          const isInQuotesCache = new Map();
+
+          const customPayloadStr = customPayloadTemplate.replace(combinedRegex, (match) => {
+            if (!isInQuotesCache.has(match)) {
+              const escaped = match.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+              const quoteRegex = new RegExp(`"[^"]*${escaped}[^"]*"`);
+              isInQuotesCache.set(match, !!customPayloadTemplate.match(quoteRegex));
+            }
+
+            const value = replacements[match];
+            const isPlaceholderInQuotes = isInQuotesCache.get(match);
 
             let replaceValue;
             if (typeof value === 'string') {
@@ -287,13 +301,10 @@ async function sendWebhook(webhook, isTest = false) {
               replaceValue = value === undefined ? 'null' : JSON.stringify(value);
             }
 
-            // Escape special replacement patterns ($) to prevent them from being interpreted by String.prototype.replace
-            replaceValue = replaceValue.replace(/\$/g, '$$$$');
-
-            customPayloadStr = customPayloadStr.replace(
-              new RegExp(placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'),
-              replaceValue
-            );
+            // In a callback-based replacement, the return value is treated literally,
+            // EXCEPT that '$' still needs to be escaped by '$$' to result in a literal '$'.
+            // If we returned 'replaceValue' directly, '$&' in it would be interpreted.
+            return replaceValue.replace(/\$/g, '$$');
           });
 
           const customPayload = JSON.parse(customPayloadStr);
