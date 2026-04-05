@@ -54,15 +54,13 @@ function replaceI18nPlaceholders() {
   });
 
   // Replace __MSG_...__ patterns in all text nodes
-  document.querySelectorAll('body *').forEach(element => {
-    if (element.childNodes && element.childNodes.length > 0) {
-      element.childNodes.forEach(node => {
-        if (node.nodeType === Node.TEXT_NODE && node.nodeValue && node.nodeValue.includes('__MSG_')) {
-          node.nodeValue = replaceTokens(node.nodeValue);
-        }
-      });
+  const textWalker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+  let textNode;
+  while ((textNode = textWalker.nextNode())) {
+    if (textNode.nodeValue && textNode.nodeValue.includes('__MSG_')) {
+      textNode.nodeValue = replaceTokens(textNode.nodeValue);
     }
-  });
+  }
 
   // Replace __MSG_...__ patterns in common attributes (e.g., placeholder, title, aria-label)
   if (document.documentElement) {
