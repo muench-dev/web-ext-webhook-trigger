@@ -8,7 +8,6 @@
   let selectorLimit = MAX_SELECTORS_DEFAULT;
   let highlightBox = null;
   let tooltip = null;
-  let lastHoveredElement = null;
 
   const TOOLTIP_ID = "webhook-trigger-selector-tooltip";
   const HIGHLIGHT_ID = "webhook-trigger-selector-highlight";
@@ -213,7 +212,6 @@
     currentWebhookId = null;
     selectorSet = new Set();
     selectorLimit = MAX_SELECTORS_DEFAULT;
-    lastHoveredElement = null;
 
     document.removeEventListener("mousemove", handleMouseMove, true);
     document.removeEventListener("mouseover", handleMouseMove, true);
@@ -233,7 +231,6 @@
       element = null;
     }
 
-    lastHoveredElement = element;
     if (element) {
       createHighlightElements();
       tooltip.style.display = "block";
@@ -282,7 +279,6 @@
     persistSelectorLocally(selector);
 
     removeHighlightElements();
-    lastHoveredElement = null;
     sendRuntimeMessage({
       type: "SELECTOR_CAPTURED",
       selector,
