@@ -39,7 +39,7 @@
       webhooks[index] = { ...webhooks[index], selectors };
       await browserAPI.storage.sync.set({ webhooks });
     } catch (error) {
-      console.debug("Failed to persist selector locally", error);
+      // Failed to persist selector locally
     }
   };
 
@@ -49,12 +49,11 @@
       const result = browserAPI.runtime.sendMessage(message);
       if (result && typeof result.then === "function" && typeof result.catch === "function") {
         result.catch((error) => {
-          console.debug("Runtime message rejected", error);
+          // Runtime message rejected
         });
       }
     } catch (error) {
       // Ignore messaging errors when popup/background is unavailable
-      console.debug("Failed to send runtime message", error);
     }
   };
 
