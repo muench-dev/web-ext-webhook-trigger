@@ -4,6 +4,9 @@ describe('sendWebhook', () => {
   const mockBrowser = {
     tabs: {
       query: jest.fn(),
+      captureVisibleTab: jest.fn(),
+      sendMessage: jest.fn(),
+      executeScript: jest.fn(),
     },
     runtime: {
       getBrowserInfo: jest.fn(),
@@ -16,6 +19,8 @@ describe('sendWebhook', () => {
 
   const originalFetch = global.fetch;
   const originalBrowser = global.browser;
+  const originalChrome = global.chrome;
+  const originalWindow = global.window;
   const originalConsoleError = console.error;
 
   beforeEach(() => {
@@ -43,12 +48,25 @@ describe('sendWebhook', () => {
     }]);
     mockBrowser.runtime.getBrowserInfo.mockResolvedValue({ name: 'Firefox', version: '90.0' });
     mockBrowser.runtime.getPlatformInfo.mockResolvedValue({ os: 'linux', arch: 'x86-64' });
+    mockBrowser.tabs.captureVisibleTab.mockReset();
+    mockBrowser.tabs.sendMessage.mockReset();
+    mockBrowser.tabs.executeScript.mockResolvedValue([]);
     mockBrowser.i18n.getMessage.mockClear();
   });
 
   afterEach(() => {
     global.fetch = originalFetch;
     global.browser = originalBrowser;
+    if (typeof originalChrome === 'undefined') {
+      delete global.chrome;
+    } else {
+      global.chrome = originalChrome;
+    }
+    if (typeof originalWindow === 'undefined') {
+      delete global.window;
+    } else {
+      global.window = originalWindow;
+    }
     console.error = originalConsoleError;
     jest.useRealTimers();
     jest.clearAllMocks();
@@ -221,5 +239,51 @@ describe('sendWebhook', () => {
     expect(fetchBody.now).toBe('2025-08-07T10:20:30.123Z');
     expect(fetchBody.legacy).toBe('2025-08-07T10:20:30.123Z');
 
+  });
+
+  describe('page text and html extraction', () => {
+    test('extracts page text and html when configured', async () => {
+      mockBrowser.tabs.sendMessage.mockResolvedValue({
+        ok: true,
+        text: 'Mock Page Text',
+        html: '<html>Mock Page Html</html>'
+      });
+
+      const webhook = {
+        url: 'https://content.test',
+        includePageText: true,
+        includePageHtml: true
+      };
+
+      await sendWebhook(webhook, false);
+
+      expect(mockBrowser.tabs.sendMessage).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({ type: 'GET_PAGE_CONTENT' })
+      );
+
+      const fetchBody = JSON.parse(global.fetch.mock.calls[0][1].body);
+      expect(fetchBody.pageText).toBe('Mock Page Text');
+      expect(fetchBody.pageHtml).toBe('<html>Mock Page Html</html>');
+    });
+
+    test('substitutes {{page.text}} and {{page.html}} in custom payload', async () => {
+      mockBrowser.tabs.sendMessage.mockResolvedValue({
+        ok: true,
+        text: 'Custom Text',
+        html: '<custom>Html</custom>'
+      });
+
+      const webhook = {
+        url: 'https://content.test',
+        customPayload: '{"text":"{{page.text}}","html":"{{page.html}}"}'
+      };
+
+      await sendWebhook(webhook, false);
+
+      const fetchBody = JSON.parse(global.fetch.mock.calls[0][1].body);
+      expect(fetchBody.text).toBe('Custom Text');
+      expect(fetchBody.html).toBe('<custom>Html</custom>');
+    });
   });
 });

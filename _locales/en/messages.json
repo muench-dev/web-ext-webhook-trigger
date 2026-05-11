@@ -189,6 +189,30 @@
     "message": "Show button when URL contains this text",
     "description": "Placeholder for the URL filter input field."
   },
+  "optionsIncludePageTextLabel": {
+    "message": "Include visible page text (best for AI)",
+    "description": "Label for the include page text checkbox."
+  },
+  "optionsIncludePageTextHint": {
+    "message": "Sends all visible text on the page as 'pageText' in the payload. Highly token-efficient for AI processing.",
+    "description": "Helper text for the include page text checkbox."
+  },
+  "optionsIncludePageHtmlLabel": {
+    "message": "Include raw HTML",
+    "description": "Label for the include page HTML checkbox."
+  },
+  "optionsIncludePageHtmlHint": {
+    "message": "Sends the complete raw HTML source code of the page as 'pageHtml' in the payload.",
+    "description": "Helper text for the include page HTML checkbox."
+  },
+  "optionsPageTextVariableHint": {
+    "message": "Extracted visible plain text of the active tab",
+    "description": "Description for the {{page.text}} variable in the variables list."
+  },
+  "optionsPageHtmlVariableHint": {
+    "message": "Extracted raw HTML source code of the active tab",
+    "description": "Description for the {{page.html}} variable in the variables list."
+  },
   "optionsCustomPayloadLabel": {
     "message": "Custom Payload (optional)",
     "description": "Label for the custom payload section."
@@ -482,17 +506,17 @@
     "message": "Click elements to capture their text. Press Esc to stop.",
     "description": "Tooltip shown during selector capture mode."
   },
-  "popupNoActiveJobposting": {
-    "message": "No active jobposting",
-    "description": "Status when no jobposting is set as active."
+  "popupCurrentTabNoJobposting": {
+    "message": "No jobposting on this tab",
+    "description": "Header status shown in the popup when the current tab is not a jobposting page."
   },
-  "popupJobpostingMatch": {
-    "message": "Active jobposting",
-    "description": "Status when current tab matches the active jobposting."
+  "popupCurrentTabJobposting": {
+    "message": "Jobposting on this tab",
+    "description": "Header status shown in the popup when the current tab is a jobposting page (and either nothing is pinned or the pinned jobposting matches)."
   },
-  "popupJobpostingMismatch": {
-    "message": "Different job tab!",
-    "description": "Status when current tab shows a different jobposting than the active one."
+  "popupCurrentTabDifferentJobposting": {
+    "message": "Different jobposting on this tab",
+    "description": "Header status shown in the popup when the current tab is a jobposting page that does not match the pinned jobposting."
   },
   "popupSetActiveJobposting": {
     "message": "Set as active",

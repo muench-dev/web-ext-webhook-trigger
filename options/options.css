@@ -56,6 +56,20 @@ label {
     color: #6b7280;
 }
 
+label.checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+label.checkbox-label input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+}
+
 .selectors-header {
     display: flex;
     justify-content: space-between;

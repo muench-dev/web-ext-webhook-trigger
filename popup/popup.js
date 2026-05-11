@@ -1,6 +1,5 @@
 console.log('=== POPUP.JS LOADING ===');
 
-const MAX_SELECTORS_PER_WEBHOOK = 10;
 const STATUS_VARIANTS = ["success", "error", "info", "hidden"];
 
 /**
@@ -27,10 +26,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   const responseContainer = document.getElementById("response-container");
   const responseContent = document.getElementById("response-content");
   const copyResponseBtn = document.getElementById("copy-response-btn");
-  const captureButtonMap = new Map();
-
+  
   // Jobposting UI elements
   const jobpostingSection = document.getElementById("jobposting-section");
+  const jobpostingHeader = jobpostingSection?.querySelector(".jobposting-header");
   const statusLed = document.getElementById("jobposting-status-led");
   const statusText = document.getElementById("jobposting-status-text");
 
@@ -60,13 +59,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   const jobpostingActiveKid = document.getElementById("jobposting-active-kid");
   const clearActiveBtn = document.getElementById("clear-active-jobposting-btn");
 
-  let activeCaptureWebhookId = null;
   let currentResponseText = "";
   let currentTabKid = null;
   let currentTabUrl = null;
   let activeJobpostingUrl = null;
 
-  // Update jobposting UI based on current state
+  // Update jobposting UI based on current state. The popup only shows
+  // jobposting details when there is a current or pinned jobposting;
+  // the toolbar badge carries the no-jobposting "X" state.
   const updateJobpostingUI = (active, current) => {
     if (!jobpostingSection) {
       console.debug('Jobposting section element not found');
@@ -81,34 +81,54 @@ document.addEventListener("DOMContentLoaded", async () => {
     currentTabKid = current?.kid || null;
     currentTabUrl = current?.url || null;
     activeJobpostingUrl = active?.url || null;
+    const hasCurrentJobposting = Boolean(currentTabKid);
+    const hasActiveJobposting = Boolean(active?.kid);
+    const showCurrentTabStatus = status === 'mismatch' || hasCurrentJobposting;
 
-    // Update status LED and text
-    statusLed.className = 'status-led';
-    let statusTextValue = 'Kein aktives Jobposting';
-    if (status === 'match') {
-      statusLed.classList.add('green');
-      statusTextValue = 'Aktives Jobposting';
-    } else if (status === 'mismatch') {
-      statusLed.classList.add('red');
-      statusTextValue = 'Anderer Job-Tab!';
-    } else {
-      statusLed.classList.add('gray');
+    if (!showCurrentTabStatus && !hasActiveJobposting) {
+      jobpostingSection.classList.add("hidden");
+      jobpostingHeader?.classList.add("hidden");
+      if (statusText) statusText.textContent = "";
+      jobpostingCurrent?.classList.add('hidden');
+      jobpostingActive?.classList.add('hidden');
+      return;
     }
 
-    // Safely get i18n message
-    try {
-      if (browserAPI?.i18n?.getMessage) {
-        const messageKey = status === 'match' ? 'popupJobpostingMatch' :
-                          status === 'mismatch' ? 'popupJobpostingMismatch' :
-                          'popupNoActiveJobposting';
-        const message = browserAPI.i18n.getMessage(messageKey);
-        if (message) statusTextValue = message;
+    jobpostingSection.classList.remove("hidden");
+    if (jobpostingHeader) {
+      jobpostingHeader.classList.toggle("hidden", !showCurrentTabStatus);
+    }
+
+    if (showCurrentTabStatus) {
+      statusLed.className = 'status-led';
+      let messageKey;
+      let fallbackText;
+      if (status === 'mismatch') {
+        statusLed.classList.add('red');
+        messageKey = 'popupCurrentTabDifferentJobposting';
+        fallbackText = 'Anderes Jobposting in diesem Tab';
+      } else {
+        statusLed.classList.add('green');
+        messageKey = 'popupCurrentTabJobposting';
+        fallbackText = 'Jobposting in diesem Tab';
       }
-    } catch (e) {
-      console.debug('i18n error:', e);
-    }
 
-    statusText.textContent = statusTextValue;
+      let statusTextValue = fallbackText;
+      try {
+        if (browserAPI?.i18n?.getMessage) {
+          const message = browserAPI.i18n.getMessage(messageKey);
+          if (message) statusTextValue = message;
+        }
+      } catch (e) {
+        console.debug('i18n error:', e);
+      }
+
+      statusText.textContent = statusTextValue;
+    } else {
+      statusLed.className = 'status-led';
+      statusLed.classList.add('gray');
+      statusText.textContent = '';
+    }
 
     // Show current tab jobposting if on jobposting page
     console.debug('currentTabKid:', currentTabKid);
@@ -127,11 +147,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       jobpostingCurrent.classList.add('hidden');
     }
 
-    // Show active jobposting info
+    // Show active jobposting info — independent of current tab.
     if (active?.kid) {
       jobpostingActive.classList.remove('hidden');
       jobpostingActiveKid.textContent = active.kid;
-            jobpostingActiveKid.onclick = () => {
+      jobpostingActiveKid.onclick = () => {
         if (activeJobpostingUrl) {
           chrome.tabs.create({ url: activeJobpostingUrl });
           window.close();
@@ -142,78 +162,26 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   };
 
-  // Initialize jobposting section
+  // Initialize jobposting section.
+  //
+  // Delegates to the shared `computeCurrentJobpostingState` helper
+  // (loaded via popup.html before this script) so the regex /
+  // storage / status logic is not duplicated between popup.js and
+  // background.js.
   const initJobpostingSection = async () => {
-    console.log('initJobpostingSection called');
     try {
-      console.log('Initializing jobposting section...');
-
-      // Ensure browserAPI is available
-      if (!browserAPI || !browserAPI.runtime || !browserAPI.runtime.sendMessage) {
-        console.log('browserAPI not available');
+      if (typeof computeCurrentJobpostingState !== 'function' || !browserAPI) {
+        console.debug('jobposting helper or browserAPI unavailable');
+        jobpostingSection?.classList.remove('hidden');
+        updateJobpostingUI(null, null);
         return;
       }
 
-      console.log('Reading jobposting data from storage...');
-      let response = null;
-      try {
-        // Get current tab info directly
-        const tabs = await browserAPI.tabs.query({ active: true, currentWindow: true });
-        console.log('Current tabs:', tabs);
-
-        if (tabs && tabs.length > 0) {
-          const currentUrl = tabs[0].url;
-          console.log('Current URL:', currentUrl);
-
-          // Extract KID from URL (same pattern as background)
-          const pattern = /^https:\/\/admin\.schnellestelle\.(?:de|club)\/jobpostings\/(?<kid>[a-z0-9]{9})/;
-          const match = currentUrl?.match(pattern);
-          const currentKid = match?.groups?.kid || null;
-          console.log('Extracted KID:', currentKid);
-
-          // Get stored active jobposting
-          const stored = await browserAPI.storage.local.get(['active_jobposting']);
-          const activeJobposting = stored.active_jobposting || null;
-          console.log('Active jobposting from storage:', activeJobposting);
-
-          // Calculate status
-          let status = 'none';
-          if (!activeJobposting?.kid) {
-            status = 'none';
-          } else if (currentKid === activeJobposting.kid) {
-            status = 'match';
-          } else if (currentKid) {
-            status = 'mismatch';
-          }
-
-          response = {
-            active: activeJobposting,
-            current: {
-              kid: currentKid,
-              url: currentUrl,
-              status: status
-            }
-          };
-          console.log('Built response:', response);
-        }
-      } catch (err) {
-        console.error('Error reading data:', err);
-      }
-
-      if (response) {
-        console.log('Active:', response.active);
-        console.log('Current:', response.current);
-        console.log('Current KID:', response.current?.kid);
-        updateJobpostingUI(response.active, response.current);
-      } else {
-        console.log('No response, using default state');
-        // Still show the section even if no jobposting is detected
-        jobpostingSection?.classList.remove('hidden');
-        updateJobpostingUI(null, null);
-      }
+      const state = await computeCurrentJobpostingState(browserAPI);
+      console.debug('Jobposting state:', state);
+      updateJobpostingUI(state.active, state.current);
     } catch (error) {
       console.error('Failed to initialize jobposting section:', error);
-      // Show section with default state on error
       jobpostingSection?.classList.remove('hidden');
       updateJobpostingUI(null, null);
     }
@@ -300,90 +268,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     responseContainer.classList.remove("hidden");
   };
 
-  const getCaptureLabel = (count) => {
-    const localized = browserAPI.i18n.getMessage("popupCaptureButtonLabel", [
-      String(count),
-      String(MAX_SELECTORS_PER_WEBHOOK),
-    ]);
-    return localized || `Capture (${count}/${MAX_SELECTORS_PER_WEBHOOK})`;
-  };
-
-  const getLimitTooltip = () => {
-    return (
-      browserAPI.i18n.getMessage("popupCaptureLimitReachedTooltip", [
-        String(MAX_SELECTORS_PER_WEBHOOK),
-      ]) || `Maximum of ${MAX_SELECTORS_PER_WEBHOOK} selectors reached`
-    );
-  };
-
-  const ensureSelectorContentScript = async (tabId) => {
-    try {
-      if (browserAPI.scripting && typeof browserAPI.scripting.executeScript === "function") {
-        await browserAPI.scripting.executeScript({
-          target: { tabId },
-          files: ["content-scripts/selector-capture.js"],
-        });
-        return true;
-      }
-      if (browserAPI.tabs && typeof browserAPI.tabs.executeScript === "function") {
-        await browserAPI.tabs.executeScript(tabId, {
-          file: "content-scripts/selector-capture.js",
-        });
-        return true;
-      }
-    } catch (error) {
-      console.debug("Failed to inject selector capture script", error);
-    }
-    return false;
-  };
-
-  const sendMessageToTab = (tabId, message) => {
-    if (browserAPI.tabs && typeof browserAPI.tabs.sendMessage === "function") {
-      return browserAPI.tabs.sendMessage(tabId, message);
-    }
-    if (typeof browser !== "undefined" && browser.tabs?.sendMessage) {
-      return browser.tabs.sendMessage(tabId, message);
-    }
-    if (typeof chrome !== "undefined" && chrome.tabs?.sendMessage) {
-      return new Promise((resolve, reject) => {
-        try {
-          chrome.tabs.sendMessage(tabId, message, (response) => {
-            const error = chrome.runtime?.lastError;
-            if (error) {
-              reject(new Error(error.message));
-            } else {
-              resolve(response);
-            }
-          });
-        } catch (error) {
-          reject(error);
-        }
-      });
-    }
-    throw new Error("tabs.sendMessage API is unavailable");
-  };
-
-  const updateCaptureButtonState = (webhookId) => {
-    const button = captureButtonMap.get(webhookId);
-    const webhook = window._webhookMap ? window._webhookMap[webhookId] : null;
-    if (!button || !webhook) return;
-    const count = Array.isArray(webhook.selectors) ? webhook.selectors.length : 0;
-    button.textContent = getCaptureLabel(count);
-    const limitReached = count >= MAX_SELECTORS_PER_WEBHOOK;
-    button.disabled = limitReached;
-    if (limitReached) {
-      button.title = getLimitTooltip();
-    } else {
-      button.removeAttribute("title");
-    }
-    if (activeCaptureWebhookId === webhookId) {
-      button.dataset.capturing = "true";
-      button.disabled = false;
-    } else {
-      button.dataset.capturing = "false";
-    }
-  };
-
+  
+  
+  
+  
+  
   const copyToClipboard = async (text) => {
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -419,13 +308,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  const ensureSelectors = (value) => {
-    if (!Array.isArray(value)) return [];
-    return value
-      .filter((entry) => typeof entry === "string" && entry.trim().length > 0)
-      .slice(0, MAX_SELECTORS_PER_WEBHOOK);
-  };
-
+  
   const applyThemePreference = async () => {
     try {
       const themeResult = await browserAPI.storage.sync.get("theme");
@@ -442,8 +325,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   };
 
   const renderWebhooks = async () => {
-    captureButtonMap.clear();
-    buttonsContainer.textContent = "";
+        buttonsContainer.textContent = "";
     hideResponse();
     setStatus("hidden", "");
 
@@ -455,7 +337,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const currentUrl = tabs[0]?.url || "";
     const normalizedWebhooks = webhooks.map((wh) => ({
       ...wh,
-      selectors: ensureSelectors(wh.selectors),
+      
     }));
 
     const visibleWebhooks = normalizedWebhooks.filter(
@@ -463,7 +345,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     );
 
     window._webhookMap = Object.fromEntries(
-      visibleWebhooks.map((wh) => [wh.id, { ...wh, selectors: [...wh.selectors] }])
+      visibleWebhooks.map((wh) => [wh.id, { ...wh,  }])
     );
 
     if (visibleWebhooks.length === 0) {
@@ -496,18 +378,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       triggerBtn.classList.add("webhook-btn");
       triggerBtn.textContent = displayLabel;
 
-      const captureBtn = document.createElement("button");
-      captureBtn.dataset.action = "capture";
-      captureBtn.dataset.webhookId = webhook.id;
-      captureBtn.classList.add("capture-btn");
-      captureButtonMap.set(webhook.id, captureBtn);
+      
 
       row.appendChild(triggerBtn);
-      row.appendChild(captureBtn);
-      buttonsContainer.appendChild(row);
+            buttonsContainer.appendChild(row);
 
-      updateCaptureButtonState(webhook.id);
-    };
+          };
 
     groups.forEach((group) => {
       const groupWebhooks = groupedWebhooks[group.id];
@@ -574,52 +450,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   };
 
-  const startCapture = async (webhook, button) => {
-    const selectors = Array.isArray(webhook.selectors) ? webhook.selectors : [];
-    if (selectors.length >= MAX_SELECTORS_PER_WEBHOOK) {
-      setStatus("error", getLimitTooltip());
-      updateCaptureButtonState(webhook.id);
-      return;
-    }
-
-    let tabs = [];
-    if (browserAPI.tabs?.query) {
-      tabs = await browserAPI.tabs.query({ active: true, currentWindow: true });
-    } else if (browserAPI.tabs?.getCurrent) {
-      const tab = await browserAPI.tabs.getCurrent();
-      if (tab) tabs = [tab];
-    }
-    if (!tabs.length) {
-      setStatus(
-        "error",
-        browserAPI.i18n.getMessage("popupNoActiveTabError") ||
-          "Unable to find an active tab."
-      );
-      return;
-    }
-
-    const tabId = tabs[0].id;
-    const attemptStart = async () => {
-      const response = await sendMessageToTab(tabId, {
-        type: "START_SELECTOR_CAPTURE",
-        webhookId: webhook.id,
-        existingSelectors: selectors,
-        maxSelectors: MAX_SELECTORS_PER_WEBHOOK,
-      });
-      activeCaptureWebhookId = webhook.id;
-      if (button) {
-        button.disabled = false;
-        button.dataset.capturing = "true";
-      }
-      const remaining = response?.remaining ?? MAX_SELECTORS_PER_WEBHOOK - selectors.length;
-      const captureMsg =
-        browserAPI.i18n.getMessage("popupCaptureStarted", [
-          String(remaining),
-        ]) ||
-        `Capture mode active. ${remaining} remaining. Click elements to save text, press Esc to stop.`;
-      setStatus("info", captureMsg);
-    };
-
+  
     let lastError = null;
     try {
       await attemptStart();
@@ -647,107 +478,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     }
 
-    const errorMsg =
-      lastError && typeof lastError.message === "string" && lastError.message.includes("Receiving end does not exist")
-        ? browserAPI.i18n.getMessage("popupCaptureContentNotAvailable") ||
-          "No eligible content on this page. Try reloading or switch to a supported tab."
-        : browserAPI.i18n.getMessage("popupCaptureStartError") ||
-          "Failed to start selector capture. Try reloading the page.";
-    setStatus("error", errorMsg);
-    updateCaptureButtonState(webhook.id);
-  };
-
-  const handleCapturedSelector = (message) => {
-    if (message.origin && message.origin !== "background") {
-      return;
-    }
-    const { selector, textContent, webhookId, selectors = [], remaining } = message;
-    if (!selector || !webhookId) return;
-
-    if (window._webhookMap && window._webhookMap[webhookId]) {
-      window._webhookMap[webhookId].selectors = Array.isArray(selectors)
-        ? [...selectors]
-        : [];
-    }
-    updateCaptureButtonState(webhookId);
-
-    const preview =
-      typeof textContent === "string" && textContent.length > 0
-        ? textContent.slice(0, 80)
-        : selector;
-    const selectorsLength = Array.isArray(selectors) ? selectors.length : 0;
-    const successMsg =
-      browserAPI.i18n.getMessage("popupCaptureSaved", [
-        preview,
-        String(remaining ?? Math.max(MAX_SELECTORS_PER_WEBHOOK - selectorsLength, 0)),
-      ]) ||
-      `Captured: "${preview}"`;
-    setStatus("success", successMsg);
-  };
-
-  const handleCaptureError = (message) => {
-    if (message.origin && message.origin !== "background") {
-      return;
-    }
-    const { reason } = message;
-    let key = "popupCaptureGenericError";
-    switch (reason) {
-      case "duplicate":
-        key = "popupCaptureDuplicate";
-        break;
-      case "limit":
-      case "limit-reached":
-        key = "popupCaptureLimitReachedTooltip";
-        break;
-      case "empty-text":
-        key = "popupCaptureEmptyText";
-        break;
-      case "no-selector":
-        key = "popupCaptureNoSelector";
-        break;
-      case "not-found":
-        key = "popupCaptureGenericError";
-        break;
-      default:
-        key = "popupCaptureGenericError";
-        break;
-    }
-    const text =
-      browserAPI.i18n.getMessage(key, [String(MAX_SELECTORS_PER_WEBHOOK)]) ||
-      "Unable to capture this element.";
-    setStatus("error", text);
-  };
-
-  const handleCaptureEnded = (message) => {
-    if (message.origin && message.origin !== "background") {
-      return;
-    }
-    if (!activeCaptureWebhookId) {
-      return;
-    }
-    const webhookId = activeCaptureWebhookId;
-    activeCaptureWebhookId = null;
-    updateCaptureButtonState(webhookId);
-
-    let key = "popupCaptureEnded";
-    switch (message?.reason) {
-      case "limit-reached":
-        key = "popupCaptureLimitReachedTooltip";
-        break;
-      case "cancelled":
-        key = "popupCaptureCancelled";
-        break;
-      default:
-        key = "popupCaptureEnded";
-        break;
-    }
-    const text =
-      browserAPI.i18n.getMessage(key, [String(MAX_SELECTORS_PER_WEBHOOK)]) ||
-      "Capture mode ended.";
-    setStatus("info", text);
-  };
-
-  buttonsContainer.addEventListener("click", async (event) => {
+    buttonsContainer.addEventListener("click", async (event) => {
     const button = event.target.closest("button");
     if (!button) return;
     const action = button.dataset.action;
@@ -758,49 +489,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (action === "trigger") {
       await handleTrigger(webhook, button);
-    } else if (action === "capture") {
-      await startCapture(webhook, button);
     }
   });
 
-  const addRuntimeListener = (runtime) => {
-    if (!runtime || !runtime.onMessage || typeof runtime.onMessage.addListener !== "function") {
-      return false;
-    }
-    runtime.onMessage.addListener((message) => {
-      if (!message || typeof message !== "object") {
-        return false;
-      }
-      switch (message.type) {
-        case "SELECTOR_CAPTURED":
-          if (
-            activeCaptureWebhookId &&
-            message.webhookId === activeCaptureWebhookId
-          ) {
-            handleCapturedSelector(message);
-          }
-          break;
-        case "SELECTOR_CAPTURE_ERROR":
-          handleCaptureError(message);
-          break;
-        case "SELECTOR_CAPTURE_ENDED":
-          handleCaptureEnded(message);
-          break;
-        default:
-          break;
-      }
-      return false;
-    });
-    return true;
-  };
-
-  const runtimeCandidates = [
-    browserAPI.runtime,
-    typeof browser !== "undefined" ? browser.runtime : undefined,
-    typeof chrome !== "undefined" ? chrome.runtime : undefined,
-  ];
-  runtimeCandidates.some(addRuntimeListener);
-
+  
+  
   document.getElementById("open-options").addEventListener("click", (event) => {
     event.preventDefault();
     browserAPI.runtime.openOptionsPage();

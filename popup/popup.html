@@ -9,10 +9,10 @@
     <body>
         <div class="container">
             <!-- Active Jobposting Section -->
-            <div id="jobposting-section" class="jobposting-section">
+            <div id="jobposting-section" class="jobposting-section hidden">
                 <div class="jobposting-header">
                     <span id="jobposting-status-led" class="status-led gray"></span>
-                    <span id="jobposting-status-text" data-i18n="popupNoActiveJobposting">__MSG_popupNoActiveJobposting__</span>
+                    <span id="jobposting-status-text" data-i18n="popupCurrentTabNoJobposting">__MSG_popupCurrentTabNoJobposting__</span>
                 </div>
 
                  <div id="jobposting-current" class="jobposting-current hidden">
@@ -48,6 +48,7 @@
         </div>
         <script src="../utils/browser-polyfill.js"></script>
         <script src="../utils/utils.js"></script>
+        <script src="../utils/jobposting.js"></script>
         <script src="popup.js"></script>
     </body>
 </html>

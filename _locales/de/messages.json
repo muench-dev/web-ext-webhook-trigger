@@ -189,6 +189,30 @@
     "message": "Button anzeigen, wenn URL diesen Text enthält",
     "description": "Platzhalter für das URL-Filter-Eingabefeld."
   },
+  "optionsIncludePageTextLabel": {
+    "message": "Sichtbaren Seitentext einfügen (ideal für KI)",
+    "description": "Label für die Checkbox zum Einfügen des Seitentextes."
+  },
+  "optionsIncludePageTextHint": {
+    "message": "Sendet den gesamten sichtbaren Text der Seite als 'pageText' im Payload. Sehr token-effizient für KI-Verarbeitung.",
+    "description": "Hilfetext für die Checkbox zum Einfügen des Seitentextes."
+  },
+  "optionsIncludePageHtmlLabel": {
+    "message": "Rohes HTML einfügen",
+    "description": "Label für die Checkbox zum Einfügen von rohem HTML."
+  },
+  "optionsIncludePageHtmlHint": {
+    "message": "Sendet den kompletten HTML-Quellcode der Seite als 'pageHtml' im Payload.",
+    "description": "Hilfetext für die Checkbox zum Einfügen von rohem HTML."
+  },
+  "optionsPageTextVariableHint": {
+    "message": "Extrahierter sichtbarer reiner Text des aktiven Tabs",
+    "description": "Beschreibung für die Variable {{page.text}} in der Variablenliste."
+  },
+  "optionsPageHtmlVariableHint": {
+    "message": "Extrahierter HTML-Quellcode des aktiven Tabs",
+    "description": "Beschreibung für die Variable {{page.html}} in der Variablenliste."
+  },
   "optionsCustomPayloadLabel": {
     "message": "Benutzerdefiniertes Payload (optional)",
     "description": "Label für den Bereich benutzerdefiniertes Payload."
@@ -470,17 +494,17 @@
     "message": "Klicken Sie auf Elemente, um deren Text zu erfassen. Drücken Sie Esc zum Beenden.",
     "description": "Tooltip, der im Auswahlmodus angezeigt wird."
   },
-  "popupNoActiveJobposting": {
-    "message": "Kein aktives Jobposting",
-    "description": "Status wenn kein Jobposting aktiv gesetzt ist."
+  "popupCurrentTabNoJobposting": {
+    "message": "Kein Jobposting in diesem Tab",
+    "description": "Header-Status im Popup, wenn der aktuelle Tab keine Jobposting-Seite ist."
   },
-  "popupJobpostingMatch": {
-    "message": "Aktives Jobposting",
-    "description": "Status wenn der aktuelle Tab dem aktiven Jobposting entspricht."
+  "popupCurrentTabJobposting": {
+    "message": "Jobposting in diesem Tab",
+    "description": "Header-Status im Popup, wenn der aktuelle Tab eine Jobposting-Seite ist (und entweder nichts angeheftet ist oder das angeheftete Jobposting passt)."
   },
-  "popupJobpostingMismatch": {
-    "message": "Anderer Job-Tab!",
-    "description": "Status wenn der aktuelle Tab ein anderes Jobposting als das aktive zeigt."
+  "popupCurrentTabDifferentJobposting": {
+    "message": "Anderes Jobposting in diesem Tab",
+    "description": "Header-Status im Popup, wenn der aktuelle Tab eine andere Jobposting-Seite zeigt als das angeheftete."
   },
   "popupSetActiveJobposting": {
     "message": "Als aktiv setzen",

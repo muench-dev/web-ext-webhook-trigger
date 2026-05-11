@@ -136,11 +136,74 @@ const buildDateTimeVariables = (date = new Date()) => {
   };
 };
 
+const sendTabMessage = (browserAPI, tabId, message) => {
+  if (browserAPI.tabs && typeof browserAPI.tabs.sendMessage === "function") {
+    return browserAPI.tabs.sendMessage(tabId, message);
+  }
+  if (typeof browser !== "undefined" && typeof browser.tabs?.sendMessage === "function") {
+    return browser.tabs.sendMessage(tabId, message);
+  }
+  if (typeof chrome !== "undefined" && typeof chrome.tabs?.sendMessage === "function") {
+    return new Promise((resolve, reject) => {
+      chrome.tabs.sendMessage(tabId, message, (response) => {
+        const error = chrome.runtime?.lastError;
+        if (error) {
+          reject(new Error(error.message));
+        } else {
+          resolve(response);
+        }
+      });
+    });
+  }
+  throw new Error("tabs.sendMessage API is unavailable");
+};
+
+const ensurePageContentScript = async (browserAPI, tabId) => {
+  try {
+    if (browserAPI.scripting && typeof browserAPI.scripting.executeScript === "function") {
+      await browserAPI.scripting.executeScript({
+        target: { tabId },
+        files: ["content-scripts/page-content.js"],
+      });
+      return true;
+    }
+    if (typeof browser !== "undefined" && typeof browser.scripting?.executeScript === "function") {
+      await browser.scripting.executeScript({
+        target: { tabId },
+        files: ["content-scripts/page-content.js"],
+      });
+      return true;
+    }
+    if (typeof chrome !== "undefined" && typeof chrome.scripting?.executeScript === "function") {
+      await new Promise((resolve, reject) => {
+        chrome.scripting.executeScript({
+          target: { tabId },
+          files: ["content-scripts/page-content.js"],
+        }, (result) => {
+          const error = chrome.runtime?.lastError;
+          if (error) {
+            reject(new Error(error.message));
+          } else {
+            resolve(result);
+          }
+        });
+      });
+      return true;
+    }
+    if (browserAPI.tabs && typeof browserAPI.tabs.executeScript === "function") {
+      await browserAPI.tabs.executeScript(tabId, {
+        file: "content-scripts/page-content.js",
+      });
+      return true;
+    }
+  } catch (error) {
+    console.debug("Failed to inject page content script", error);
+  }
+  return false;
+};
+
 async function sendWebhook(webhook, isTest = false) {
   const browserAPI = getBrowserAPI();
-  let selectors = Array.isArray(webhook?.selectors) ? [...webhook.selectors] : [];
-  let selectorContent = [];
-
   try {
     let payload;
 
@@ -175,61 +238,35 @@ async function sendWebhook(webhook, isTest = false) {
       const activeTab = tabs[0];
       const currentUrl = activeTab.url;
 
-      if ((!selectors || selectors.length === 0) && webhook?.id) {
-        try {
-          const stored = await browserAPI.storage.sync.get("webhooks");
-          const storedHooks = Array.isArray(stored?.webhooks) ? stored.webhooks : [];
-          const storedMatch = storedHooks.find((w) => w.id === webhook.id);
-          if (storedMatch && Array.isArray(storedMatch.selectors)) {
-            selectors = storedMatch.selectors.filter((value) => typeof value === "string" && value.trim().length > 0);
-          }
-        } catch (error) {
-          console.debug("Failed to load stored selectors", error);
-        }
-      }
+      
 
       const canSendMessage =
         typeof browserAPI.tabs?.sendMessage === "function" ||
         (typeof browser !== "undefined" && typeof browser.tabs?.sendMessage === "function") ||
         (typeof chrome !== "undefined" && typeof chrome.tabs?.sendMessage === "function");
 
-      if (selectors.length > 0 && canSendMessage) {
+      let pageText = null;
+      let pageHtml = null;
+
+      const needsText = webhook?.includePageText || (webhook?.customPayload && webhook.customPayload.includes("{{page.text}}"));
+      const needsHtml = webhook?.includePageHtml || (webhook?.customPayload && webhook.customPayload.includes("{{page.html}}"));
+
+      if ((needsText || needsHtml) && canSendMessage) {
         try {
-          let response;
-          if (browserAPI.tabs && typeof browserAPI.tabs.sendMessage === "function") {
-            response = await browserAPI.tabs.sendMessage(activeTab.id, {
-              type: "GET_SELECTOR_CONTENT",
-              selectors,
-            });
-          } else if (typeof browser !== "undefined" && typeof browser.tabs?.sendMessage === "function") {
-            response = await browser.tabs.sendMessage(activeTab.id, {
-              type: "GET_SELECTOR_CONTENT",
-              selectors,
-            });
-          } else if (typeof chrome !== "undefined" && typeof chrome.tabs?.sendMessage === "function") {
-            response = await new Promise((resolve, reject) => {
-              chrome.tabs.sendMessage(activeTab.id, {
-                type: "GET_SELECTOR_CONTENT",
-                selectors,
-              }, (res) => {
-                const err = chrome.runtime?.lastError;
-                if (err) {
-                  reject(new Error(err.message));
-                } else {
-                  resolve(res);
-                }
-              });
-            });
-          }
-          if (response && Array.isArray(response.selectorContent)) {
-            selectorContent = response.selectorContent.map((value) =>
-              typeof value === "string" ? value.trim() : ""
-            );
+          const injected = await ensurePageContentScript(browserAPI, activeTab.id);
+          if (injected) {
+            const response = await sendTabMessage(browserAPI, activeTab.id, { type: "GET_PAGE_CONTENT" });
+            if (response && response.ok) {
+              if (needsText) pageText = response.text;
+              if (needsHtml) pageHtml = response.html;
+            }
           }
         } catch (error) {
-          console.warn("Failed to retrieve selector content", error);
+          console.warn("Failed to retrieve page content", error);
         }
       }
+
+      
 
       // Get browser and platform info
       const browserInfo = await browserAPI.runtime.getBrowserInfo?.() || {};
@@ -263,8 +300,14 @@ async function sendWebhook(webhook, isTest = false) {
         payload.identifier = webhook.identifier;
       }
 
-      if (selectors.length > 0) {
-        payload.selectorContent = selectorContent;
+      
+
+      if (webhook && webhook.includePageText && pageText !== null) {
+        payload.pageText = pageText;
+      }
+
+      if (webhook && webhook.includePageHtml && pageHtml !== null) {
+        payload.pageHtml = pageHtml;
       }
 
       if (webhook && webhook.customPayload) {
@@ -284,7 +327,8 @@ async function sendWebhook(webhook, isTest = false) {
             "{{platform.os}}": platformInfo.os || "unknown",
             "{{platform.version}}": platformInfo.version,
             "{{identifier}}": webhook.identifier || "",
-            "{{selectorContent}}": selectorContent,
+            "{{page.text}}": pageText || "",
+            "{{page.html}}": pageHtml || "",
             ...dateTimeVariables.values,
           };
 

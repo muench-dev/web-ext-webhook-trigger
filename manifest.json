@@ -4,15 +4,26 @@
   "version": "1.12.0",
   "description": "__MSG_extensionDescription__",
   "default_locale": "en",
-  "permissions": ["storage", "activeTab", "scripting", "tabs"],
-  "host_permissions": ["<all_urls>"],
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "tabs"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
   "background": {
     "service_worker": "background.js"
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["content-scripts/selector-capture.js"],
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content-scripts/page-content.js"
+      ],
       "run_at": "document_idle"
     }
   ],
@@ -59,7 +70,8 @@
   },
   "browser_specific_settings": {
     "gecko": {
-      "id": "webhooks@muench.dev"
+      "id": "webhooks@muench.dev",
+      "strict_min_version": "109.0"
     }
   }
 }

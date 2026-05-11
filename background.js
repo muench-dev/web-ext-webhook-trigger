@@ -7,10 +7,45 @@ if (typeof browser === 'undefined' && typeof chrome !== 'undefined') {
   globalThis.chrome = browser;
 }
 
+// Load shared jobposting helpers (extractJobpostingKid,
+// computeJobpostingStatus, computeCurrentJobpostingState,
+// JOBPOSTING_STORAGE_KEY). The script attaches them to `self`,
+// which in a service worker is the global scope.
+try {
+  importScripts('utils/jobposting.js');
+} catch (error) {
+  console.error('Failed to load utils/jobposting.js', error);
+}
+
 console.log('=== BACKGROUND SCRIPT LOADED ===');
 
-const ADMIN_JOBPOSTING_PATTERN = /^https:\/\/admin\.schnellestelle\.(?:de|club)\/jobpostings\/(?<kid>[a-z0-9]{9})/;
-const JOBPOSTING_STORAGE_KEY = 'active_jobposting';
+async function captureVisibleTabForFullPage(windowId, options = {}) {
+  if (!browser?.tabs?.captureVisibleTab) {
+    throw new Error('tabs.captureVisibleTab API is unavailable');
+  }
+
+  try {
+    const result = browser.tabs.captureVisibleTab(windowId, options);
+    if (result && typeof result.then === 'function') {
+      return await result;
+    }
+  } catch (error) {
+    if (typeof chrome === 'undefined' || !chrome.tabs?.captureVisibleTab) {
+      throw error;
+    }
+  }
+
+  return new Promise((resolve, reject) => {
+    chrome.tabs.captureVisibleTab(windowId, options, (dataUrl) => {
+      const error = chrome.runtime?.lastError;
+      if (error) {
+        reject(new Error(error.message));
+      } else {
+        resolve(dataUrl);
+      }
+    });
+  });
+}
 
 /**
  * Update the extension icon to reflect jobposting status
@@ -26,7 +61,7 @@ async function updateIcon(status) {
     };
 
     const badgeTexts = {
-      'none': '',
+      'none': 'X',
       'match': '✓',
       'mismatch': '!'
     };
@@ -44,59 +79,26 @@ async function updateIcon(status) {
 }
 
 /**
- * Extract jobposting KID from URL if it matches the admin jobposting pattern
- * @param {string} url
- * @returns {string|null}
- */
-function extractJobpostingKid(url) {
-  if (!url) return null;
-  console.debug('Extracting KID from URL:', url);
-  console.debug('Using pattern:', ADMIN_JOBPOSTING_PATTERN);
-  const match = url.match(ADMIN_JOBPOSTING_PATTERN);
-  console.debug('Match result:', match);
-  return match?.groups?.kid || null;
-}
-
-/**
- * Check if the active jobposting tab has changed and notify popup
+ * Check if the active jobposting tab has changed and update the badge.
+ * Delegates the regex/storage/comparison work to the shared helper.
  */
 async function checkActiveTab() {
   try {
-    console.debug('Checking active tab...');
-    const tabs = await browser.tabs.query({ active: true, currentWindow: true });
-    if (!tabs || tabs.length === 0) return;
-
-    const currentTab = tabs[0];
-    const currentKid = extractJobpostingKid(currentTab.url);
-    console.debug('Current tab KID:', currentKid);
-
-    // Get stored active jobposting
-    const stored = await browser.storage.local.get(JOBPOSTING_STORAGE_KEY);
-    const activeJobposting = stored[JOBPOSTING_STORAGE_KEY];
-    console.debug('Active jobposting:', activeJobposting);
-
-    // Calculate status
-    let status = 'none'; // 'none', 'match', 'mismatch'
-    if (!activeJobposting?.kid) {
-      status = 'none';
-    } else if (currentKid === activeJobposting.kid) {
-      status = 'match';
-    } else if (currentKid) {
-      status = 'mismatch';
+    if (typeof computeCurrentJobpostingState !== 'function') {
+      // Helper failed to load — bail without crashing the SW.
+      console.debug('computeCurrentJobpostingState helper not available');
+      return;
     }
-
-    console.debug('Jobposting status:', status);
+    const state = await computeCurrentJobpostingState(browser);
+    console.debug('Jobposting state:', state);
 
     // Update extension icon to show status
-    updateIcon(status);
+    await updateIcon(state.current.status);
 
-    // Store current tab info for popup
+    // Cache current tab info so other code paths can read it without
+    // re-running the regex.
     await browser.storage.local.set({
-      current_tab_jobposting: {
-        kid: currentKid,
-        url: currentTab.url,
-        status: status
-      }
+      [CURRENT_TAB_JOBPOSTING_STORAGE_KEY]: state.current,
     });
   } catch (error) {
     console.debug('Failed to check active tab:', error);
@@ -132,6 +134,15 @@ if (browser.runtime) {
 
     const handleMessage = async () => {
       switch (message.type) {
+        case 'CAPTURE_VISIBLE_TAB_FOR_FULL_PAGE': {
+          const windowId = sender?.tab?.windowId;
+          if (typeof windowId !== 'number') {
+            throw new Error('Unable to determine source tab window.');
+          }
+          const dataUrl = await captureVisibleTabForFullPage(windowId, message.options || {});
+          return { success: true, ok: true, dataUrl };
+        }
+
         case 'SET_ACTIVE_JOBPOSTING':
           await browser.storage.local.set({
             [JOBPOSTING_STORAGE_KEY]: {
@@ -146,11 +157,11 @@ if (browser.runtime) {
         case 'GET_ACTIVE_JOBPOSTING':
           const stored = await browser.storage.local.get([
             JOBPOSTING_STORAGE_KEY,
-            'current_tab_jobposting'
+            CURRENT_TAB_JOBPOSTING_STORAGE_KEY,
           ]);
           return {
             active: stored[JOBPOSTING_STORAGE_KEY] || null,
-            current: stored.current_tab_jobposting || null
+            current: stored[CURRENT_TAB_JOBPOSTING_STORAGE_KEY] || null,
           };
 
         case 'CLEAR_ACTIVE_JOBPOSTING':
@@ -162,11 +173,11 @@ if (browser.runtime) {
           await checkActiveTab();
           const result = await browser.storage.local.get([
             JOBPOSTING_STORAGE_KEY,
-            'current_tab_jobposting'
+            CURRENT_TAB_JOBPOSTING_STORAGE_KEY,
           ]);
           return {
             active: result[JOBPOSTING_STORAGE_KEY] || null,
-            current: result.current_tab_jobposting || null
+            current: result[CURRENT_TAB_JOBPOSTING_STORAGE_KEY] || null,
           };
       }
     };

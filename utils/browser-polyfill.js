@@ -254,6 +254,27 @@ browserAPI.tabs = {
     }
     return Promise.resolve([]);
   },
+  captureVisibleTab: function(windowId, options) {
+    const nativeCapture = isFirefox
+      ? nativeBrowser?.tabs?.captureVisibleTab
+      : nativeChrome?.tabs?.captureVisibleTab;
+    if (nativeCapture && nativeCapture !== browserAPI.tabs.captureVisibleTab) {
+      if (isFirefox) {
+        return nativeCapture.call(nativeBrowser.tabs, windowId, options);
+      }
+      return new Promise((resolve, reject) => {
+        nativeCapture.call(nativeChrome.tabs, windowId, options, (dataUrl) => {
+          const error = nativeChrome.runtime?.lastError;
+          if (error) {
+            reject(new Error(error.message));
+          } else {
+            resolve(dataUrl);
+          }
+        });
+      });
+    }
+    return Promise.resolve(null);
+  },
   sendMessage: function(tabId, message) {
     const nativeSendMessage = isFirefox
       ? nativeBrowser?.tabs?.sendMessage
