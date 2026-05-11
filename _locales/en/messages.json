@@ -213,6 +213,26 @@
     "message": "Extracted raw HTML source code of the active tab",
     "description": "Description for the {{page.html}} variable in the variables list."
   },
+  "optionsPageHtmlTypeLabel": {
+    "message": "HTML content",
+    "description": "Label for the page HTML type dropdown."
+  },
+  "optionsPageHtmlTypeNone": {
+    "message": "Don't include HTML",
+    "description": "Option to not include HTML in the payload."
+  },
+  "optionsPageHtmlTypeCleaned": {
+    "message": "Cleaned HTML (no scripts/styles)",
+    "description": "Option to include cleaned HTML without scripts and styles."
+  },
+  "optionsPageHtmlTypeRaw": {
+    "message": "Full raw HTML",
+    "description": "Option to include the full raw HTML source."
+  },
+  "optionsPageHtmlTypeHint": {
+    "message": "Choose how to include the page HTML in the webhook payload.",
+    "description": "Helper text for the HTML type dropdown."
+  },
   "optionsCustomPayloadLabel": {
     "message": "Custom Payload (optional)",
     "description": "Label for the custom payload section."

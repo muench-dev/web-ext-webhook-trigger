@@ -252,7 +252,7 @@ describe('sendWebhook', () => {
       const webhook = {
         url: 'https://content.test',
         includePageText: true,
-        includePageHtml: true
+        pageHtmlType: 'raw'
       };
 
       await sendWebhook(webhook, false);

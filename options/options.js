@@ -1,20 +1,12 @@
 const browser = window.getBrowserAPI();
-const MAX_SELECTORS_PER_WEBHOOK = 10;
 
 const normalizeWebhookRecord = (webhook) => {
   const normalizedHeaders = Array.isArray(webhook.headers) ? webhook.headers : [];
-  const normalizedSelectors = Array.isArray(webhook.selectors)
-    ? webhook.selectors
-        .map((value) => (typeof value === "string" ? value.trim() : ""))
-        .filter((value) => value.length > 0)
-        .slice(0, MAX_SELECTORS_PER_WEBHOOK)
-    : [];
 
   return {
     ...webhook,
     headers: normalizedHeaders,
     emoji: webhook.emoji || "",
-    selectors: normalizedSelectors,
   };
 };
 
@@ -432,12 +424,8 @@ const clearEmojiBtn = document.getElementById('clear-emoji-btn');
 const emojiPicker = document.getElementById('emoji-picker');
 const emojiGrid = document.getElementById('emoji-grid');
 let headers = [];
-const selectorsList = document.getElementById("selectors-list");
-const selectorInput = document.getElementById("selector-input");
-const addSelectorBtn = document.getElementById("add-selector-btn");
-const selectorError = document.getElementById("selector-error");
-const selectorsCountLabel = document.getElementById("selectors-count");
-let selectors = [];
+const includePageTextCheckbox = document.getElementById("webhook-include-page-text");
+const pageHtmlTypeSelect = document.getElementById("webhook-page-html-type");
 
 async function exportWebhooks() {
   const { webhooks = [] } = await browser.storage.sync.get("webhooks");
@@ -797,196 +785,6 @@ function renderHeaders() {
   });
 }
 
-function setSelectorError(message) {
-  if (!selectorError) return;
-  if (!message) {
-    selectorError.textContent = '';
-    selectorError.classList.add('hidden');
-  } else {
-    selectorError.textContent = message;
-    selectorError.classList.remove('hidden');
-  }
-}
-
-function clearSelectorError() {
-  setSelectorError('');
-}
-
-function updateSelectorsCount() {
-  if (selectorsCountLabel) {
-    selectorsCountLabel.textContent = `${selectors.length}/${MAX_SELECTORS_PER_WEBHOOK}`;
-  }
-}
-
-function createSelectorListItem(selectorValue, index) {
-  const item = document.createElement('li');
-  item.className = 'selector-item';
-  item.dataset.index = String(index);
-
-  const code = document.createElement('code');
-  code.textContent = selectorValue;
-  item.appendChild(code);
-
-  const actions = document.createElement('div');
-  actions.className = 'selector-actions';
-
-  const moveUpBtn = document.createElement('button');
-  moveUpBtn.type = 'button';
-  moveUpBtn.className = 'selector-action-btn selector-up-btn';
-  moveUpBtn.textContent = browser.i18n.getMessage('optionsSelectorMoveUpButton') || '↑';
-  moveUpBtn.disabled = index === 0;
-  actions.appendChild(moveUpBtn);
-
-  const moveDownBtn = document.createElement('button');
-  moveDownBtn.type = 'button';
-  moveDownBtn.className = 'selector-action-btn selector-down-btn';
-  moveDownBtn.textContent = browser.i18n.getMessage('optionsSelectorMoveDownButton') || '↓';
-  moveDownBtn.disabled = index === selectors.length - 1;
-  actions.appendChild(moveDownBtn);
-
-  const editBtn = document.createElement('button');
-  editBtn.type = 'button';
-  editBtn.className = 'selector-action-btn selector-edit-btn';
-  editBtn.textContent = browser.i18n.getMessage('optionsSelectorEditButton') || 'Edit';
-  actions.appendChild(editBtn);
-
-  const deleteBtn = document.createElement('button');
-  deleteBtn.type = 'button';
-  deleteBtn.className = 'selector-action-btn selector-delete-btn';
-  deleteBtn.textContent = browser.i18n.getMessage('optionsSelectorDeleteButton') || 'Delete';
-  actions.appendChild(deleteBtn);
-
-  item.appendChild(actions);
-  return item;
-}
-
-function renderSelectors() {
-  if (!selectorsList) return;
-  selectors = selectors
-    .map((value) => (typeof value === 'string' ? value.trim() : ''))
-    .filter((value) => value.length > 0)
-    .slice(0, MAX_SELECTORS_PER_WEBHOOK);
-
-  selectorsList.textContent = '';
-  updateSelectorsCount();
-  clearSelectorError();
-
-  const limitReached = selectors.length >= MAX_SELECTORS_PER_WEBHOOK;
-  if (addSelectorBtn) addSelectorBtn.disabled = limitReached;
-  if (selectorInput) selectorInput.disabled = limitReached;
-
-  if (selectors.length === 0) {
-    const empty = document.createElement('li');
-    empty.className = 'selector-empty';
-    empty.textContent = browser.i18n.getMessage('optionsSelectorsEmptyMessage') || 'No selectors captured yet.';
-    selectorsList.appendChild(empty);
-    return;
-  }
-
-  selectors.forEach((selectorValue, index) => {
-    selectorsList.appendChild(createSelectorListItem(selectorValue, index));
-  });
-}
-
-function addSelectorValue(value) {
-  const trimmed = (value || '').trim();
-  if (!trimmed) {
-    setSelectorError(browser.i18n.getMessage('optionsSelectorEmptyError') || 'Selector cannot be empty.');
-    return false;
-  }
-  if (selectors.length >= MAX_SELECTORS_PER_WEBHOOK) {
-    setSelectorError(
-      browser.i18n.getMessage('optionsSelectorLimitError', [String(MAX_SELECTORS_PER_WEBHOOK)]) ||
-      `Maximum of ${MAX_SELECTORS_PER_WEBHOOK} selectors reached.`
-    );
-    return false;
-  }
-  if (selectors.some((existing) => existing === trimmed)) {
-    setSelectorError(browser.i18n.getMessage('optionsSelectorDuplicateError') || 'Selector already exists.');
-    return false;
-  }
-  selectors.push(trimmed);
-  renderSelectors();
-  return true;
-}
-
-function editSelectorAt(index) {
-  if (index < 0 || index >= selectors.length) return;
-  const currentValue = selectors[index];
-  const promptLabel = browser.i18n.getMessage('optionsSelectorEditPrompt') || 'Edit selector:';
-  const updated = window.prompt(promptLabel, currentValue);
-  if (updated === null) {
-    return;
-  }
-  const trimmed = updated.trim();
-  if (!trimmed) {
-    setSelectorError(browser.i18n.getMessage('optionsSelectorEmptyError') || 'Selector cannot be empty.');
-    return;
-  }
-  if (selectors.some((value, idx) => idx !== index && value === trimmed)) {
-    setSelectorError(browser.i18n.getMessage('optionsSelectorDuplicateError') || 'Selector already exists.');
-    return;
-  }
-  selectors[index] = trimmed;
-  renderSelectors();
-}
-
-function removeSelectorAt(index) {
-  if (index < 0 || index >= selectors.length) return;
-  selectors.splice(index, 1);
-  renderSelectors();
-}
-
-function moveSelector(index, offset) {
-  const newIndex = index + offset;
-  if (newIndex < 0 || newIndex >= selectors.length) return;
-  const [item] = selectors.splice(index, 1);
-  selectors.splice(newIndex, 0, item);
-  renderSelectors();
-}
-
-if (addSelectorBtn) {
-  addSelectorBtn.addEventListener('click', () => {
-    if (addSelectorValue(selectorInput.value)) {
-      selectorInput.value = '';
-      selectorInput.focus();
-    }
-  });
-}
-
-if (selectorInput) {
-  selectorInput.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      if (addSelectorValue(selectorInput.value)) {
-        selectorInput.value = '';
-      }
-    }
-  });
-  selectorInput.addEventListener('input', () => clearSelectorError());
-}
-
-if (selectorsList) {
-  selectorsList.addEventListener('click', (event) => {
-    const button = event.target.closest('button');
-    if (!button) return;
-    const item = button.closest('li.selector-item');
-    if (!item) return;
-    const index = Number(item.dataset.index);
-    if (Number.isNaN(index)) return;
-
-    if (button.classList.contains('selector-delete-btn')) {
-      removeSelectorAt(index);
-    } else if (button.classList.contains('selector-edit-btn')) {
-      editSelectorAt(index);
-    } else if (button.classList.contains('selector-up-btn')) {
-      moveSelector(index, -1);
-    } else if (button.classList.contains('selector-down-btn')) {
-      moveSelector(index, 1);
-    }
-  });
-}
-
 addHeaderBtn.addEventListener('click', () => {
   const key = headerKeyInput.value.trim();
   const value = headerValueInput.value.trim();
@@ -1017,6 +815,8 @@ form.addEventListener("submit", async (e) => {
   const urlFilter = urlFilterInput.value.trim();
   const customPayload = customPayloadInput.value.trim();
   const groupId = groupSelect.value || null;
+  const includePageText = includePageTextCheckbox ? includePageTextCheckbox.checked : false;
+  const pageHtmlType = pageHtmlTypeSelect ? pageHtmlTypeSelect.value : "";
   let { webhooks = [], groups = [] } = await browser.storage.sync.get(["webhooks", "groups"]);
 
   if (editWebhookId) {
@@ -1033,7 +833,8 @@ form.addEventListener("submit", async (e) => {
         urlFilter: urlFilter || "",
         groupId,
         emoji: emoji || "",
-        selectors: [...selectors]
+        includePageText,
+        pageHtmlType
       } : wh
     );
     editWebhookId = null;
@@ -1051,7 +852,8 @@ form.addEventListener("submit", async (e) => {
       urlFilter: urlFilter || "",
       groupId,
       emoji: emoji || "",
-      selectors: [...selectors]
+      includePageText,
+      pageHtmlType
     };
     webhooks.push(newWebhook);
   }
@@ -1067,13 +869,10 @@ form.addEventListener("submit", async (e) => {
   headerKeyInput.value = "";
   headerValueInput.value = "";
   groupSelect.value = "";
+  if (includePageTextCheckbox) includePageTextCheckbox.checked = false;
+  if (pageHtmlTypeSelect) pageHtmlTypeSelect.value = "";
   headers = [];
-  selectors = [];
   renderHeaders();
-  renderSelectors();
-  if (selectorInput) {
-    selectorInput.value = "";
-  }
   // Always reset to save button after submit
   form.querySelector('button[type="submit"]').textContent = browser.i18n.getMessage("optionsSaveButton") || "Save Webhook";
   // Collapse custom payload section
@@ -1150,8 +949,8 @@ webhookList.addEventListener("click", async (e) => {
       headerValueInput.value = "";
       headers = [];
       renderHeaders();
-      selectors = [];
-      renderSelectors();
+      if (includePageTextCheckbox) includePageTextCheckbox.checked = false;
+      if (pageHtmlTypeSelect) pageHtmlTypeSelect.value = "";
       cancelEditBtn.classList.add("hidden");
       form.querySelector('button[type="submit"]').textContent = browser.i18n.getMessage("optionsSaveButton") || "Save Webhook";
     }
@@ -1168,10 +967,10 @@ webhookList.addEventListener("click", async (e) => {
       customPayloadInput.value = webhook.customPayload || "";
       groupSelect.value = webhook.groupId || "";
       if (emojiInput) emojiInput.value = webhook.emoji || "";
+      if (includePageTextCheckbox) includePageTextCheckbox.checked = webhook.includePageText || false;
+      if (pageHtmlTypeSelect) pageHtmlTypeSelect.value = webhook.pageHtmlType || "";
       headers = Array.isArray(webhook.headers) ? [...webhook.headers] : [];
       renderHeaders();
-      selectors = Array.isArray(webhook.selectors) ? [...webhook.selectors] : [];
-      renderSelectors();
       cancelEditBtn.classList.remove("hidden");
       testWebhookBtn.classList.remove("hidden");
       form.classList.remove('hidden');
@@ -1197,10 +996,10 @@ webhookList.addEventListener("click", async (e) => {
       customPayloadInput.value = webhook.customPayload || "";
       groupSelect.value = webhook.groupId || "";
       if (emojiInput) emojiInput.value = webhook.emoji || "";
+      if (includePageTextCheckbox) includePageTextCheckbox.checked = webhook.includePageText || false;
+      if (pageHtmlTypeSelect) pageHtmlTypeSelect.value = webhook.pageHtmlType || "";
       headers = Array.isArray(webhook.headers) ? [...webhook.headers] : [];
       renderHeaders();
-      selectors = Array.isArray(webhook.selectors) ? [...webhook.selectors] : [];
-      renderSelectors();
       cancelEditBtn.classList.remove("hidden");
       testWebhookBtn.classList.remove("hidden");
       form.classList.remove('hidden');
@@ -1226,10 +1025,10 @@ cancelEditBtn.addEventListener("click", () => {
   headerValueInput.value = "";
   groupSelect.value = "";
   if (emojiInput) emojiInput.value = "";
+  if (includePageTextCheckbox) includePageTextCheckbox.checked = false;
+  if (pageHtmlTypeSelect) pageHtmlTypeSelect.value = "";
   headers = [];
-  selectors = [];
   renderHeaders();
-  renderSelectors();
   cancelEditBtn.classList.add("hidden");
   testWebhookBtn.classList.add("hidden");
   formStatusMessage.textContent = "";
@@ -1345,15 +1144,6 @@ document.addEventListener("DOMContentLoaded", () => {
   identifierInput.placeholder = browser.i18n.getMessage('optionsIdentifierPlaceholder');
   urlFilterInput.placeholder = browser.i18n.getMessage('optionsURLFilterPlaceholder');
   customPayloadInput.placeholder = browser.i18n.getMessage('optionsCustomPayloadPlaceholder');
-  if (selectorInput) {
-    selectorInput.placeholder = browser.i18n.getMessage('optionsSelectorPlaceholder') || 'Enter CSS selector';
-  }
-  if (addSelectorBtn) {
-    addSelectorBtn.textContent = browser.i18n.getMessage('optionsAddSelectorButton') || 'Add Selector';
-  }
-  if (selectorsCountLabel) {
-    selectorsCountLabel.textContent = `0/${MAX_SELECTORS_PER_WEBHOOK}`;
-  }
 
   // Set localized label for cancel edit button
   cancelEditBtn.textContent = browser.i18n.getMessage("optionsCancelEditButton") || "Cancel";
@@ -1362,7 +1152,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // Initialize custom payload section (collapsed by default)
   updateCustomPayloadVisibility();
   updateUrlFilterVisibility();
-  renderSelectors();
 
   // Load webhooks
   loadWebhooks();
@@ -1449,7 +1238,8 @@ testWebhookBtn.addEventListener('click', async () => {
     customPayload: customPayloadInput.value.trim() || undefined,
     urlFilter: urlFilterInput.value.trim() || undefined,
     groupId: groupSelect.value || undefined,
-    selectors: [...selectors]
+    includePageText: includePageTextCheckbox ? includePageTextCheckbox.checked : false,
+    pageHtmlType: pageHtmlTypeSelect ? pageHtmlTypeSelect.value : ""
   };
 
   // Add test header to identify this as a test webhook

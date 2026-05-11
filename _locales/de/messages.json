@@ -213,6 +213,26 @@
     "message": "Extrahierter HTML-Quellcode des aktiven Tabs",
     "description": "Beschreibung für die Variable {{page.html}} in der Variablenliste."
   },
+  "optionsPageHtmlTypeLabel": {
+    "message": "HTML-Inhalt",
+    "description": "Label für das HTML-Typ-Dropdown."
+  },
+  "optionsPageHtmlTypeNone": {
+    "message": "Kein HTML",
+    "description": "Option, kein HTML im Payload zu senden."
+  },
+  "optionsPageHtmlTypeCleaned": {
+    "message": "Bereinigtes HTML (ohne Skripte/Styles)",
+    "description": "Option, bereinigtes HTML ohne Skripte und Styles zu senden."
+  },
+  "optionsPageHtmlTypeRaw": {
+    "message": "Vollständiges rohes HTML",
+    "description": "Option, den vollständigen rohen HTML-Quellcode zu senden."
+  },
+  "optionsPageHtmlTypeHint": {
+    "message": "Wähle aus, wie das Seiten-HTML im Webhook-Payload eingefügt werden soll.",
+    "description": "Hilfetext für das HTML-Typ-Dropdown."
+  },
   "optionsCustomPayloadLabel": {
     "message": "Benutzerdefiniertes Payload (optional)",
     "description": "Label für den Bereich benutzerdefiniertes Payload."

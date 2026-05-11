@@ -249,7 +249,7 @@ async function sendWebhook(webhook, isTest = false) {
       let pageHtml = null;
 
       const needsText = webhook?.includePageText || (webhook?.customPayload && webhook.customPayload.includes("{{page.text}}"));
-      const needsHtml = webhook?.includePageHtml || (webhook?.customPayload && webhook.customPayload.includes("{{page.html}}"));
+      const needsHtml = !!webhook?.pageHtmlType || (webhook?.customPayload && webhook.customPayload.includes("{{page.html}}"));
 
       if ((needsText || needsHtml) && canSendMessage) {
         try {
@@ -258,7 +258,11 @@ async function sendWebhook(webhook, isTest = false) {
             const response = await sendTabMessage(browserAPI, activeTab.id, { type: "GET_PAGE_CONTENT" });
             if (response && response.ok) {
               if (needsText) pageText = response.text;
-              if (needsHtml) pageHtml = response.html;
+              if (needsHtml) {
+                pageHtml = webhook?.pageHtmlType === "cleaned"
+                  ? response.cleanedHtml
+                  : response.html;
+              }
             }
           }
         } catch (error) {
@@ -306,7 +310,7 @@ async function sendWebhook(webhook, isTest = false) {
         payload.pageText = pageText;
       }
 
-      if (webhook && webhook.includePageHtml && pageHtml !== null) {
+      if (webhook && webhook.pageHtmlType && pageHtml !== null) {
         payload.pageHtml = pageHtml;
       }
 

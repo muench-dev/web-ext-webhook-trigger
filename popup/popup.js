@@ -335,17 +335,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     ]);
 
     const currentUrl = tabs[0]?.url || "";
-    const normalizedWebhooks = webhooks.map((wh) => ({
-      ...wh,
-      
-    }));
-
-    const visibleWebhooks = normalizedWebhooks.filter(
+    const visibleWebhooks = webhooks.filter(
       (wh) => !wh.urlFilter || currentUrl.includes(wh.urlFilter)
     );
 
     window._webhookMap = Object.fromEntries(
-      visibleWebhooks.map((wh) => [wh.id, { ...wh,  }])
+      visibleWebhooks.map((wh) => [wh.id, wh])
     );
 
     if (visibleWebhooks.length === 0) {
@@ -378,12 +373,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       triggerBtn.classList.add("webhook-btn");
       triggerBtn.textContent = displayLabel;
 
-      
-
       row.appendChild(triggerBtn);
-            buttonsContainer.appendChild(row);
-
-          };
+      buttonsContainer.appendChild(row);
+    };
 
     groups.forEach((group) => {
       const groupWebhooks = groupedWebhooks[group.id];
@@ -450,35 +442,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   };
 
-  
-    let lastError = null;
-    try {
-      await attemptStart();
-      return;
-    } catch (firstError) {
-      lastError = firstError;
-    }
-
-    const shouldRetry =
-      lastError &&
-      typeof lastError.message === "string" &&
-      (lastError.message.includes("Receiving end does not exist") ||
-        lastError.message.includes("Could not establish connection"));
-
-    if (shouldRetry) {
-      const injected = await ensureSelectorContentScript(tabId);
-      if (injected) {
-        try {
-          await attemptStart();
-          return;
-        } catch (retryError) {
-          console.debug("Selector capture retry failed", retryError);
-          lastError = retryError;
-        }
-      }
-    }
-
-    buttonsContainer.addEventListener("click", async (event) => {
+  buttonsContainer.addEventListener("click", async (event) => {
     const button = event.target.closest("button");
     if (!button) return;
     const action = button.dataset.action;
