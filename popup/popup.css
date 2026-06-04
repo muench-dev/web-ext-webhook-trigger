@@ -357,6 +357,83 @@ body {
   font-size: 12px;
 }
 
+.portal-automation-section {
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+}
+
+.portal-automation-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+
+#portal-automation-setup {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 7px;
+}
+
+#portal-automation-setup label {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+#portal-automation-webhook,
+#portal-automation-limit {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 7px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 12px;
+}
+
+#start-portal-automation-btn {
+  margin-top: 4px;
+  padding: 9px 10px;
+  font-size: 12px;
+}
+
+#portal-automation-status {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 12px;
+}
+
+#portal-automation-current {
+  color: var(--text);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+#portal-automation-counts {
+  color: var(--muted);
+}
+
+#portal-automation-error {
+  padding: 7px 8px;
+  border-radius: 6px;
+  background: var(--error-bg);
+  color: var(--error-text);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.portal-automation-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
 .jobposting-current code,
 .jobposting-active strong {
   font-family: monospace;

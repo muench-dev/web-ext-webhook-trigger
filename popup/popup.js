@@ -58,11 +58,28 @@ document.addEventListener("DOMContentLoaded", async () => {
   const jobpostingActive = document.getElementById("jobposting-active");
   const jobpostingActiveKid = document.getElementById("jobposting-active-kid");
   const clearActiveBtn = document.getElementById("clear-active-jobposting-btn");
+  const portalAutomationSection = document.getElementById("portal-automation-section");
+  const portalAutomationLed = document.getElementById("portal-automation-led");
+  const portalAutomationSetup = document.getElementById("portal-automation-setup");
+  const portalAutomationStatus = document.getElementById("portal-automation-status");
+  const portalAutomationWebhook = document.getElementById("portal-automation-webhook");
+  const portalAutomationLimit = document.getElementById("portal-automation-limit");
+  const portalAutomationCurrent = document.getElementById("portal-automation-current");
+  const portalAutomationCounts = document.getElementById("portal-automation-counts");
+  const portalAutomationError = document.getElementById("portal-automation-error");
+  const portalAutomationTitle = document.getElementById("portal-automation-title");
+  const startPortalAutomationBtn = document.getElementById("start-portal-automation-btn");
+  const automationContinueBtn = document.getElementById("automation-continue-btn");
+  const automationRetryBtn = document.getElementById("automation-retry-btn");
+  const automationSkipBtn = document.getElementById("automation-skip-btn");
+  const automationStopBtn = document.getElementById("automation-stop-btn");
 
   let currentResponseText = "";
   let currentTabKid = null;
   let currentTabUrl = null;
   let activeJobpostingUrl = null;
+  let portalAutomationRefreshTimer = null;
+  let currentPortal = null;
 
   // Update jobposting UI based on current state. The popup only shows
   // jobposting details when there is a current or pinned jobposting;
@@ -186,6 +203,181 @@ document.addEventListener("DOMContentLoaded", async () => {
       updateJobpostingUI(null, null);
     }
   };
+
+  const sendAutomationMessage = async (message) => {
+    const response = await browserAPI.runtime.sendMessage(message);
+    if (!response || response.success === false) {
+      throw new Error(response?.error || "Automation command failed.");
+    }
+    return response;
+  };
+
+  const setAutomationLed = (status) => {
+    if (!portalAutomationLed) return;
+    portalAutomationLed.className = "status-led";
+    if (status === "awaiting_user" || status === "complete") {
+      portalAutomationLed.classList.add("green");
+    } else if (status === "preparing" || status === "running") {
+      portalAutomationLed.classList.add("gray");
+    } else if (status === "stopped") {
+      portalAutomationLed.classList.add("red");
+    } else {
+      portalAutomationLed.classList.add("gray");
+    }
+  };
+
+  const getPortalLabel = (portal) => {
+    if (portal === "linkedin") return "LinkedIn";
+    if (portal === "xing") return "Xing";
+    return "Portal";
+  };
+
+  const populateAutomationWebhooks = async () => {
+    if (!portalAutomationWebhook) return;
+    const { webhooks = [] } = await browserAPI.storage.sync.get("webhooks");
+    const previousValue = portalAutomationWebhook.value;
+    portalAutomationWebhook.textContent = "";
+
+    webhooks.forEach((webhook) => {
+      const option = document.createElement("option");
+      option.value = webhook.id;
+      option.textContent = `${webhook.emoji ? `${webhook.emoji} ` : ""}${webhook.label}`;
+      portalAutomationWebhook.appendChild(option);
+    });
+
+    if (previousValue && webhooks.some((webhook) => webhook.id === previousValue)) {
+      portalAutomationWebhook.value = previousValue;
+    }
+
+    startPortalAutomationBtn.disabled = webhooks.length === 0;
+    if (webhooks.length === 0) {
+      const option = document.createElement("option");
+      option.value = "";
+      option.textContent = "No webhooks configured";
+      portalAutomationWebhook.appendChild(option);
+    }
+  };
+
+  const renderAutomationStatus = (portal, run) => {
+    if (!portalAutomationSection) return;
+    currentPortal = portal || run?.portal || currentPortal;
+    const shouldShow = portal === "xing" || portal === "linkedin" || Boolean(run);
+    portalAutomationSection.classList.toggle("hidden", !shouldShow);
+    if (!shouldShow) return;
+
+    const portalLabel = getPortalLabel(portal || currentPortal || run?.portal);
+    if (portalAutomationTitle) {
+      portalAutomationTitle.textContent = `${portalLabel} automation`;
+    }
+    if (startPortalAutomationBtn) {
+      startPortalAutomationBtn.textContent = `Start ${portalLabel} automation`;
+    }
+
+    const status = run?.status || "idle";
+    setAutomationLed(status);
+
+    const runActive = Boolean(run && ["running", "preparing", "awaiting_user", "failed"].includes(run.status));
+    portalAutomationSetup?.classList.toggle("hidden", runActive);
+    portalAutomationStatus?.classList.toggle("hidden", !run);
+
+    if (!run) {
+      if (portalAutomationCurrent) {
+        portalAutomationCurrent.textContent = "Ready on this Xing page.";
+      }
+      return;
+    }
+
+    const current = run.currentCandidate?.name || "No current candidate";
+    const total = run.total || run.candidates?.length || 0;
+    const currentPosition = run.status === "complete"
+      ? total
+      : Math.min((run.currentIndex || 0) + 1, total);
+    const index = Number.isInteger(run.currentIndex) && run.currentIndex >= 0
+      ? `${currentPosition}/${total}`
+      : `0/${total}`;
+    const statusText = {
+      preparing: "Preparing draft",
+      awaiting_user: "Waiting for review",
+      running: "Running",
+      complete: "Complete",
+      stopped: "Stopped",
+      failed: "Failed",
+    }[run.status] || run.status;
+
+    if (portalAutomationCurrent) {
+      portalAutomationCurrent.textContent = `${statusText}: ${current} (${index})`;
+    }
+    if (portalAutomationCounts) {
+      portalAutomationCounts.textContent = `Sent: ${run.successCount || 0} · Failed: ${run.failureCount || 0} · Skipped: ${run.skippedCount || 0}`;
+    }
+    if (portalAutomationError) {
+      const lastFailure = Array.isArray(run.failures) && run.failures.length > 0
+        ? run.failures[run.failures.length - 1]
+        : null;
+      portalAutomationError.classList.toggle("hidden", !lastFailure);
+      if (lastFailure) {
+        const failedName = lastFailure.candidate?.name || "candidate";
+        portalAutomationError.textContent = `${failedName}: ${lastFailure.error}`;
+      }
+    }
+
+    const awaitingUser = run.status === "awaiting_user";
+    const failed = run.status === "failed";
+    if (automationContinueBtn) automationContinueBtn.disabled = !awaitingUser;
+    if (automationRetryBtn) automationRetryBtn.disabled = !failed;
+    if (automationSkipBtn) automationSkipBtn.disabled = !runActive;
+    if (automationStopBtn) automationStopBtn.disabled = !runActive;
+  };
+
+  const refreshAutomationStatus = async () => {
+    try {
+      const response = await sendAutomationMessage({ type: "GET_PORTAL_AUTOMATION_STATUS" });
+      currentPortal = response.portal || currentPortal;
+      await populateAutomationWebhooks();
+      renderAutomationStatus(response.portal, response.run);
+    } catch (error) {
+      console.error("Failed to refresh automation status:", error);
+      portalAutomationSection?.classList.add("hidden");
+    }
+  };
+
+  const runAutomationCommand = async (message) => {
+    try {
+      const response = await sendAutomationMessage(message);
+      renderAutomationStatus(response.portal || currentPortal || "xing", response.run);
+      await refreshAutomationStatus();
+    } catch (error) {
+      console.error("Automation command failed:", error);
+      setStatus("error", error.message);
+    }
+  };
+
+  if (startPortalAutomationBtn) {
+    startPortalAutomationBtn.addEventListener("click", async () => {
+      await runAutomationCommand({
+        type: "START_PORTAL_AUTOMATION",
+        portal: currentPortal || "xing",
+        webhookId: portalAutomationWebhook?.value || "",
+        limit: Number(portalAutomationLimit?.value || 10),
+      });
+    });
+  }
+
+  automationContinueBtn?.addEventListener("click", async () => {
+    await runAutomationCommand({ type: "COMPLETE_CURRENT_AUTOMATION_CANDIDATE" });
+  });
+
+  automationRetryBtn?.addEventListener("click", async () => {
+    await runAutomationCommand({ type: "RETRY_CURRENT_AUTOMATION_CANDIDATE" });
+  });
+
+  automationSkipBtn?.addEventListener("click", async () => {
+    await runAutomationCommand({ type: "SKIP_CURRENT_AUTOMATION_CANDIDATE" });
+  });
+
+  automationStopBtn?.addEventListener("click", async () => {
+    await runAutomationCommand({ type: "STOP_PORTAL_AUTOMATION" });
+  });
 
   // Handle set active jobposting
   if (setActiveBtn) {
@@ -475,6 +667,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   console.log('About to call initJobpostingSection...');
   await initJobpostingSection();
+  await refreshAutomationStatus();
+  portalAutomationRefreshTimer = setInterval(refreshAutomationStatus, 1500);
+  window.addEventListener("beforeunload", () => {
+    if (portalAutomationRefreshTimer) {
+      clearInterval(portalAutomationRefreshTimer);
+    }
+  });
   console.log('initJobpostingSection done, about to renderWebhooks...');
   await renderWebhooks();
   console.log('renderWebhooks done');

@@ -31,6 +31,31 @@
                 </div>
             </div>
 
+            <div id="portal-automation-section" class="portal-automation-section hidden">
+                <div class="portal-automation-header">
+                    <span class="status-led gray" id="portal-automation-led"></span>
+                    <strong id="portal-automation-title">Portal automation</strong>
+                </div>
+                <div id="portal-automation-setup">
+                    <label for="portal-automation-webhook">Message webhook</label>
+                    <select id="portal-automation-webhook"></select>
+                    <label for="portal-automation-limit">Candidates</label>
+                    <input type="number" id="portal-automation-limit" min="1" max="100" value="10" />
+                    <button type="button" id="start-portal-automation-btn" class="webhook-btn">Start automation</button>
+                </div>
+                <div id="portal-automation-status" class="hidden">
+                    <div id="portal-automation-current"></div>
+                    <div id="portal-automation-counts"></div>
+                    <div id="portal-automation-error" class="hidden"></div>
+                    <div class="portal-automation-actions">
+                        <button type="button" id="automation-continue-btn" class="btn-small">Continue</button>
+                        <button type="button" id="automation-retry-btn" class="btn-small">Retry</button>
+                        <button type="button" id="automation-skip-btn" class="btn-small btn-link">Skip</button>
+                        <button type="button" id="automation-stop-btn" class="btn-small btn-link">Stop</button>
+                    </div>
+                </div>
+            </div>
+
             <div id="buttons-container">
                 <!-- Buttons werden hier dynamisch eingefügt -->
             </div>
