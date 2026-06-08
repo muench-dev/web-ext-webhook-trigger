@@ -20,7 +20,6 @@ describe("portal automation helpers", () => {
       url: "https://xing.com/profile/ada",
       source: "visible-list",
       profileText: "",
-      profileHtml: "",
     });
   });
 
@@ -31,7 +30,6 @@ describe("portal automation helpers", () => {
         name: "Ada",
         url: "https://xing.com/profile/ada",
         profileText: "Senior engineer at Example GmbH",
-        profileHtml: "<main>Senior engineer</main>",
       },
       {
         portal: "xing",
@@ -49,7 +47,6 @@ describe("portal automation helpers", () => {
         url: "https://xing.com/profile/ada",
         source: "visible-list",
         profileText: "Senior engineer at Example GmbH",
-        profileHtml: "<main>Senior engineer</main>",
       },
       job_kid: "KID-123",
       tab: {

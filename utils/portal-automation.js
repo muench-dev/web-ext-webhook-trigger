@@ -23,7 +23,6 @@ function normalizeCandidate(candidate, index = 0) {
     url: String(candidate?.url || "").trim(),
     source: candidate?.source || "visible-list",
     profileText: String(candidate?.profileText || "").trim(),
-    profileHtml: String(candidate?.profileHtml || "").trim(),
   };
 }
 

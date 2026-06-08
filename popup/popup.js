@@ -2,30 +2,10 @@ console.log('=== POPUP.JS LOADING ===');
 
 const STATUS_VARIANTS = ["success", "error", "info", "hidden"];
 
-/**
- * Helper function to create a webhook button element.
- * @param {Object} webhook - The webhook data object.
- * @returns {HTMLButtonElement} The created button element.
- */
-function createWebhookButton(webhook) {
-  const button = document.createElement("button");
-  const displayLabel = `${webhook.emoji ? webhook.emoji + ' ' : ''}${webhook.label}`;
-  button.textContent = displayLabel;
-  button.dataset.url = webhook.url;
-  button.dataset.label = displayLabel;
-  button.dataset.webhookId = webhook.id;
-  button.classList.add("webhook-btn");
-  return button;
-}
-
 document.addEventListener("DOMContentLoaded", async () => {
   console.log('=== DOMContentLoaded FIRED ===');
   // Get elements first
-  const buttonsContainer = document.getElementById("buttons-container");
   const statusMessageEl = document.getElementById("status-message");
-  const responseContainer = document.getElementById("response-container");
-  const responseContent = document.getElementById("response-content");
-  const copyResponseBtn = document.getElementById("copy-response-btn");
   
   // Jobposting UI elements
   const jobpostingSection = document.getElementById("jobposting-section");
@@ -63,18 +43,20 @@ document.addEventListener("DOMContentLoaded", async () => {
   const portalAutomationSetup = document.getElementById("portal-automation-setup");
   const portalAutomationStatus = document.getElementById("portal-automation-status");
   const portalAutomationWebhook = document.getElementById("portal-automation-webhook");
-  const portalAutomationLimit = document.getElementById("portal-automation-limit");
-  const portalAutomationCurrent = document.getElementById("portal-automation-current");
-  const portalAutomationCounts = document.getElementById("portal-automation-counts");
-  const portalAutomationError = document.getElementById("portal-automation-error");
   const portalAutomationTitle = document.getElementById("portal-automation-title");
+  const automationStatusBadge = document.getElementById("automation-status-badge");
+  const automationCandidateName = document.getElementById("automation-candidate-name");
+  const automationProgressBar = document.getElementById("automation-progress-bar");
+  const automationProgressText = document.getElementById("automation-progress-text");
+  const automationStats = document.getElementById("automation-stats");
+  const automationErrorAlert = document.getElementById("automation-error-alert");
+  const automationErrorText = document.getElementById("automation-error-text");
   const startPortalAutomationBtn = document.getElementById("start-portal-automation-btn");
   const automationContinueBtn = document.getElementById("automation-continue-btn");
   const automationRetryBtn = document.getElementById("automation-retry-btn");
-  const automationSkipBtn = document.getElementById("automation-skip-btn");
+  const automationResetBtn = document.getElementById("automation-reset-btn");
   const automationStopBtn = document.getElementById("automation-stop-btn");
 
-  let currentResponseText = "";
   let currentTabKid = null;
   let currentTabUrl = null;
   let activeJobpostingUrl = null;
@@ -228,7 +210,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const getPortalLabel = (portal) => {
     if (portal === "linkedin") return "LinkedIn";
-    if (portal === "xing") return "Xing";
+    if (portal === "xing") return "XING";
     return "Portal";
   };
 
@@ -281,43 +263,56 @@ document.addEventListener("DOMContentLoaded", async () => {
     portalAutomationStatus?.classList.toggle("hidden", !run);
 
     if (!run) {
-      if (portalAutomationCurrent) {
-        portalAutomationCurrent.textContent = "Ready on this Xing page.";
-      }
       return;
     }
 
-    const current = run.currentCandidate?.name || "No current candidate";
+    const candidateName = run.currentCandidate?.name || run.message || "No current candidate";
     const total = run.total || run.candidates?.length || 0;
     const currentPosition = run.status === "complete"
       ? total
       : Math.min((run.currentIndex || 0) + 1, total);
-    const index = Number.isInteger(run.currentIndex) && run.currentIndex >= 0
-      ? `${currentPosition}/${total}`
-      : `0/${total}`;
-    const statusText = {
-      preparing: "Preparing draft",
-      awaiting_user: "Waiting for review",
-      running: "Running",
-      complete: "Complete",
-      stopped: "Stopped",
-      failed: "Failed",
-    }[run.status] || run.status;
+    const progressPercent = total > 0 ? (currentPosition / total) * 100 : 0;
 
-    if (portalAutomationCurrent) {
-      portalAutomationCurrent.textContent = `${statusText}: ${current} (${index})`;
+    const statusLabels = {
+      preparing: "PREPARING",
+      awaiting_user: "WAITING",
+      running: "RUNNING",
+      complete: "DONE",
+      stopped: "STOPPED",
+      failed: "FAILED",
+    };
+    const badgeText = statusLabels[run.status] || run.status.toUpperCase();
+
+    if (automationStatusBadge) {
+      automationStatusBadge.textContent = badgeText;
+      automationStatusBadge.className = `automation-status-badge ${run.status}`;
     }
-    if (portalAutomationCounts) {
-      portalAutomationCounts.textContent = `Sent: ${run.successCount || 0} · Failed: ${run.failureCount || 0} · Skipped: ${run.skippedCount || 0}`;
+
+    if (automationCandidateName) {
+      automationCandidateName.textContent = candidateName;
     }
-    if (portalAutomationError) {
-      const lastFailure = Array.isArray(run.failures) && run.failures.length > 0
-        ? run.failures[run.failures.length - 1]
-        : null;
-      portalAutomationError.classList.toggle("hidden", !lastFailure);
-      if (lastFailure) {
-        const failedName = lastFailure.candidate?.name || "candidate";
-        portalAutomationError.textContent = `${failedName}: ${lastFailure.error}`;
+
+    if (automationProgressBar) {
+      automationProgressBar.style.width = `${progressPercent}%`;
+    }
+    if (automationProgressText) {
+      automationProgressText.textContent = `${currentPosition} / ${total}`;
+    }
+
+    if (automationStats) {
+      const sentEl = automationStats.querySelector(".stat.sent");
+      const failedEl = automationStats.querySelector(".stat.failed");
+      if (sentEl) sentEl.textContent = `Sent: ${run.successCount || 0}`;
+      if (failedEl) failedEl.textContent = `Failed: ${run.failureCount || 0}`;
+    }
+
+    const lastFailure = Array.isArray(run.failures) && run.failures.length > 0
+      ? run.failures[run.failures.length - 1]
+      : null;
+    if (automationErrorAlert) {
+      automationErrorAlert.classList.toggle("hidden", !lastFailure);
+      if (lastFailure && automationErrorText) {
+        automationErrorText.textContent = lastFailure.error;
       }
     }
 
@@ -325,7 +320,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const failed = run.status === "failed";
     if (automationContinueBtn) automationContinueBtn.disabled = !awaitingUser;
     if (automationRetryBtn) automationRetryBtn.disabled = !failed;
-    if (automationSkipBtn) automationSkipBtn.disabled = !runActive;
+    if (automationResetBtn) automationResetBtn.disabled = !run;
     if (automationStopBtn) automationStopBtn.disabled = !runActive;
   };
 
@@ -358,7 +353,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         type: "START_PORTAL_AUTOMATION",
         portal: currentPortal || "xing",
         webhookId: portalAutomationWebhook?.value || "",
-        limit: Number(portalAutomationLimit?.value || 10),
       });
     });
   }
@@ -371,8 +365,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     await runAutomationCommand({ type: "RETRY_CURRENT_AUTOMATION_CANDIDATE" });
   });
 
-  automationSkipBtn?.addEventListener("click", async () => {
-    await runAutomationCommand({ type: "SKIP_CURRENT_AUTOMATION_CANDIDATE" });
+  automationResetBtn?.addEventListener("click", async () => {
+    await runAutomationCommand({ type: "RESET_PORTAL_AUTOMATION" });
   });
 
   automationStopBtn?.addEventListener("click", async () => {
@@ -439,67 +433,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     statusMessageEl.classList.add(effectiveVariant);
   };
 
-  const hideResponse = () => {
-    currentResponseText = "";
-    if (responseContent) {
-      responseContent.textContent = "";
-    }
-    if (responseContainer) {
-      responseContainer.classList.add("hidden");
-    }
-  };
-
-  const showResponse = (text) => {
-    currentResponseText = text || "";
-    if (!responseContainer || !responseContent) return;
-    if (!currentResponseText) {
-      hideResponse();
-      return;
-    }
-    responseContent.textContent = currentResponseText;
-    responseContainer.classList.remove("hidden");
-  };
-
-  
-  
-  
-  
-  
-  const copyToClipboard = async (text) => {
-    try {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(text);
-        return true;
-      }
-      // Fallback: use a hidden textarea
-      const textarea = document.createElement("textarea");
-      textarea.value = text;
-      textarea.setAttribute("readonly", "");
-      textarea.style.position = "fixed";
-      textarea.style.opacity = "0";
-      document.body.appendChild(textarea);
-      textarea.select();
-      const result = document.execCommand("copy");
-      document.body.removeChild(textarea);
-      return result;
-    } catch (error) {
-      console.error("Failed to copy response", error);
-      return false;
-    }
-  };
-
-  if (copyResponseBtn) {
-    copyResponseBtn.addEventListener("click", async () => {
-      if (!currentResponseText) return;
-      const ok = await copyToClipboard(currentResponseText);
-      const successMsg =
-        browserAPI.i18n.getMessage("popupCopySuccess") || "Copied to clipboard.";
-      const errorMsg =
-        browserAPI.i18n.getMessage("popupCopyError") || "Failed to copy response.";
-      setStatus(ok ? "success" : "error", ok ? successMsg : errorMsg);
-    });
-  }
-
   
   const applyThemePreference = async () => {
     try {
@@ -515,138 +448,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       console.warn("Failed to load theme preference", error);
     }
   };
-
-  const renderWebhooks = async () => {
-        buttonsContainer.textContent = "";
-    hideResponse();
-    setStatus("hidden", "");
-
-    const [{ webhooks = [], groups = [] }, tabs] = await Promise.all([
-      browserAPI.storage.sync.get(["webhooks", "groups"]),
-      browserAPI.tabs.query({ active: true, currentWindow: true }),
-    ]);
-
-    const currentUrl = tabs[0]?.url || "";
-    const visibleWebhooks = webhooks.filter(
-      (wh) => !wh.urlFilter || currentUrl.includes(wh.urlFilter)
-    );
-
-    window._webhookMap = Object.fromEntries(
-      visibleWebhooks.map((wh) => [wh.id, wh])
-    );
-
-    if (visibleWebhooks.length === 0) {
-      const p = document.createElement("p");
-      p.className = "no-hooks-msg";
-      p.textContent = browserAPI.i18n.getMessage("popupNoWebhooksConfigured");
-      buttonsContainer.appendChild(p);
-      return;
-    }
-
-    const groupedWebhooks = visibleWebhooks.reduce((acc, webhook) => {
-      const groupKey = webhook.groupId || "ungrouped";
-      if (!acc[groupKey]) acc[groupKey] = [];
-      acc[groupKey].push(webhook);
-      return acc;
-    }, {});
-
-    const groupMap = Object.fromEntries(groups.map((group) => [group.id, group.name]));
-
-    const appendWebhookRow = (webhook) => {
-      const row = document.createElement("div");
-      row.className = "webhook-row";
-
-      const displayLabel = `${webhook.emoji ? `${webhook.emoji} ` : ""}${webhook.label}`;
-
-      const triggerBtn = document.createElement("button");
-      triggerBtn.dataset.action = "trigger";
-      triggerBtn.dataset.webhookId = webhook.id;
-      triggerBtn.dataset.label = displayLabel;
-      triggerBtn.classList.add("webhook-btn");
-      triggerBtn.textContent = displayLabel;
-
-      row.appendChild(triggerBtn);
-      buttonsContainer.appendChild(row);
-    };
-
-    groups.forEach((group) => {
-      const groupWebhooks = groupedWebhooks[group.id];
-      if (!groupWebhooks || groupWebhooks.length === 0) {
-        return;
-      }
-      const header = document.createElement("h3");
-      header.className = "group-header";
-      header.textContent = group.name;
-      buttonsContainer.appendChild(header);
-      groupWebhooks.forEach(appendWebhookRow);
-    });
-
-    const ungrouped = groupedWebhooks["ungrouped"] || [];
-    if (ungrouped.length > 0) {
-      const header = document.createElement("h3");
-      header.className = "group-header";
-      header.textContent =
-        browserAPI.i18n.getMessage("popupNoGroup") || "No Group";
-      buttonsContainer.appendChild(header);
-      ungrouped.forEach(appendWebhookRow);
-    }
-  };
-
-  const handleTrigger = async (webhook, button) => {
-    if (!button || !webhook) return;
-    const originalLabel = button.dataset.label || button.textContent;
-    if (button.disabled) return;
-
-    hideResponse();
-    setStatus("info", browserAPI.i18n.getMessage("popupSending") || "Sending…");
-
-    button.disabled = true;
-    button.textContent = browserAPI.i18n.getMessage("popupSending") || "Sending…";
-
-    try {
-      const response = await window.sendWebhook(webhook, false);
-      const message = await extractResponseMessage(response);
-      if (message) {
-        showResponse(message);
-      } else {
-        hideResponse();
-      }
-      setStatus(
-        "success",
-        browserAPI.i18n.getMessage("popupStatusSuccess") || "Webhook sent!"
-      );
-      button.textContent =
-        browserAPI.i18n.getMessage("popupBtnTextSent") || "Sent!";
-    } catch (error) {
-      console.error("Error sending webhook:", error);
-      hideResponse();
-      const prefix =
-        browserAPI.i18n.getMessage("popupStatusErrorPrefix") || "Error:";
-      setStatus("error", `${prefix} ${error.message}`);
-      button.textContent =
-        browserAPI.i18n.getMessage("popupBtnTextFailed") || "Failed";
-    } finally {
-      setTimeout(() => {
-        button.disabled = false;
-        button.textContent = originalLabel;
-        setStatus("hidden", "");
-      }, 2500);
-    }
-  };
-
-  buttonsContainer.addEventListener("click", async (event) => {
-    const button = event.target.closest("button");
-    if (!button) return;
-    const action = button.dataset.action;
-    const webhookId = button.dataset.webhookId;
-    const webhook =
-      window._webhookMap && webhookId ? window._webhookMap[webhookId] : null;
-    if (!webhook) return;
-
-    if (action === "trigger") {
-      await handleTrigger(webhook, button);
-    }
-  });
 
   
   
@@ -674,37 +475,5 @@ document.addEventListener("DOMContentLoaded", async () => {
       clearInterval(portalAutomationRefreshTimer);
     }
   });
-  console.log('initJobpostingSection done, about to renderWebhooks...');
-  await renderWebhooks();
-  console.log('renderWebhooks done');
+  console.log('initJobpostingSection done');
 });
-
-const extractResponseMessage = async (response) => {
-  if (!response) return "";
-  try {
-    const text = await response.clone().text();
-    if (!text) return "";
-    try {
-      const parsed = JSON.parse(text);
-      if (typeof parsed === "string") {
-        return parsed;
-      }
-      if (parsed && typeof parsed.message === "string") {
-        return parsed.message;
-      }
-      return JSON.stringify(parsed, null, 2);
-    } catch (_) {
-      return text;
-    }
-  } catch (error) {
-    console.warn("Failed to extract response message", error);
-    return "";
-  }
-};
-
-// Export for testing in Node environment
-if (typeof module !== "undefined" && module.exports) {
-  module.exports = {
-    extractResponseMessage,
-  };
-}

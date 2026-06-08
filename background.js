@@ -149,7 +149,7 @@ const recordAutomationFailure = async (run, candidate, error) => {
 
 const getPortalDisplayName = (portal) => {
   if (portal === "linkedin") return "LinkedIn";
-  return "Xing";
+  return "XING";
 };
 
 const extractPortalCandidateProfile = async (run, candidate, portal) => {
@@ -161,28 +161,68 @@ const extractPortalCandidateProfile = async (run, candidate, portal) => {
   return normalizeCandidate(await executeTabFunction(run.tabId, async (inputCandidate, inputPortal) => {
     const portalName = inputPortal || "xing";
     const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-    const getCleanProfileHtml = () => {
-      const main = document.querySelector("main") || document.body;
-      if (!main) return "";
-      const clone = main.cloneNode(true);
-      clone.querySelectorAll("script, style, noscript, iframe, svg").forEach((element) => element.remove());
-      return clone.outerHTML || "";
-    };
-    const waitForProfileText = async (timeoutMs = 20000) => {
-      const startedAt = Date.now();
-      while (Date.now() - startedAt < timeoutMs) {
-        const main = document.querySelector("main") || document.body;
-        const text = String(main?.innerText || "").trim();
-        if (text.length > 200) return main;
-        await sleep(350);
+    const getProfileContentText = () => {
+      const clean = (root) => {
+        root.querySelectorAll("script, style, noscript, iframe, svg, nav, aside, header, footer, [role='navigation'], [role='banner'], [role='menubar']").forEach((el) => el.remove());
+      };
+      // XTM profile pages: the actual content is inside #tab-content or #main-region
+      const contentSelectors = [
+        '#tab-content',
+        '#main-region',
+        '[data-testid="profile-content"]',
+        '[data-testid="profile-main"]',
+        'article',
+        'section[class*="profile"]',
+        'div[class*="profile-content"]',
+      ];
+      for (const selector of contentSelectors) {
+        const el = document.querySelector(selector);
+        if (el) {
+          const clone = el.cloneNode(true);
+          clean(clone);
+          // Remove any modal / lightbox / conversation UI that may be nested
+          clone.querySelectorAll('[id*="lightbox"], [id*="message"], [id*="conversation"], [class*="lightbox"], [class*="modal"], [data-testid*="conversation"]').forEach((e) => e.remove());
+          const text = clone.innerText.trim();
+          if (text.length > 100) return text;
+        }
       }
-      return null;
+      // Fallback: body minus sidebar and header
+      const body = document.body;
+      if (!body) return "";
+      const clone = body.cloneNode(true);
+      clean(clone);
+      clone.querySelectorAll('#navigation-region, #app-banner, [id*="lightbox"], [id*="message"], [id*="conversation"]').forEach((e) => e.remove());
+      return clone.innerText.trim();
     };
-    const main = await waitForProfileText();
-    if (!main) {
+    const waitForProfileReady = async (timeoutMs = 20000) => {
+      const startedAt = Date.now();
+      let lastLength = 0;
+      let stableRounds = 0;
+      while (Date.now() - startedAt < timeoutMs) {
+        const text = getProfileContentText();
+        const length = text.length;
+        if (length > 200) {
+          if (Math.abs(length - lastLength) <= 10) {
+            stableRounds++;
+            if (stableRounds >= 3) return text;
+          } else {
+            stableRounds = 0;
+          }
+          lastLength = length;
+        } else {
+          stableRounds = 0;
+          lastLength = 0;
+        }
+        await sleep(400);
+      }
+      const finalText = getProfileContentText();
+      return finalText.length > 200 ? finalText : null;
+    };
+    const profileText = await waitForProfileReady();
+    if (!profileText) {
       throw new Error(`Timed out waiting for ${portalLabel} profile content.`);
     }
-    const profileText = String(main?.innerText || document.body?.innerText || "")
+    const cleanProfileText = String(profileText)
       .replace(/\s+\n/g, "\n")
       .replace(/\n{3,}/g, "\n\n")
       .trim()
@@ -191,8 +231,7 @@ const extractPortalCandidateProfile = async (run, candidate, portal) => {
     return {
       ...inputCandidate,
       name: titleName || inputCandidate.name,
-      profileText,
-      profileHtml: getCleanProfileHtml().slice(0, 50000),
+      profileText: cleanProfileText,
       extractedAt: new Date().toISOString(),
       portal: portalName,
     };
@@ -306,7 +345,10 @@ const prepareAutomationCandidate = async (run) => {
             throw new Error("Could not find the LinkedIn more actions button.");
           }
           clickElement(moreButton);
-          await sleep(1200);
+          await waitForElement(() => {
+            const menus = Array.from(document.querySelectorAll('[role="dialog"], [data-qa*="menu"], [data-test-modal], [data-test-dialog]'));
+            return menus.find((m) => isVisible(m)) || null;
+          }, 6000);
           const messageItem = await waitForElement(() => {
             const menus = Array.from(document.querySelectorAll('[role="dialog"], [data-qa*="menu"], [data-test-modal], [data-test-dialog]'));
             const buttons = menus.flatMap((menu) => Array.from(menu.querySelectorAll('button, [role="button"], a, [role="menuitem"]')));
@@ -345,17 +387,17 @@ const prepareAutomationCandidate = async (run) => {
             || null
           ));
           if (!menuButton) {
-            throw new Error("Could not find the Xing three-dots actions button.");
+            throw new Error("Could not find the XING three-dots actions button.");
           }
           clickElement(menuButton);
-          await sleep(1200);
+          await waitForElement(() => document.querySelector('[data-qa="more-menu"]') || null, 6000);
           const messageItem = await waitForElement(() => {
             const menu = document.querySelector('[data-qa="more-menu"]');
             const buttons = menu ? Array.from(menu.querySelectorAll('button, [role="button"], a, [role="menuitem"]')) : [];
             return buttons.find((element) => isVisible(element) && textOf(element).includes("nachricht schreiben")) || null;
           }, 12000);
           if (!messageItem) {
-            throw new Error('Could not find "Nachricht schreiben" in the Xing actions menu.');
+            throw new Error('Could not find "Nachricht schreiben" in the XING actions menu.');
           }
           clickElement(messageItem);
         }
@@ -380,17 +422,27 @@ const prepareAutomationCandidate = async (run) => {
     }
 
     if (didNavigate) {
-      const waitForTabLoad = async (tabId, timeoutMs = 15000) => {
-        const startedAt = Date.now();
-        while (Date.now() - startedAt < timeoutMs) {
-          const t = await browser.tabs.get(tabId).catch(() => null);
-          if (t && t.status === "complete") return t;
-          await new Promise((r) => setTimeout(r, 300));
-        }
-        return null;
-      };
       await waitForTabLoad(run.tabId);
-      await new Promise((r) => setTimeout(r, 1500));
+      // Adaptive SPA render wait: poll until the page has meaningful content or timeout
+      await executeTabFunction(run.tabId, () => {
+        return new Promise((resolve) => {
+          const maxWait = 8000;
+          const interval = 400;
+          let elapsed = 0;
+          const check = () => {
+            const hasContent = !!document.querySelector('main, #main-region, #tab-content, article, [data-testid="profile-content"]');
+            const bodyText = document.body?.innerText || "";
+            const hasText = bodyText.length > 300;
+            if ((hasContent && hasText) || elapsed >= maxWait) {
+              resolve();
+            } else {
+              elapsed += interval;
+              setTimeout(check, interval);
+            }
+          };
+          setTimeout(check, 300);
+        });
+      });
     }
 
     const prepared = await executeTabFunction(run.tabId, async (inputMessage, inputPortal) => {
@@ -438,10 +490,12 @@ const prepareAutomationCandidate = async (run) => {
           return null;
         }
         const selectors = [
+          'textarea[data-testid="chat-reply-input"]',
           'textarea[data-qa="message-composer-textarea"]',
           'textarea[data-element="message-composer-textarea"]',
           'textarea[aria-label*="Nachricht"]',
           'textarea[placeholder*="Nachricht"]',
+          'textarea[placeholder*="Antwort eingeben"]',
           'textarea[data-xds="InputBar"]',
         ];
         for (const selector of selectors) {
@@ -453,7 +507,7 @@ const prepareAutomationCandidate = async (run) => {
 
       const input = await waitForElement(findComposerInput, 18000);
       if (!input) {
-        throw new Error(`Could not find the ${portalName === "linkedin" ? "LinkedIn" : "Xing"} message composer.`);
+        throw new Error(`Could not find the ${portalName === "linkedin" ? "LinkedIn" : "XING"} message composer.`);
       }
       input.focus();
       input.dispatchEvent(new Event("focus", { bubbles: true }));
@@ -556,8 +610,60 @@ const processNextAutomationCandidate = async (run) => {
   }
 
   const nextIndex = (run.currentIndex ?? -1) + 1;
-  const candidates = Array.isArray(run.candidates) ? run.candidates : [];
+  let candidates = Array.isArray(run.candidates) ? run.candidates : [];
+  const expectedCandidate = candidates[nextIndex];
+
+  // Close any open chat/composer lightbox before navigating so we start fresh
+  if (run.tabId) {
+    try {
+      await closeChatLightbox(run.tabId);
+    } catch (e) {
+      console.log("Could not close chat lightbox:", e);
+    }
+  }
+
+  // For Xing, prefer the profile-page switcher (Nächste) over direct URL navigation.
+  // This lets the SPA handle transitions and can discover candidates beyond the initial list.
+  if (run.portal === "xing" && run.tabId && nextIndex > 0) {
+    try {
+      const switcherCandidate = await clickNextProfileSwitcherAndExtract(run.tabId);
+      if (switcherCandidate && switcherCandidate.url) {
+        const isExpected = expectedCandidate && normalizeUrlForCompare(switcherCandidate.url) === normalizeUrlForCompare(expectedCandidate.url);
+
+        if (!isExpected) {
+          // Switcher brought us to a new / unknown candidate – append dynamically
+          const existingIds = new Set(candidates.map((c) => c.id));
+          if (!existingIds.has(switcherCandidate.id)) {
+            candidates = [...candidates, switcherCandidate];
+            run = { ...run, candidates, total: candidates.length };
+            await saveAutomationRun(run);
+          }
+        }
+
+        const actualCandidate = isExpected ? expectedCandidate : switcherCandidate;
+        const actualIndex = candidates.findIndex((c) => c.id === actualCandidate.id);
+
+        const nextRun = {
+          ...run,
+          status: "preparing",
+          currentIndex: actualIndex >= 0 ? actualIndex : nextIndex,
+          currentCandidate: actualCandidate,
+          message: `Preparing ${actualCandidate.name}`,
+        };
+        await saveAutomationRun(nextRun);
+        return prepareAutomationCandidate(nextRun);
+      }
+    } catch (e) {
+      console.log("Profile switcher navigation failed, falling back to URL nav:", e);
+    }
+  }
+
   if (nextIndex >= candidates.length) {
+    const paginated = await handlePagination(run);
+    if (paginated) {
+      await saveAutomationRun(paginated);
+      return processNextAutomationCandidate(paginated);
+    }
     const completeRun = {
       ...run,
       status: "complete",
@@ -588,7 +694,7 @@ const processNextAutomationCandidate = async (run) => {
   return prepareAutomationCandidate(nextRun);
 };
 
-const startPortalAutomation = async ({ tabId, webhookId, limit, portal }) => {
+const startPortalAutomation = async ({ tabId, webhookId, portal }) => {
   const tab = tabId ? await browser.tabs.get(tabId) : await getActiveTab();
   const tabPortal = detectPortalFromUrl(tab.url);
   const selectedPortal = portal || tabPortal;
@@ -600,7 +706,7 @@ const startPortalAutomation = async ({ tabId, webhookId, limit, portal }) => {
     throw new Error("Select a message webhook before starting automation.");
   }
 
-  const candidates = await executeTabFunction(tab.id, (inputPortal, inputLimit) => {
+  const candidates = await executeTabFunction(tab.id, (inputPortal) => {
     const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     const isVisible = (element) => {
       if (!element) return false;
@@ -687,7 +793,7 @@ const startPortalAutomation = async ({ tabId, webhookId, limit, portal }) => {
       return /\/in\/(me|self)\//i.test(href) || /\/in\/(me|self)$/i.test(href);
     };
 
-    const extractVisibleCandidates = (portalName, limit = 10) => {
+    const extractVisibleCandidates = (portalName) => {
       const seen = new Set();
       const candidates = [];
       const isConnectionsPage = /\/mynetwork\/invite-connect\/connections\//.test(window.location.href);
@@ -729,11 +835,26 @@ const startPortalAutomation = async ({ tabId, webhookId, limit, portal }) => {
           const rawHref = anchor.getAttribute("href") || "";
           const url = new URL(rawHref, window.location.href).toString();
           const name = candidateNameFromAnchor(anchor);
-          if (addCandidate(name, url) && candidates.length >= limit) break;
+          addCandidate(name, url);
         }
       }
 
-      // ── Phase 2: LinkedIn connection-card extraction ──
+      // ── Phase 2: Xing Talent Manager (XTM) candidate cards ──
+      if (portalName === "xing") {
+        const candidateCards = Array.from(document.querySelectorAll('[data-testid="candidateCard"]'));
+        for (const card of candidateCards) {
+          if (!isRenderable(card)) continue;
+          const nameAnchor = card.querySelector('a[data-testid="candidateFullName"]');
+          if (!nameAnchor) continue;
+          const href = nameAnchor.getAttribute("href") || "";
+          if (!href || href.startsWith("javascript:")) continue;
+          const url = new URL(href, window.location.href).toString();
+          const name = (nameAnchor.textContent || "").replace(/\s+/g, " ").trim();
+          addCandidate(name, url);
+        }
+      }
+
+      // ── Phase 3: LinkedIn connection-card extraction ──
       if (portalName === "linkedin") {
         // Strategy A: find message buttons with "Nachricht senden an: NAME" aria-label
         const msgLinks = Array.from(document.querySelectorAll('a[aria-label*="Nachricht senden an:"], a[aria-label*="Message"]'));
@@ -760,7 +881,7 @@ const startPortalAutomation = async ({ tabId, webhookId, limit, portal }) => {
             if (profileUrl) break;
           }
 
-          if (addCandidate(profileName, profileUrl) && candidates.length >= limit) break;
+          addCandidate(profileName, profileUrl);
         }
 
         // Strategy B: generic card selectors (only if still empty)
@@ -814,15 +935,15 @@ const startPortalAutomation = async ({ tabId, webhookId, limit, portal }) => {
               }
             }
 
-            if (addCandidate(profileName, profileUrl) && candidates.length >= limit) break;
+            addCandidate(profileName, profileUrl);
           }
         }
       }
 
       return candidates;
     };
-    return extractVisibleCandidates(inputPortal || "xing", inputLimit);
-  }, [selectedPortal, Math.max(1, Math.min(Number(limit) || 10, 100))]);
+    return extractVisibleCandidates(inputPortal || "xing");
+  }, [selectedPortal]);
 
   const normalizedCandidates = (Array.isArray(candidates) ? candidates : []).map((candidate, index) =>
     normalizeCandidate(candidate, index)
@@ -838,6 +959,7 @@ const startPortalAutomation = async ({ tabId, webhookId, limit, portal }) => {
     status: "running",
     tabId: tab.id,
     webhookId,
+    listUrl: tab.url,
     candidates: normalizedCandidates,
     currentIndex: -1,
     currentCandidate: null,
@@ -854,8 +976,8 @@ const startPortalAutomation = async ({ tabId, webhookId, limit, portal }) => {
   return processNextAutomationCandidate(run);
 };
 
-const startXingAutomation = async ({ tabId, webhookId, limit }) => {
-  return startPortalAutomation({ tabId, webhookId, limit, portal: "xing" });
+const startXingAutomation = async ({ tabId, webhookId }) => {
+  return startPortalAutomation({ tabId, webhookId, portal: "xing" });
 };
 
 const completeCurrentAutomationCandidate = async () => {
@@ -892,6 +1014,362 @@ const normalizeUrlForCompare = (url) => {
   } catch {
     return url || "";
   }
+};
+
+const waitForTabLoad = async (tabId, timeoutMs = 15000) => {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < timeoutMs) {
+    const t = await browser.tabs.get(tabId).catch(() => null);
+    if (t && t.status === "complete") return t;
+    await new Promise((r) => setTimeout(r, 300));
+  }
+  return null;
+};
+
+const clickNextPageAndExtract = async (tabId, portal, existingIds) => {
+  const clickResult = await executeTabFunction(tabId, () => {
+    const pagination = document.querySelector('ol[data-wry="Pagination"], ol#pagination, [data-testid="pagination"], nav[aria-label*="page"]');
+    if (!pagination) return { clicked: false };
+
+    const current = pagination.querySelector('[data-testid="current-page-item"], [aria-current="page"]');
+    const currentNum = current ? parseInt(current.textContent, 10) : null;
+
+    // Remember the first candidate card so we can detect list changes when the page number is unavailable
+    const firstCard = document.querySelector('[data-testid="candidateCard"]');
+    const firstHref = firstCard?.querySelector('a[data-testid="candidateFullName"]')?.getAttribute("href") || "";
+
+    const items = Array.from(pagination.querySelectorAll("li, button, a"));
+    const nextArrow = items.find((el) => {
+      if (el.disabled || el.getAttribute("disabled") === "") return false;
+      const svg = el.querySelector("svg");
+      if (!svg) return false;
+      const testId = svg.getAttribute("data-testid") || "";
+      return testId.includes("arrow-right") || testId.includes("next");
+    });
+
+    let clicked = false;
+    if (nextArrow) {
+      nextArrow.click();
+      clicked = true;
+    } else if (currentNum && !Number.isNaN(currentNum)) {
+      for (const el of items) {
+        const num = parseInt(el.textContent, 10);
+        if (num === currentNum + 1) {
+          el.click();
+          clicked = true;
+          break;
+        }
+      }
+    }
+
+    if (!clicked) return { clicked: false };
+    return { clicked: true, prevPageNum: currentNum, firstHref };
+  });
+
+  if (!clickResult || !clickResult.clicked) return [];
+
+  // SPA navigation: wait inside the tab for the page to actually update
+  const navigated = await executeTabFunction(tabId, (prevPageNum, prevFirstHref) => {
+    return new Promise((resolve) => {
+      const maxWait = 15000;
+      const interval = 600;
+      let elapsed = 0;
+
+      const check = () => {
+        const pagination = document.querySelector('ol[data-wry="Pagination"], ol#pagination, [data-testid="pagination"], nav[aria-label*="page"]');
+        const current = pagination?.querySelector('[data-testid="current-page-item"], [aria-current="page"]');
+        const newNum = current ? parseInt(current.textContent, 10) : null;
+
+        if (newNum && !Number.isNaN(newNum) && newNum !== prevPageNum) {
+          return resolve(true);
+        }
+
+        const firstCard = document.querySelector('[data-testid="candidateCard"]');
+        const newFirstHref = firstCard?.querySelector('a[data-testid="candidateFullName"]')?.getAttribute("href") || "";
+        if (newFirstHref && newFirstHref !== prevFirstHref) {
+          return resolve(true);
+        }
+
+        elapsed += interval;
+        if (elapsed >= maxWait) return resolve(false);
+        setTimeout(check, interval);
+      };
+
+      setTimeout(check, 1000);
+    });
+  }, [clickResult.prevPageNum, clickResult.firstHref]);
+
+  if (!navigated) return [];
+
+  // Extra render buffer for the SPA to finish painting new cards
+  await new Promise((r) => setTimeout(r, 2000));
+
+  const candidates = await executeTabFunction(tabId, (inputPortal, seenIds) => {
+    const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+    const isVisible = (element) => {
+      if (!element) return false;
+      const rect = element.getBoundingClientRect();
+      const style = window.getComputedStyle(element);
+      return rect.width > 0 && rect.height > 0 && style.visibility !== "hidden" && style.display !== "none";
+    };
+    const isRenderable = (element) => {
+      if (!element) return false;
+      const style = window.getComputedStyle(element);
+      return style.display !== "none" && style.visibility !== "hidden";
+    };
+
+    const seen = new Set(seenIds || []);
+    const candidates = [];
+
+    const addCandidate = (name, url) => {
+      if (!name || name.length < 2 || !url) return false;
+      try {
+        const parsed = new URL(url);
+        if (seen.has(parsed.pathname)) return false;
+        seen.add(parsed.pathname);
+        candidates.push({ id: parsed.pathname, name, url, source: `${inputPortal || "xing"}-visible-list` });
+        return true;
+      } catch (_) {
+        return false;
+      }
+    };
+
+    // Phase 1: XTM candidate cards
+    if (inputPortal === "xing") {
+      const cards = Array.from(document.querySelectorAll('[data-testid="candidateCard"]'));
+      for (const card of cards) {
+        if (!isRenderable(card)) continue;
+        const nameAnchor = card.querySelector('a[data-testid="candidateFullName"]');
+        if (!nameAnchor) continue;
+        const href = nameAnchor.getAttribute("href") || "";
+        if (!href || href.startsWith("javascript:")) continue;
+        const url = new URL(href, window.location.href).toString();
+        const name = (nameAnchor.textContent || "").replace(/\s+/g, " ").trim();
+        addCandidate(name, url);
+      }
+    }
+
+    // Phase 2: generic profile anchors
+    const allAnchors = Array.from(document.querySelectorAll('a[href]'));
+    const profileAnchors = allAnchors.filter((a) => {
+      const href = a.getAttribute("href") || "";
+      return href && !href.startsWith("javascript:") && /\/(in|pub|profile)\//.test(href);
+    });
+    for (const anchor of profileAnchors) {
+      if (!isVisible(anchor)) continue;
+      const rawHref = anchor.getAttribute("href") || "";
+      const url = new URL(rawHref, window.location.href).toString();
+      const name = (anchor.textContent || "").replace(/\s+/g, " ").trim();
+      addCandidate(name, url);
+    }
+
+    return candidates;
+  }, [portal, existingIds]);
+
+  return Array.isArray(candidates) ? candidates : [];
+};
+
+const closeChatLightbox = async (tabId) => {
+  const closed = await executeTabFunction(tabId, () => {
+    const closeBtn = document.querySelector('button svg[data-testid="close-lightbox-icon"]')?.closest("button")
+      || document.querySelector('[data-testid="close-lightbox-icon"]')
+      || document.querySelector('[data-testid*="close"]')?.closest("button");
+    if (!closeBtn) return false;
+    closeBtn.scrollIntoView({ block: "center", inline: "center" });
+    ["pointerdown", "mousedown", "pointerup", "mouseup", "click"].forEach((type) => {
+      closeBtn.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, view: window }));
+    });
+    return true;
+  });
+
+  if (!closed) return;
+
+  // If a confirmation dialog appears (unsaved text), click "Ja, verwerfen"
+  await executeTabFunction(tabId, () => {
+    return new Promise((resolve) => {
+      const maxWait = 5000;
+      const interval = 300;
+      let elapsed = 0;
+
+      const check = () => {
+        const confirmBtn = Array.from(document.querySelectorAll("button")).find((btn) => {
+          const text = (btn.textContent || "").trim();
+          return text === "Ja, verwerfen" || text === "Ja, verwerfen";
+        });
+        if (confirmBtn) {
+          ["pointerdown", "mousedown", "pointerup", "mouseup", "click"].forEach((type) => {
+            confirmBtn.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, view: window }));
+          });
+          resolve(true);
+          return;
+        }
+        elapsed += interval;
+        if (elapsed >= maxWait) return resolve(false);
+        setTimeout(check, interval);
+      };
+
+      setTimeout(check, 400);
+    });
+  });
+
+  // Wait for the lightbox/modal to actually disappear
+  await executeTabFunction(tabId, () => {
+    return new Promise((resolve) => {
+      const maxWait = 5000;
+      const interval = 300;
+      let elapsed = 0;
+
+      const check = () => {
+        const lightbox = document.querySelector('[data-testid="lightbox-header"], [role="dialog"], [class*="lightbox"]');
+        if (!lightbox) return resolve(true);
+        elapsed += interval;
+        if (elapsed >= maxWait) return resolve(false);
+        setTimeout(check, interval);
+      };
+
+      setTimeout(check, 400);
+    });
+  });
+};
+
+const clickNextProfileSwitcherAndExtract = async (tabId) => {
+  const clickResult = await executeTabFunction(tabId, () => {
+    const nextBtn = document.querySelector('button[data-testid="switchNext"]');
+    if (!nextBtn) return { clicked: false, reason: "not-found" };
+
+    const isDisabled =
+      nextBtn.disabled ||
+      nextBtn.getAttribute("disabled") === "" ||
+      nextBtn.getAttribute("aria-disabled") === "true" ||
+      nextBtn.getAttribute("aria-disabled") === true;
+
+    const style = window.getComputedStyle(nextBtn);
+    const isEffectivelyDisabled = isDisabled || parseFloat(style.opacity) < 0.4 || style.pointerEvents === "none";
+
+    if (isEffectivelyDisabled) {
+      return { clicked: false, reason: "disabled" };
+    }
+
+    const h1 = document.querySelector("h1");
+    const currentName = h1?.textContent?.trim() || "";
+    const currentUrl = window.location.href;
+
+    nextBtn.scrollIntoView({ block: "center", inline: "center" });
+    nextBtn.focus?.();
+
+    // Robust click for React / Vue / Angular SPAs
+    ["pointerdown", "mousedown", "pointerup", "mouseup", "click"].forEach((type) => {
+      nextBtn.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, view: window }));
+    });
+
+    return { clicked: true, currentName, currentUrl };
+  });
+
+  if (!clickResult || !clickResult.clicked) {
+    console.log("Profile switcher click failed:", clickResult?.reason);
+    return null;
+  }
+
+  const updated = await executeTabFunction(tabId, (prevName, prevUrl) => {
+    return new Promise((resolve) => {
+      const maxWait = 20000;
+      const interval = 500;
+      let elapsed = 0;
+      let stableRounds = 0;
+      let lastName = prevName;
+      let lastUrl = prevUrl;
+
+      const check = () => {
+        const h1 = document.querySelector("h1");
+        const newName = h1?.textContent?.trim() || "";
+        const newUrl = window.location.href;
+        const bodyText = document.body?.innerText || "";
+
+        const changed = (newName && newName !== prevName) || (newUrl !== prevUrl);
+        const hasContent = bodyText.length > 300;
+
+        if (changed && hasContent) {
+          // Wait a bit for SPA to finish painting
+          if (stableRounds < 2) {
+            stableRounds++;
+            setTimeout(check, interval);
+            return;
+          }
+          const name = document.querySelector("h1")?.textContent?.replace(/\s+/g, " ").trim() || "";
+          const url = window.location.href;
+          resolve({ name, url });
+          return;
+        }
+
+        elapsed += interval;
+        if (elapsed >= maxWait) return resolve(null);
+        setTimeout(check, interval);
+      };
+
+      setTimeout(check, 600);
+    });
+  }, [clickResult.currentName, clickResult.currentUrl]);
+
+  if (!updated || !updated.url) return null;
+
+  try {
+    const parsed = new URL(updated.url);
+    return {
+      id: parsed.pathname,
+      name: updated.name || "Candidate",
+      url: updated.url,
+      source: "xing-profile-switcher",
+    };
+  } catch {
+    return null;
+  }
+};
+
+const handlePagination = async (run) => {
+  if (!run || !run.tabId || !run.listUrl) return null;
+
+  const currentTab = await browser.tabs.get(run.tabId).catch(() => null);
+  const listPath = normalizeUrlForCompare(run.listUrl);
+  const isOnListPage = currentTab && normalizeUrlForCompare(currentTab.url).startsWith(listPath);
+
+  // Show "Loading next page..." while we navigate
+  await saveAutomationRun({
+    ...run,
+    status: "running",
+    currentCandidate: null,
+    message: "Loading next page...",
+  });
+
+  if (!isOnListPage) {
+    await browser.tabs.update(run.tabId, { url: run.listUrl });
+    await waitForTabLoad(run.tabId);
+    await new Promise((r) => setTimeout(r, 2000));
+  }
+
+  const existingIds = Array.isArray(run.candidates) ? run.candidates.map((c) => c.id) : [];
+  const newCandidates = await clickNextPageAndExtract(run.tabId, run.portal, existingIds);
+
+  if (!newCandidates.length) {
+    return null;
+  }
+
+  const normalized = newCandidates.map((c, i) => ({
+    id: c?.id || `candidate-${run.candidates.length + i + 1}`,
+    name: String(c?.name || "").trim() || `Candidate ${run.candidates.length + i + 1}`,
+    url: String(c?.url || "").trim(),
+    source: c?.source || `${run.portal}-visible-list`,
+  })).filter((c) => c.url);
+
+  if (!normalized.length) return null;
+
+  const updatedCandidates = [...run.candidates, ...normalized];
+  return {
+    ...run,
+    candidates: updatedCandidates,
+    total: updatedCandidates.length,
+    status: "running",
+    message: `Loaded ${normalized.length} more candidates from next page.`,
+  };
 };
 
 const retryCurrentAutomationCandidate = async () => {
@@ -943,6 +1421,14 @@ const stopAutomation = async () => {
   };
   await saveAutomationRun(updated);
   return updated;
+};
+
+const resetAutomation = async () => {
+  const key = typeof PORTAL_AUTOMATION_STORAGE_KEY !== "undefined"
+    ? PORTAL_AUTOMATION_STORAGE_KEY
+    : "portal_automation_run";
+  await browser.storage.local.remove(key);
+  return null;
 };
 
 /**
@@ -1103,7 +1589,6 @@ if (browser.runtime) {
           const run = await startXingAutomation({
             tabId: message.tabId,
             webhookId: message.webhookId,
-            limit: message.limit,
           });
           return { success: true, run };
         }
@@ -1112,7 +1597,6 @@ if (browser.runtime) {
           const run = await startPortalAutomation({
             tabId: message.tabId,
             webhookId: message.webhookId,
-            limit: message.limit,
             portal: message.portal,
           });
           return { success: true, run };
@@ -1120,6 +1604,11 @@ if (browser.runtime) {
 
         case 'STOP_PORTAL_AUTOMATION': {
           const run = await stopAutomation();
+          return { success: true, run };
+        }
+
+        case 'RESET_PORTAL_AUTOMATION': {
+          const run = await resetAutomation();
           return { success: true, run };
         }
 

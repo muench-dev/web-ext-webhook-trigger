@@ -34,39 +34,40 @@
             <div id="portal-automation-section" class="portal-automation-section hidden">
                 <div class="portal-automation-header">
                     <span class="status-led gray" id="portal-automation-led"></span>
-                    <strong id="portal-automation-title">Portal automation</strong>
+                    <strong id="portal-automation-title">Portal</strong>
                 </div>
                 <div id="portal-automation-setup">
                     <label for="portal-automation-webhook">Message webhook</label>
                     <select id="portal-automation-webhook"></select>
-                    <label for="portal-automation-limit">Candidates</label>
-                    <input type="number" id="portal-automation-limit" min="1" max="100" value="10" />
                     <button type="button" id="start-portal-automation-btn" class="webhook-btn">Start automation</button>
                 </div>
                 <div id="portal-automation-status" class="hidden">
-                    <div id="portal-automation-current"></div>
-                    <div id="portal-automation-counts"></div>
-                    <div id="portal-automation-error" class="hidden"></div>
+                    <div class="automation-status-header">
+                        <span class="automation-status-badge" id="automation-status-badge">WAITING</span>
+                        <span class="automation-progress-text" id="automation-progress-text">0 / 0</span>
+                    </div>
+                    <div class="automation-candidate-name" id="automation-candidate-name">No current candidate</div>
+                    <div class="automation-progress">
+                        <div class="automation-progress-bar" id="automation-progress-bar"></div>
+                    </div>
+                    <div class="automation-stats" id="automation-stats">
+                        <span class="stat sent">Sent: 0</span>
+                        <span class="stat failed">Failed: 0</span>
+                    </div>
+                    <div class="automation-error-alert hidden" id="automation-error-alert">
+                        <span class="error-icon">⚠️</span>
+                        <span class="error-text" id="automation-error-text"></span>
+                    </div>
                     <div class="portal-automation-actions">
-                        <button type="button" id="automation-continue-btn" class="btn-small">Continue</button>
-                        <button type="button" id="automation-retry-btn" class="btn-small">Retry</button>
-                        <button type="button" id="automation-skip-btn" class="btn-small btn-link">Skip</button>
-                        <button type="button" id="automation-stop-btn" class="btn-small btn-link">Stop</button>
+                        <button type="button" id="automation-continue-btn" class="btn-primary">Continue</button>
+                        <button type="button" id="automation-retry-btn" class="btn-primary">Retry</button>
+                        <button type="button" id="automation-reset-btn" class="btn-reset">Reset</button>
+                        <button type="button" id="automation-stop-btn" class="btn-danger">Stop</button>
                     </div>
                 </div>
             </div>
 
-            <div id="buttons-container">
-                <!-- Buttons werden hier dynamisch eingefügt -->
-            </div>
-            <div id="status-message"></div>
-            <div id="response-container" class="hidden">
-                <div class="response-header">
-                    <span id="response-title">__MSG_popupResponseHeader__</span>
-                    <button type="button" id="copy-response-btn">__MSG_popupCopyResponseButton__</button>
-                </div>
-                <div id="response-content"></div>
-            </div>
+            <div id="status-message" class="hidden"></div>
             <div class="footer">
                 <a href="#" id="open-options">__MSG_popupSettingsLink__</a>
             </div>

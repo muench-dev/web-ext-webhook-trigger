@@ -89,20 +89,71 @@
       }
     }
 
+    // Xing Talent Manager (XTM) candidate list cards
+    const candidateCards = Array.from(document.querySelectorAll('[data-testid="candidateCard"]'));
+    for (const card of candidateCards) {
+      if (!isVisible(card)) continue;
+      const nameAnchor = card.querySelector('a[data-testid="candidateFullName"]');
+      if (!nameAnchor) continue;
+      const href = nameAnchor.getAttribute("href") || "";
+      if (!href) continue;
+      const url = absoluteUrl(href);
+      let parsed;
+      try {
+        parsed = new URL(url);
+      } catch (_) {
+        continue;
+      }
+      if (seen.has(parsed.pathname)) continue;
+      const name = (nameAnchor.textContent || "").replace(/\s+/g, " ").trim();
+      if (!name || name.length < 2) continue;
+      seen.add(parsed.pathname);
+      candidates.push({
+        id: parsed.pathname,
+        name,
+        url,
+        source: "xing-visible-list",
+      });
+      if (candidates.length >= limit) break;
+    }
+
     return candidates;
   }
 
-  function getCleanProfileHtml() {
-    const main = document.querySelector("main") || document.body;
-    if (!main) return "";
-    const clone = main.cloneNode(true);
-    clone.querySelectorAll("script, style, noscript, iframe, svg").forEach((element) => element.remove());
-    return clone.outerHTML || "";
+  function getProfileContentText() {
+    const clean = (root) => {
+      root.querySelectorAll("script, style, noscript, iframe, svg, nav, aside, header, footer, [role='navigation'], [role='banner'], [role='menubar']").forEach((el) => el.remove());
+    };
+    const contentSelectors = [
+      '#tab-content',
+      '#main-region',
+      '[data-testid="profile-content"]',
+      '[data-testid="profile-main"]',
+      'article',
+      'section[class*="profile"]',
+      'div[class*="profile-content"]',
+    ];
+    for (const selector of contentSelectors) {
+      const el = document.querySelector(selector);
+      if (el) {
+        const clone = el.cloneNode(true);
+        clean(clone);
+        clone.querySelectorAll('[id*="lightbox"], [id*="message"], [id*="conversation"], [class*="lightbox"], [class*="modal"], [data-testid*="conversation"]').forEach((e) => e.remove());
+        const text = clone.innerText.trim();
+        if (text.length > 100) return text;
+      }
+    }
+    const body = document.body;
+    if (!body) return "";
+    const clone = body.cloneNode(true);
+    clean(clone);
+    clone.querySelectorAll('#navigation-region, #app-banner, [id*="lightbox"], [id*="message"], [id*="conversation"]').forEach((e) => e.remove());
+    return clone.innerText.trim();
   }
 
   function extractProfileContext(candidate = {}) {
-    const main = document.querySelector("main") || document.body;
-    const profileText = String(main?.innerText || document.body?.innerText || "")
+    const profileText = getProfileContentText();
+    const cleanProfileText = String(profileText)
       .replace(/\s+\n/g, "\n")
       .replace(/\n{3,}/g, "\n\n")
       .trim()
@@ -112,8 +163,7 @@
     return {
       ...candidate,
       name: titleName || candidate.name,
-      profileText,
-      profileHtml: getCleanProfileHtml().slice(0, 50000),
+      profileText: cleanProfileText,
       extractedAt: new Date().toISOString(),
     };
   }
@@ -145,12 +195,29 @@
     return found;
   }
 
-  async function waitForProfileText(timeoutMs = 20000) {
-    return waitForElement(() => {
-      const main = document.querySelector("main") || document.body;
-      const text = String(main?.innerText || "").trim();
-      return text.length > 200 ? main : null;
-    }, timeoutMs);
+  async function waitForProfileReady(timeoutMs = 20000) {
+    const startedAt = Date.now();
+    let lastLength = 0;
+    let stableRounds = 0;
+    while (Date.now() - startedAt < timeoutMs) {
+      const text = getProfileContentText();
+      const length = text.length;
+      if (length > 200) {
+        if (Math.abs(length - lastLength) <= 10) {
+          stableRounds++;
+          if (stableRounds >= 3) return text;
+        } else {
+          stableRounds = 0;
+        }
+        lastLength = length;
+      } else {
+        stableRounds = 0;
+        lastLength = 0;
+      }
+      await wait(400);
+    }
+    const finalText = getProfileContentText();
+    return finalText.length > 200 ? finalText : null;
   }
 
   function clickableElements() {
@@ -276,10 +343,12 @@
   async function fillComposer(message) {
     const input = await waitForElement(() => {
       const selectors = [
+        'textarea[data-testid="chat-reply-input"]',
         'textarea[data-qa="message-composer-textarea"]',
         'textarea[data-element="message-composer-textarea"]',
         'textarea[aria-label*="Nachricht"]',
         'textarea[placeholder*="Nachricht"]',
+        'textarea[placeholder*="Antwort eingeben"]',
         'textarea[data-xds="InputBar"]',
       ];
       for (const selector of selectors) {
@@ -355,7 +424,7 @@
   globalThis.__webhookTriggerXingAutomationApi = {
     extractVisibleCandidates,
     extractProfileContext,
-    waitForProfileText,
+    waitForProfileReady,
     prepareCandidate,
   };
 })();
